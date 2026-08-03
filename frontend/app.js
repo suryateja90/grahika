@@ -83,6 +83,41 @@ function renderDashaTable(periods) {
   }
 }
 
+document.getElementById("place_search_btn").addEventListener("click", async () => {
+  const errorEl = document.getElementById("error");
+  const query = document.getElementById("place_query").value.trim();
+  const resultsEl = document.getElementById("place_results");
+  resultsEl.innerHTML = "";
+  errorEl.hidden = true;
+  if (query.length < 2) return;
+
+  try {
+    const resp = await fetch(`${API_BASE}/geocode/search?q=${encodeURIComponent(query)}`);
+    if (!resp.ok) throw new Error(`Place lookup failed (${resp.status})`);
+    const places = await resp.json();
+    if (places.length === 0) {
+      resultsEl.innerHTML = "<li>No matches -- try a different spelling or add the country</li>";
+      return;
+    }
+    for (const place of places) {
+      const li = document.createElement("li");
+      li.textContent = place.display_name;
+      li.addEventListener("click", () => {
+        document.getElementById("latitude").value = place.latitude;
+        document.getElementById("longitude").value = place.longitude;
+        const selected = document.getElementById("place_selected");
+        selected.textContent = `Selected: ${place.display_name} (${place.latitude.toFixed(4)}, ${place.longitude.toFixed(4)})`;
+        selected.hidden = false;
+        resultsEl.innerHTML = "";
+      });
+      resultsEl.appendChild(li);
+    }
+  } catch (err) {
+    errorEl.textContent = err.message;
+    errorEl.hidden = false;
+  }
+});
+
 document.getElementById("chart-form").addEventListener("submit", async (e) => {
   e.preventDefault();
   const errorEl = document.getElementById("error");
@@ -90,15 +125,25 @@ document.getElementById("chart-form").addEventListener("submit", async (e) => {
   errorEl.hidden = true;
   resultsEl.hidden = true;
 
+  const latitude = parseFloat(document.getElementById("latitude").value);
+  const longitude = parseFloat(document.getElementById("longitude").value);
+  if (Number.isNaN(latitude) || Number.isNaN(longitude)) {
+    errorEl.textContent = "Search for a birth place above, or expand \"Enter coordinates manually\" and fill in latitude/longitude.";
+    errorEl.hidden = false;
+    return;
+  }
+
   const date = document.getElementById("birth_date").value;
   const time = document.getElementById("birth_time").value;
   const offset = document.getElementById("utc_offset").value.trim();
+  // No offset entered -> send a naive datetime; the backend resolves the
+  // correct historical UTC offset for this place/date automatically.
   const birth_datetime = `${date}T${time}${offset}`;
 
   const payload = {
     birth_datetime,
-    latitude: parseFloat(document.getElementById("latitude").value),
-    longitude: parseFloat(document.getElementById("longitude").value),
+    latitude,
+    longitude,
     ayanamsa: document.getElementById("ayanamsa").value,
     node_type: document.getElementById("node_type").value,
   };

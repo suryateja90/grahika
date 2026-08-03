@@ -46,6 +46,26 @@ button:hover { opacity: 0.9; }
 
 .error { color: #c0392b; font-weight: 600; }
 
+.place-search { display: flex; flex-direction: column; gap: 0.4rem; }
+.search-row { display: flex; gap: 0.5rem; }
+.search-row input { flex: 1; }
+.search-row button { padding: 0.4rem 0.8rem; }
+#place_results { list-style: none; margin: 0; padding: 0; max-height: 10rem; overflow-y: auto; }
+#place_results li {
+  padding: 0.4rem 0.6rem;
+  border: 1px solid #888;
+  border-top: none;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+#place_results li:first-child { border-top: 1px solid #888; }
+#place_results li:hover { background: rgba(122,59,46,0.15); }
+.selected-place { font-size: 0.85rem; opacity: 0.8; margin: 0; }
+
+details { font-size: 0.85rem; }
+details summary { cursor: pointer; opacity: 0.75; }
+details .row { margin-top: 0.5rem; }
+
 .charts { display: flex; flex-wrap: wrap; gap: 2rem; justify-content: center; margin: 1.5rem 0; }
 .chart-block { text-align: center; }
 

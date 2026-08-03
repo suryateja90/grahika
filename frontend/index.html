@@ -14,12 +14,28 @@
     <div class="row">
       <label>Birth date <input type="date" id="birth_date" required></label>
       <label>Birth time <input type="time" id="birth_time" step="1" required></label>
-      <label>UTC offset <input type="text" id="utc_offset" value="+05:30" placeholder="+05:30" required></label>
     </div>
-    <div class="row">
-      <label>Latitude <input type="number" id="latitude" step="any" value="28.6139" required></label>
-      <label>Longitude <input type="number" id="longitude" step="any" value="77.2090" required></label>
+
+    <div class="place-search">
+      <label class="grow">Birth place
+        <div class="search-row">
+          <input type="text" id="place_query" placeholder="e.g. Chennai, India">
+          <button type="button" id="place_search_btn">Search</button>
+        </div>
+      </label>
+      <ul id="place_results"></ul>
+      <p id="place_selected" class="selected-place" hidden></p>
     </div>
+
+    <details>
+      <summary>Enter coordinates manually instead</summary>
+      <div class="row">
+        <label>Latitude <input type="number" id="latitude" step="any"></label>
+        <label>Longitude <input type="number" id="longitude" step="any"></label>
+        <label>Override UTC offset <input type="text" id="utc_offset" placeholder="+05:30 (optional)"></label>
+      </div>
+    </details>
+
     <div class="row">
       <label>Ayanamsa
         <select id="ayanamsa">

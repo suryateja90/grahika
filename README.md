@@ -38,15 +38,22 @@ commercial launch if that matters to you.
   (SVG, generated client-side from the API response), positions table,
   mahadasha timeline table. No build tooling; open http://localhost:8000/
   once the backend is running.
+- `backend/app/geocode.py` + `GET /geocode/search` -- place name -> lat/lon via
+  Nominatim (OpenStreetMap, free, no API key). The frontend uses this so
+  nobody needs to know or enter raw coordinates.
+- Automatic historical timezone resolution: if `birth_datetime` is sent
+  without a UTC offset, the backend looks up the place's IANA timezone
+  (`timezonefinder`) and localizes using `pytz`'s historical rules -- e.g.
+  a 1850 Chennai birth correctly resolves to +05:53 (pre-1906 Madras time),
+  not a naive +05:30. This directly avoids the #1 source of wrong charts.
+  An explicit "Override UTC offset" field is still available for cases
+  where a pundit gives you a specific offset to reproduce.
 
 ## What's not built yet
 
 - User accounts / auth (OneLync's `auth.py` pattern is a reasonable template
   to copy over when needed -- not risky, skipped for now to focus on the
   calculation engine first)
-- City/place name -> lat-lon geocoding (form currently takes raw coordinates;
-  free geocoding APIs exist but weren't wired up yet to keep external
-  dependencies at zero for this pass)
 - Antardasha (dasha sub-periods) -- straightforward extension of `dasha.py`
   once mahadasha output is verified
 - More vargas (D2, D3, D12, D60, etc.) -- same pattern as D9/D10, add as needed
