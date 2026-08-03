@@ -1,0 +1,18 @@
+{
+  "description": "Sanity-check fixture, NOT pundit-verified -- sidereal Sun at 29.3 deg Aries on this date/place checks out against expected solar sidereal motion (~1 deg/day, Aries around mid-Apr to mid-May). Replace/supplement with real pundit-checked charts before relying on this suite.",
+  "birth_datetime": "1990-05-14T08:30:00+05:30",
+  "latitude": 28.6139,
+  "longitude": 77.2090,
+  "ayanamsa": "lahiri",
+  "expect": {
+    "positions": {
+      "Sun": { "sign": "Aries" },
+      "Moon": { "sign": "Sagittarius", "nakshatra": "Purva Ashadha" },
+      "Ascendant": { "sign": "Gemini" }
+    },
+    "vargas": {
+      "Ascendant": { "D9": { "sign": "Capricorn" } }
+    },
+    "vimshottari_dasha_first_lord": "Venus"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "description": "TEMPLATE - copy to a new file (no leading underscore) and fill in a pundit-verified chart",
+  "birth_datetime": "1990-05-14T08:30:00+05:30",
+  "latitude": 28.6139,
+  "longitude": 77.2090,
+  "ayanamsa": "lahiri",
+  "expect": {
+    "positions": {
+      "Moon": { "sign": "Sagittarius", "nakshatra": "Purva Ashadha" },
+      "Ascendant": { "sign": "Gemini" }
+    },
+    "vargas": {
+      "Ascendant": { "D9": { "sign": "Capricorn" } }
+    },
+    "vimshottari_dasha_first_lord": "Venus"
+  }
+}
