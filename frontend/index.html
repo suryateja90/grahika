@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Grahika - Birth Chart</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+  <h1>Grahika</h1>
+  <p class="subtitle">Vedic birth chart &amp; dasha calculator</p>
+
+  <form id="chart-form">
+    <div class="row">
+      <label>Birth date <input type="date" id="birth_date" required></label>
+      <label>Birth time <input type="time" id="birth_time" step="1" required></label>
+      <label>UTC offset <input type="text" id="utc_offset" value="+05:30" placeholder="+05:30" required></label>
+    </div>
+    <div class="row">
+      <label>Latitude <input type="number" id="latitude" step="any" value="28.6139" required></label>
+      <label>Longitude <input type="number" id="longitude" step="any" value="77.2090" required></label>
+    </div>
+    <div class="row">
+      <label>Ayanamsa
+        <select id="ayanamsa">
+          <option value="lahiri" selected>Lahiri</option>
+          <option value="raman">Raman</option>
+          <option value="kp">KP (Krishnamurti)</option>
+          <option value="true_chitra">True Chitrapaksha</option>
+        </select>
+      </label>
+      <label>Node
+        <select id="node_type">
+          <option value="mean" selected>Mean</option>
+          <option value="true">True</option>
+        </select>
+      </label>
+    </div>
+    <button type="submit">Compute chart</button>
+  </form>
+
+  <p id="error" class="error" hidden></p>
+
+  <section id="results" hidden>
+    <div class="charts">
+      <div class="chart-block">
+        <h2>D1 - Rasi</h2>
+        <div id="d1-chart"></div>
+      </div>
+      <div class="chart-block">
+        <h2>D9 - Navamsa</h2>
+        <div id="d9-chart"></div>
+      </div>
+    </div>
+
+    <div class="table-block">
+      <h2>Positions</h2>
+      <table id="positions-table">
+        <thead><tr><th>Body</th><th>Sign</th><th>Degree</th><th>Nakshatra</th><th>Pada</th><th>Retro</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="table-block">
+      <h2>Vimshottari Mahadasha</h2>
+      <table id="dasha-table">
+        <thead><tr><th>Lord</th><th>Start</th><th>End</th><th>Years</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+<script src="app.js"></script>
+</body>
+</html>
