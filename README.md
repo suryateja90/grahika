@@ -11,8 +11,10 @@ with pundit-verified accuracy as the core product bet.
   (`SEFLG_MOSEPH`) -- no ephemeris data files to download/host, accurate to
   ~1 arcsecond, more than sufficient for horoscope astrology
 - **DB**: SQLite locally, swap to a free-tier Postgres (Neon/Supabase) in production
-- **Hosting**: Render free web service (`render.yaml`) for the backend;
-  frontend (not built yet) would go on Vercel free tier, same as OneLync
+- **Frontend**: plain HTML/CSS/JS, no framework/build step, served by the same
+  FastAPI app via `StaticFiles` -- one free Render service for everything,
+  no separate Vercel deploy needed
+- **Hosting**: Render free web service (`render.yaml`), API + UI together
 
 No paid services required to build or run this. The one licensing thing to
 know: Swiss Ephemeris is AGPL or commercially licensed. AGPL is fine (free)
@@ -32,13 +34,19 @@ commercial launch if that matters to you.
   offset) + lat/lon, returns positions + vargas + dasha timeline
 - `tests/test_known_charts.py` -- fixture-based accuracy tests. **This is the
   most important part of the repo.** See `backend/tests/fixtures/README.md`.
+- `frontend/` -- birth details form, North Indian-style D1/D9 diamond charts
+  (SVG, generated client-side from the API response), positions table,
+  mahadasha timeline table. No build tooling; open http://localhost:8000/
+  once the backend is running.
 
 ## What's not built yet
 
 - User accounts / auth (OneLync's `auth.py` pattern is a reasonable template
   to copy over when needed -- not risky, skipped for now to focus on the
   calculation engine first)
-- Frontend (no Angular scaffold yet)
+- City/place name -> lat-lon geocoding (form currently takes raw coordinates;
+  free geocoding APIs exist but weren't wired up yet to keep external
+  dependencies at zero for this pass)
 - Antardasha (dasha sub-periods) -- straightforward extension of `dasha.py`
   once mahadasha output is verified
 - More vargas (D2, D3, D12, D60, etc.) -- same pattern as D9/D10, add as needed
@@ -55,7 +63,8 @@ cp .env.example .env
 uvicorn app.main:app --reload
 ```
 
-Then:
+Then open http://localhost:8000/ in a browser for the form + chart UI, or
+call the API directly:
 
 ```
 curl -X POST http://localhost:8000/charts/compute \
