@@ -47,12 +47,68 @@ function buildNorthIndianSvg(bodies, signIndexFor) {
   return `<svg viewBox="0 0 300 300" width="300" height="300">${lines}${labels}</svg>`;
 }
 
+// South Indian box chart: signs are fixed to grid cells (a 4x4 grid with
+// the center 2x2 left empty); houses aren't rotated, the Ascendant's sign
+// cell is just highlighted. "Savya" (standard) runs the zodiac clockwise
+// starting from Aries at row0/col1; "Apasavya" mirrors that horizontally
+// so the sequence runs counter-clockwise instead.
+const SOUTH_INDIAN_CELLS_SAVYA = [
+  [0, 1], [0, 2], [0, 3], [1, 3], [2, 3], [3, 3],
+  [3, 2], [3, 1], [3, 0], [2, 0], [1, 0], [0, 0],
+];
+const SOUTH_INDIAN_CELLS_APASAVYA = SOUTH_INDIAN_CELLS_SAVYA.map(([r, c]) => [r, 3 - c]);
+
+function buildSouthIndianSvg(bodies, signIndexFor, mirrored) {
+  const cellFor = mirrored ? SOUTH_INDIAN_CELLS_APASAVYA : SOUTH_INDIAN_CELLS_SAVYA;
+  const ascSignIndex = signIndexFor("Ascendant");
+
+  const bySign = {};
+  for (let s = 0; s < 12; s++) bySign[s] = [];
+  for (const name of Object.keys(bodies)) {
+    bySign[signIndexFor(name)].push(PLANET_ABBR[name] || name.slice(0, 2));
+  }
+
+  const CELL = 80;
+  const lines = `
+    <polygon points="0,0 320,0 320,320 0,320" fill="none" stroke-width="2"/>
+    <polygon points="80,80 240,80 240,240 80,240" fill="none" stroke-width="1"/>
+    <line x1="160" y1="0" x2="160" y2="80" stroke-width="1"/>
+    <line x1="160" y1="240" x2="160" y2="320" stroke-width="1"/>
+    <line x1="0" y1="160" x2="80" y2="160" stroke-width="1"/>
+    <line x1="240" y1="160" x2="320" y2="160" stroke-width="1"/>
+  `;
+
+  let cells = "";
+  for (let s = 0; s < 12; s++) {
+    const [row, col] = cellFor[s];
+    const x = col * CELL;
+    const y = row * CELL;
+    const isAsc = s === ascSignIndex;
+    if (isAsc) {
+      cells += `<rect x="${x + 2}" y="${y + 2}" width="${CELL - 4}" height="${CELL - 4}" fill="none" stroke-width="2" stroke-dasharray="4,2"/>`;
+    }
+    cells += `
+      <text x="${x + 10}" y="${y + 16}" font-size="9" opacity="0.6">${s + 1}</text>
+      <text x="${x + CELL / 2}" y="${y + CELL / 2 + 6}" font-size="11" font-weight="600" text-anchor="middle">${bySign[s].join(",")}</text>
+    `;
+  }
+
+  return `<svg viewBox="0 0 320 320" width="320" height="320">${lines}${cells}</svg>`;
+}
+
 function renderCharts(positions, vargas) {
+  const style = document.getElementById("chart_style").value;
   const d1SignIndex = (name) => vargas[name].D1.sign_index;
   const d9SignIndex = (name) => vargas[name].D9.sign_index;
 
-  document.getElementById("d1-chart").innerHTML = buildNorthIndianSvg(positions, d1SignIndex);
-  document.getElementById("d9-chart").innerHTML = buildNorthIndianSvg(positions, d9SignIndex);
+  const build = (signIndexFor) => {
+    if (style === "south_savya") return buildSouthIndianSvg(positions, signIndexFor, false);
+    if (style === "south_apasavya") return buildSouthIndianSvg(positions, signIndexFor, true);
+    return buildNorthIndianSvg(positions, signIndexFor);
+  };
+
+  document.getElementById("d1-chart").innerHTML = build(d1SignIndex);
+  document.getElementById("d9-chart").innerHTML = build(d9SignIndex);
 }
 
 function renderPositionsTable(positions) {
@@ -159,6 +215,7 @@ document.getElementById("chart-form").addEventListener("submit", async (e) => {
       throw new Error(detail.detail ? JSON.stringify(detail.detail) : `Request failed (${resp.status})`);
     }
     const data = await resp.json();
+    lastChartData = data;
     renderCharts(data.positions, data.vargas);
     renderPositionsTable(data.positions);
     renderDashaTable(data.vimshottari_dasha);
@@ -167,4 +224,9 @@ document.getElementById("chart-form").addEventListener("submit", async (e) => {
     errorEl.textContent = err.message;
     errorEl.hidden = false;
   }
+});
+
+let lastChartData = null;
+document.getElementById("chart_style").addEventListener("change", () => {
+  if (lastChartData) renderCharts(lastChartData.positions, lastChartData.vargas);
 });
