@@ -2,129 +2,256 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Grahika - Birth Chart</title>
+<title>Grahika - Vedic Astrology</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <main>
   <h1>Grahika</h1>
-  <p class="subtitle">Vedic birth chart &amp; dasha calculator</p>
+  <p class="subtitle">Vedic birth chart, dasha &amp; compatibility calculator</p>
 
-  <form id="chart-form">
-    <div class="row">
-      <label>Name (optional) <input type="text" id="person_name" placeholder="e.g. Teja"></label>
-    </div>
-    <div class="row">
-      <label>Birth date <input type="date" id="birth_date" required></label>
-      <label>Birth time <input type="time" id="birth_time" step="1" required></label>
-      <button type="button" id="now_btn" class="secondary">Now</button>
-    </div>
+  <div class="tabs mode-tabs" role="tablist">
+    <button type="button" class="tab-btn active" data-mode="chart">Birth Chart</button>
+    <button type="button" class="tab-btn" data-mode="matching">Kundli Matching</button>
+  </div>
 
-    <div class="place-search">
-      <label class="grow">Birth place
-        <div class="search-row">
-          <input type="text" id="place_query" placeholder="e.g. Chennai, India">
-          <button type="button" id="place_search_btn">Search</button>
-        </div>
-      </label>
-      <ul id="place_results"></ul>
-      <p id="place_selected" class="selected-place" hidden></p>
-    </div>
-
-    <details>
-      <summary>Enter coordinates manually instead</summary>
+  <!-- ============================ BIRTH CHART ============================ -->
+  <section id="mode-chart" class="mode-panel">
+    <form id="chart-form">
       <div class="row">
-        <label>Latitude <input type="number" id="latitude" step="any"></label>
-        <label>Longitude <input type="number" id="longitude" step="any"></label>
-        <label>Override UTC offset <input type="text" id="utc_offset" placeholder="+05:30 (optional)"></label>
+        <label>Name (optional) <input type="text" id="person_name" placeholder="e.g. Teja"></label>
       </div>
-    </details>
-
-    <div class="row">
-      <label>Ayanamsa
-        <select id="ayanamsa">
-          <option value="lahiri" selected>Lahiri</option>
-          <option value="raman">Raman</option>
-          <option value="kp">KP (Krishnamurti)</option>
-          <option value="true_chitra">True Chitrapaksha</option>
-        </select>
-      </label>
-      <label>Node
-        <select id="node_type">
-          <option value="mean" selected>Mean</option>
-          <option value="true">True</option>
-        </select>
-      </label>
-    </div>
-    <button type="submit">Compute chart</button>
-  </form>
-
-  <p id="error" class="error" hidden></p>
-
-  <section id="results" hidden>
-    <div class="tabs" role="tablist">
-      <button type="button" class="tab-btn active" data-tab="birth-chart">Birth Chart</button>
-      <button type="button" class="tab-btn" data-tab="doshas">Kaal Sarp &amp; Sade Sati</button>
-    </div>
-
-    <div id="tab-birth-chart" class="tab-panel">
-      <div class="table-block">
-        <h2>Birth Details</h2>
-        <table id="details-table">
-          <tbody></tbody>
-        </table>
+      <div class="row">
+        <label>Birth date <input type="date" id="birth_date" required></label>
+        <label>Birth time <input type="time" id="birth_time" step="1" required></label>
+        <button type="button" id="now_btn" class="secondary">Now</button>
       </div>
 
-      <label class="chart-style-picker">Chart style
-        <select id="chart_style">
-          <option value="north">North Indian (diamond)</option>
-          <option value="south_savya">South Indian - Savya (standard)</option>
-          <option value="south_apasavya" selected>South Indian - Apasavya (mirrored)</option>
-        </select>
-      </label>
-      <div class="charts">
-        <div class="chart-block">
-          <h2>D1 - Rasi</h2>
-          <div id="d1-chart"></div>
+      <div class="place-search">
+        <label class="grow">Birth place
+          <div class="search-row">
+            <input type="text" id="place_query" placeholder="e.g. Chennai, India">
+            <button type="button" id="place_search_btn">Search</button>
+          </div>
+        </label>
+        <ul id="place_results"></ul>
+        <p id="place_selected" class="selected-place" hidden></p>
+      </div>
+
+      <details>
+        <summary>Enter coordinates manually instead</summary>
+        <div class="row">
+          <label>Latitude <input type="number" id="latitude" step="any"></label>
+          <label>Longitude <input type="number" id="longitude" step="any"></label>
+          <label>Override UTC offset <input type="text" id="utc_offset" placeholder="+05:30 (optional)"></label>
         </div>
-        <div class="chart-block">
-          <h2>D9 - Navamsa</h2>
-          <div id="d9-chart"></div>
+      </details>
+
+      <div class="row">
+        <label>Ayanamsa
+          <select id="ayanamsa">
+            <option value="lahiri" selected>Lahiri</option>
+            <option value="raman">Raman</option>
+            <option value="kp">KP (Krishnamurti)</option>
+            <option value="true_chitra">True Chitrapaksha</option>
+          </select>
+        </label>
+        <label>Node
+          <select id="node_type">
+            <option value="mean" selected>Mean</option>
+            <option value="true">True</option>
+          </select>
+        </label>
+      </div>
+      <button type="submit">Compute chart</button>
+    </form>
+
+    <p id="error" class="error" hidden></p>
+
+    <section id="results" hidden>
+      <div class="tabs" role="tablist">
+        <button type="button" class="tab-btn active" data-tab="birth-chart">Chart &amp; Dasha</button>
+        <button type="button" class="tab-btn" data-tab="doshas">Kaal Sarp &amp; Sade Sati</button>
+      </div>
+
+      <div id="tab-birth-chart" class="tab-panel">
+        <div class="table-block">
+          <h2>Birth Details</h2>
+          <table id="details-table">
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <label class="chart-style-picker">Chart style
+          <select id="chart_style">
+            <option value="north">North Indian (diamond)</option>
+            <option value="south_savya">South Indian - Savya (standard)</option>
+            <option value="south_apasavya" selected>South Indian - Apasavya (mirrored)</option>
+          </select>
+        </label>
+        <div class="charts">
+          <div class="chart-block">
+            <h2>D1 - Rasi</h2>
+            <div id="d1-chart"></div>
+          </div>
+          <div class="chart-block">
+            <h2>D9 - Navamsa</h2>
+            <div id="d9-chart"></div>
+          </div>
+        </div>
+
+        <div class="table-block">
+          <h2>Positions</h2>
+          <table id="positions-table">
+            <thead><tr><th>Body</th><th>Sign</th><th>Degree</th><th>Nakshatra</th><th>Pada</th><th>Retro</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <div class="table-block">
+          <h2>Vimshottari Mahadasha</h2>
+          <table id="dasha-table">
+            <thead><tr><th>Lord</th><th>Start</th><th>End</th><th>Years</th></tr></thead>
+            <tbody></tbody>
+          </table>
         </div>
       </div>
 
+      <div id="tab-doshas" class="tab-panel" hidden>
+        <div class="table-block">
+          <h2>Kaal Sarp Yoga</h2>
+          <p id="kaal-sarp-result">Loading&hellip;</p>
+        </div>
+        <div class="table-block">
+          <h2>Sade Sati</h2>
+          <p id="sade-sati-result">Loading&hellip;</p>
+          <p class="dosha-note">
+            Sade Sati window boundaries vary by convention (Saturn can retrograde in and out of
+            a sign before settling) -- treat the exact dates as approximate, not a substitute for
+            a pundit's reading.
+          </p>
+        </div>
+      </div>
+    </section>
+  </section>
+
+  <!-- ========================== KUNDLI MATCHING ========================== -->
+  <section id="mode-matching" class="mode-panel" hidden>
+    <p class="mode-intro">
+      Ashtakoot (Guna Milan) compatibility -- the 36-point system. Both charts are built from
+      the Moon's sign and nakshatra, so only birth date, time and place are needed for each person.
+    </p>
+
+    <form id="match-form">
+      <fieldset>
+        <legend>Bride</legend>
+        <div class="row">
+          <label>Name (optional) <input type="text" id="bride_name" placeholder="e.g. Priya"></label>
+          <label>Birth date <input type="date" id="bride_birth_date" required></label>
+          <label>Birth time <input type="time" id="bride_birth_time" step="1" required></label>
+        </div>
+        <div class="place-search">
+          <label class="grow">Birth place
+            <div class="search-row">
+              <input type="text" id="bride_place_query" placeholder="e.g. Chennai, India">
+              <button type="button" id="bride_place_search_btn">Search</button>
+            </div>
+          </label>
+          <ul id="bride_place_results"></ul>
+          <p id="bride_place_selected" class="selected-place" hidden></p>
+        </div>
+        <details>
+          <summary>Enter coordinates manually instead</summary>
+          <div class="row">
+            <label>Latitude <input type="number" id="bride_latitude" step="any"></label>
+            <label>Longitude <input type="number" id="bride_longitude" step="any"></label>
+          </div>
+        </details>
+      </fieldset>
+
+      <fieldset>
+        <legend>Groom</legend>
+        <div class="row">
+          <label>Name (optional) <input type="text" id="groom_name" placeholder="e.g. Arjun"></label>
+          <label>Birth date <input type="date" id="groom_birth_date" required></label>
+          <label>Birth time <input type="time" id="groom_birth_time" step="1" required></label>
+        </div>
+        <div class="place-search">
+          <label class="grow">Birth place
+            <div class="search-row">
+              <input type="text" id="groom_place_query" placeholder="e.g. Chennai, India">
+              <button type="button" id="groom_place_search_btn">Search</button>
+            </div>
+          </label>
+          <ul id="groom_place_results"></ul>
+          <p id="groom_place_selected" class="selected-place" hidden></p>
+        </div>
+        <details>
+          <summary>Enter coordinates manually instead</summary>
+          <div class="row">
+            <label>Latitude <input type="number" id="groom_latitude" step="any"></label>
+            <label>Longitude <input type="number" id="groom_longitude" step="any"></label>
+          </div>
+        </details>
+      </fieldset>
+
+      <div class="row">
+        <label>Ayanamsa
+          <select id="match_ayanamsa">
+            <option value="lahiri" selected>Lahiri</option>
+            <option value="raman">Raman</option>
+            <option value="kp">KP (Krishnamurti)</option>
+            <option value="true_chitra">True Chitrapaksha</option>
+          </select>
+        </label>
+      </div>
+      <button type="submit">Match kundlis</button>
+    </form>
+
+    <p id="match-error" class="error" hidden></p>
+
+    <section id="match-results" hidden>
+      <div class="score-banner">
+        <div class="score-value"><span id="match-total">--</span> <span class="score-max">/ 36</span></div>
+        <div class="score-verdict" id="match-verdict"></div>
+      </div>
+
       <div class="table-block">
-        <h2>Positions</h2>
-        <table id="positions-table">
-          <thead><tr><th>Body</th><th>Sign</th><th>Degree</th><th>Nakshatra</th><th>Pada</th><th>Retro</th></tr></thead>
+        <h2>Moon Placements</h2>
+        <table id="match-moon-table">
+          <thead><tr><th></th><th>Rasi (Moon sign)</th><th>Nakshatra</th></tr></thead>
           <tbody></tbody>
         </table>
       </div>
 
       <div class="table-block">
-        <h2>Vimshottari Mahadasha</h2>
-        <table id="dasha-table">
-          <thead><tr><th>Lord</th><th>Start</th><th>End</th><th>Years</th></tr></thead>
+        <h2>Ashtakoot Breakdown</h2>
+        <table id="koota-table">
+          <thead><tr><th>Koota</th><th>Bride</th><th>Groom</th><th>Score</th></tr></thead>
           <tbody></tbody>
         </table>
       </div>
-    </div>
 
-    <div id="tab-doshas" class="tab-panel" hidden>
       <div class="table-block">
-        <h2>Kaal Sarp Yoga</h2>
-        <p id="kaal-sarp-result">Loading&hellip;</p>
-      </div>
-      <div class="table-block">
-        <h2>Sade Sati</h2>
-        <p id="sade-sati-result">Loading&hellip;</p>
+        <h2>Mangal Dosha (Manglik)</h2>
+        <table id="mangal-table">
+          <thead><tr><th></th><th>From Lagna</th><th>From Moon</th></tr></thead>
+          <tbody></tbody>
+        </table>
         <p class="dosha-note">
-          Sade Sati window boundaries vary by convention (Saturn can retrograde in and out of
-          a sign before settling) -- treat the exact dates as approximate, not a substitute for
-          a pundit's reading.
+          Mangal Dosha is reported separately and is never folded into the 36 points.
+          Traditions differ on whether the Moon-based check counts.
         </p>
       </div>
-    </div>
+
+      <p class="dosha-note">
+        Guna Milan tables vary between lineages and between commercial software. Kootas with
+        unambiguous classical tables (Nadi, Bhakoot, Gana, Varna, Tara) are exact here; the
+        Yoni koota's intermediate gradations are simplified, so small per-koota differences
+        against other sites are expected. Treat this as a starting point for a pundit's
+        reading, not a verdict.
+      </p>
+    </section>
   </section>
 </main>
 <script src="app.js"></script>

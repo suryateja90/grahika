@@ -199,43 +199,57 @@ document.getElementById("now_btn").addEventListener("click", () => {
   document.getElementById("birth_time").value = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
 });
 
-let selectedPlaceName = null;
+// Selected place display names, keyed by field prefix ("" for the birth
+// chart form, "bride_"/"groom_" for the matching form). Kept outside the
+// DOM so the details table can show a readable place rather than raw
+// coordinates.
+const selectedPlaceNames = {};
 
-document.getElementById("place_search_btn").addEventListener("click", async () => {
-  const errorEl = document.getElementById("error");
-  const query = document.getElementById("place_query").value.trim();
-  const resultsEl = document.getElementById("place_results");
-  resultsEl.innerHTML = "";
-  errorEl.hidden = true;
-  if (query.length < 2) return;
+function wirePlaceSearch(prefix, errorElId) {
+  const id = (suffix) => `${prefix}${suffix}`;
+  const searchBtn = document.getElementById(id("place_search_btn"));
+  if (!searchBtn) return;
 
-  try {
-    const resp = await fetch(`${API_BASE}/geocode/search?q=${encodeURIComponent(query)}`);
-    if (!resp.ok) throw new Error(`Place lookup failed (${resp.status})`);
-    const places = await resp.json();
-    if (places.length === 0) {
-      resultsEl.innerHTML = "<li>No matches -- try a different spelling or add the country</li>";
-      return;
+  searchBtn.addEventListener("click", async () => {
+    const errorEl = document.getElementById(errorElId);
+    const query = document.getElementById(id("place_query")).value.trim();
+    const resultsEl = document.getElementById(id("place_results"));
+    resultsEl.innerHTML = "";
+    errorEl.hidden = true;
+    if (query.length < 2) return;
+
+    try {
+      const resp = await fetch(`${API_BASE}/geocode/search?q=${encodeURIComponent(query)}`);
+      if (!resp.ok) throw new Error(`Place lookup failed (${resp.status})`);
+      const places = await resp.json();
+      if (places.length === 0) {
+        resultsEl.innerHTML = "<li>No matches -- try a different spelling or add the country</li>";
+        return;
+      }
+      for (const place of places) {
+        const li = document.createElement("li");
+        li.textContent = place.display_name;
+        li.addEventListener("click", () => {
+          document.getElementById(id("latitude")).value = place.latitude;
+          document.getElementById(id("longitude")).value = place.longitude;
+          selectedPlaceNames[prefix] = place.display_name;
+          const selected = document.getElementById(id("place_selected"));
+          selected.textContent = `Selected: ${place.display_name} (${place.latitude.toFixed(4)}, ${place.longitude.toFixed(4)})`;
+          selected.hidden = false;
+          resultsEl.innerHTML = "";
+        });
+        resultsEl.appendChild(li);
+      }
+    } catch (err) {
+      errorEl.textContent = err.message;
+      errorEl.hidden = false;
     }
-    for (const place of places) {
-      const li = document.createElement("li");
-      li.textContent = place.display_name;
-      li.addEventListener("click", () => {
-        document.getElementById("latitude").value = place.latitude;
-        document.getElementById("longitude").value = place.longitude;
-        selectedPlaceName = place.display_name;
-        const selected = document.getElementById("place_selected");
-        selected.textContent = `Selected: ${place.display_name} (${place.latitude.toFixed(4)}, ${place.longitude.toFixed(4)})`;
-        selected.hidden = false;
-        resultsEl.innerHTML = "";
-      });
-      resultsEl.appendChild(li);
-    }
-  } catch (err) {
-    errorEl.textContent = err.message;
-    errorEl.hidden = false;
-  }
-});
+  });
+}
+
+wirePlaceSearch("", "error");
+wirePlaceSearch("bride_", "match-error");
+wirePlaceSearch("groom_", "match-error");
 
 document.getElementById("chart-form").addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -286,7 +300,7 @@ document.getElementById("chart-form").addEventListener("submit", async (e) => {
       name: document.getElementById("person_name").value.trim(),
       dateLabel: formatChartDate(date),
       timeLabel: formatChartTime(time),
-      placeLabel: selectedPlaceName || `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
+      placeLabel: selectedPlaceNames[""] || `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
       moon: data.positions.Moon,
       ayanamsaLabel: document.getElementById("ayanamsa").selectedOptions[0].text,
     });
@@ -332,13 +346,115 @@ async function fetchAndRenderDoshas(payload) {
   }
 }
 
-document.querySelectorAll(".tab-btn").forEach((btn) => {
+// Two independent tab levels: mode tabs (Birth Chart / Kundli Matching)
+// and, inside the chart mode, result tabs. Scoped by attribute so one
+// level's clicks never reset the other's active state.
+document.querySelectorAll("[data-mode]").forEach((btn) => {
   btn.addEventListener("click", () => {
-    document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
+    document.querySelectorAll("[data-mode]").forEach((b) => b.classList.remove("active"));
+    document.querySelectorAll(".mode-panel").forEach((p) => { p.hidden = true; });
+    btn.classList.add("active");
+    document.getElementById(`mode-${btn.dataset.mode}`).hidden = false;
+  });
+});
+
+document.querySelectorAll("[data-tab]").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll("[data-tab]").forEach((b) => b.classList.remove("active"));
     document.querySelectorAll(".tab-panel").forEach((p) => { p.hidden = true; });
     btn.classList.add("active");
     document.getElementById(`tab-${btn.dataset.tab}`).hidden = false;
   });
+});
+
+// ------------------------------- matching -------------------------------
+
+function readPerson(prefix) {
+  const id = (suffix) => document.getElementById(`${prefix}${suffix}`);
+  const latitude = parseFloat(id("latitude").value);
+  const longitude = parseFloat(id("longitude").value);
+  const date = id("birth_date").value;
+  const time = id("birth_time").value;
+  return {
+    valid: !Number.isNaN(latitude) && !Number.isNaN(longitude),
+    payload: {
+      name: id("name").value.trim(),
+      birth_datetime: `${date}T${time}`,
+      latitude,
+      longitude,
+    },
+    label: id("name").value.trim() || (prefix === "bride_" ? "Bride" : "Groom"),
+  };
+}
+
+function renderMatchResults(data, brideLabel, groomLabel) {
+  document.getElementById("match-total").textContent = data.total;
+  document.getElementById("match-verdict").textContent = data.interpretation;
+
+  const moonBody = document.querySelector("#match-moon-table tbody");
+  moonBody.innerHTML = `
+    <tr><td>${brideLabel}</td><td>${data.bride_moon.sign}</td><td>${data.bride_moon.nakshatra}</td></tr>
+    <tr><td>${groomLabel}</td><td>${data.groom_moon.sign}</td><td>${data.groom_moon.nakshatra}</td></tr>
+  `;
+
+  const kootaBody = document.querySelector("#koota-table tbody");
+  kootaBody.innerHTML = data.kootas.map((k) => `
+    <tr class="${k.score === 0 ? "koota-zero" : ""}">
+      <td>${k.name}</td>
+      <td>${k.bride}</td>
+      <td>${k.groom}</td>
+      <td>${k.score} / ${k.max}</td>
+    </tr>
+  `).join("") + `
+    <tr class="koota-total"><td>Total</td><td></td><td></td><td>${data.total} / ${data.max_total}</td></tr>
+  `;
+
+  const mangalRow = (label, m) => `
+    <tr>
+      <td>${label}</td>
+      <td>${m.from_lagna ? `Manglik (Mars in house ${m.mars_house_from_lagna})` : `No (Mars in house ${m.mars_house_from_lagna})`}</td>
+      <td>${m.from_moon ? `Manglik (Mars in house ${m.mars_house_from_moon})` : `No (Mars in house ${m.mars_house_from_moon})`}</td>
+    </tr>
+  `;
+  document.querySelector("#mangal-table tbody").innerHTML =
+    mangalRow(brideLabel, data.bride_mangal) + mangalRow(groomLabel, data.groom_mangal);
+}
+
+document.getElementById("match-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const errorEl = document.getElementById("match-error");
+  const resultsEl = document.getElementById("match-results");
+  errorEl.hidden = true;
+  resultsEl.hidden = true;
+
+  const bride = readPerson("bride_");
+  const groom = readPerson("groom_");
+  if (!bride.valid || !groom.valid) {
+    errorEl.textContent = "Search for a birth place for both people (or enter coordinates manually).";
+    errorEl.hidden = false;
+    return;
+  }
+
+  try {
+    const resp = await fetch(`${API_BASE}/matching/compute`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        bride: bride.payload,
+        groom: groom.payload,
+        ayanamsa: document.getElementById("match_ayanamsa").value,
+      }),
+    });
+    if (!resp.ok) {
+      const detail = await resp.json().catch(() => ({}));
+      throw new Error(detail.detail ? JSON.stringify(detail.detail) : `Request failed (${resp.status})`);
+    }
+    renderMatchResults(await resp.json(), bride.label, groom.label);
+    resultsEl.hidden = false;
+  } catch (err) {
+    errorEl.textContent = err.message;
+    errorEl.hidden = false;
+  }
 });
 
 let lastChartData = null;

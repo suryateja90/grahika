@@ -25,3 +25,28 @@ class ChartResponse(BaseModel):
 class DoshaResponse(BaseModel):
     kaal_sarp_yoga: dict
     sade_sati: dict
+
+
+class PersonBirth(BaseModel):
+    name: str = ""
+    birth_datetime: datetime
+    latitude: float = Field(..., ge=-90, le=90)
+    longitude: float = Field(..., ge=-180, le=180)
+
+
+class MatchRequest(BaseModel):
+    bride: PersonBirth
+    groom: PersonBirth
+    ayanamsa: Literal["lahiri", "raman", "kp", "true_chitra"] = "lahiri"
+    node_type: Literal["mean", "true"] = "mean"
+
+
+class MatchResponse(BaseModel):
+    kootas: list
+    total: float
+    max_total: int
+    interpretation: str
+    bride_mangal: dict
+    groom_mangal: dict
+    bride_moon: dict
+    groom_moon: dict

@@ -8,17 +8,13 @@ router = APIRouter(prefix="/charts", tags=["charts"])
 
 
 def _resolve_birth_datetime(request: ChartRequest):
-    birth_dt = request.birth_datetime
-    if birth_dt.tzinfo is None:
-        # No explicit UTC offset given -- resolve the historical local
-        # timezone for this place/date instead of guessing. This is what
-        # makes place-name-only input (no lat/lon or offset known by the
-        # user) safe to use.
-        try:
-            return geocode.localize(birth_dt, request.latitude, request.longitude)
-        except ValueError as e:
-            raise HTTPException(status_code=422, detail=str(e))
-    return birth_dt
+    # A naive datetime means no UTC offset was supplied -- resolve the
+    # historical local timezone for this place/date rather than guessing.
+    # This is what makes place-name-only input safe to use.
+    try:
+        return geocode.ensure_aware(request.birth_datetime, request.latitude, request.longitude)
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
 
 
 @router.post("/compute", response_model=ChartResponse)

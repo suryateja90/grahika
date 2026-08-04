@@ -53,3 +53,8 @@ def localize(naive_dt: datetime, lat: float, lon: float) -> datetime:
     """Attach the correct historical UTC offset for this place and date."""
     tz = pytz.timezone(timezone_name_for(lat, lon))
     return tz.localize(naive_dt)
+
+
+def ensure_aware(dt: datetime, lat: float, lon: float) -> datetime:
+    """Pass through an already-aware datetime; localize a naive one."""
+    return dt if dt.tzinfo is not None else localize(dt, lat, lon)
