@@ -118,6 +118,44 @@ legend { font-weight: 700; padding: 0 0.4rem; }
 .date-nav button { padding: 0.45rem 0.8rem; font-size: 0.9rem; }
 .transit-summary { font-size: 1.05rem; }
 
+.summary-card {
+  border: 1px solid var(--accent);
+  border-left: 4px solid var(--accent);
+  border-radius: 8px;
+  padding: 1.1rem 1.3rem;
+  margin-bottom: 2rem;
+}
+.summary-card h2 { margin: 0 0 0.75rem; font-size: 1.5rem; }
+.summary-points { list-style: none; margin: 0; padding: 0; }
+.summary-points li {
+  position: relative;
+  padding-left: 1.1rem;
+  margin-bottom: 0.55rem;
+  line-height: 1.5;
+}
+.summary-points li:last-child { margin-bottom: 0; }
+.summary-points li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.summary-subhead {
+  font-size: 0.95rem;
+  margin: 1.25rem 0 0.15rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(128, 128, 128, 0.35);
+}
+.summary-subnote { font-size: 0.78rem; opacity: 0.7; margin: 0 0 0.6rem; }
+
+.detail-heading { font-size: 1.1rem; margin-bottom: 0.2rem; opacity: 0.85; }
+.detail-note { font-size: 0.8rem; opacity: 0.65; margin-top: 0; margin-bottom: 1rem; }
+
 .reading-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
 .reading-card { border: 1px solid #888; border-radius: 8px; padding: 1rem 1.1rem; }
 .reading-card h3 { margin: 0 0 0.5rem; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }

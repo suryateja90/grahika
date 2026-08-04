@@ -169,9 +169,104 @@ def planet_transits(natal_bodies: dict, transit_bodies: dict) -> list[dict]:
     return rows
 
 
+# ---------------------------------------------------------------------------
+# Plain-English layer.
+#
+# Everything above states the tradition in its own vocabulary -- Pratyari,
+# Chandra Bala, "7th-house aspect" -- which is correct but unreadable to
+# anyone without background. These tables say the same thing in ordinary
+# language. They translate; they do not add claims the technical reading
+# doesn't already make.
+# ---------------------------------------------------------------------------
+TARA_PLAIN = {
+    "Janma": "Your energy may run lower than usual. Better for rest and looking after yourself than for starting anything new.",
+    "Sampat": "A favourable day for money and for anything you are hoping to gain from.",
+    "Vipat": "Take extra care today, particularly with money, travel and risky decisions.",
+    "Kshema": "A steady, comfortable day. Good for ordinary work and getting through routine tasks.",
+    "Pratyari": "Expect some pushback. Things are likely to take more effort than they normally would.",
+    "Sadhaka": "A good day for finishing things you have already started, rather than beginning something new.",
+    "Vadha": "The hardest day in the cycle. Best to keep things simple and postpone important decisions.",
+    "Mitra": "Support tends to come from other people today. A good day to ask for help.",
+    "Ati Mitra": "One of the best days in the cycle. Things tend to fall your way.",
+}
+
+MOON_HOUSE_PLAIN = {
+    1: "Your mood turns inward and energy can dip. Go easy on yourself.",
+    2: "Attention goes to family, money and home. Good for domestic matters.",
+    3: "You will feel bolder than usual. Good for starting things and for short trips.",
+    4: "Feelings sit close to the surface and home pulls at your attention. Outward work feels harder.",
+    5: "Good for creativity, learning, children and romance.",
+    6: "A strong day for pushing through obstacles -- competition, health routines, clearing debts.",
+    7: "Good for dealing with other people: partners, negotiations, travel.",
+    8: "A heavy day. Better for quiet reflection than for big moves.",
+    9: "Luck runs with you. Good for study, travel and advice from people older or wiser.",
+    10: "A strong day for work and career, and for anything public or official.",
+    11: "One of the best positions. Gains, friends, and things coming together.",
+    12: "Energy drains and costs come up. Good for rest, not for chasing gain.",
+}
+
+ASPECT_PLAIN = {
+    ("Mars", "Ascendant"): "Extra physical energy today, with a tendency to rush. Slow down.",
+    ("Mars", "Moon"): "You may feel more restless or short-tempered than usual.",
+    ("Mars", "Sun"): "Strong drive today, but watch for friction with people in authority.",
+    ("Jupiter", "Ascendant"): "A protective, steadying influence over the day as a whole.",
+    ("Jupiter", "Moon"): "Your mood is lifted, and judgement tends to be sound.",
+    ("Jupiter", "Sun"): "Support for your confidence and your standing with others.",
+    ("Saturn", "Ascendant"): "The day feels slower and heavier than usual. Patience helps.",
+    ("Saturn", "Moon"): "Mood may be low or serious. Worth remembering it is not the whole picture.",
+    ("Saturn", "Sun"): "Extra responsibility or pressure from above. Steady effort pays off.",
+    ("Rahu", "Ascendant"): "Things feel amplified and a little unsettled.",
+    ("Rahu", "Moon"): "Emotions may feel exaggerated or hard to place.",
+    ("Rahu", "Sun"): "Ambition runs high today; watch for overreach.",
+    ("Ketu", "Ascendant"): "You may feel withdrawn or less engaged than usual.",
+    ("Ketu", "Moon"): "A detached, inward sort of mood.",
+    ("Ketu", "Sun"): "Less interest than usual in recognition or being seen.",
+}
+
+QUALITY_SCORE = {"favourable": 1, "mixed": 0, "challenging": -1}
+
+HEADLINES = {
+    2: "A strong day",
+    1: "A generally good day",
+    0: "A mixed day",
+    -1: "A demanding day",
+    -2: "A difficult day",
+}
+
+
+def plain_summary(tara: dict, chandra: dict, aspects: list[dict]) -> dict:
+    """Ordinary-language rendering of the same findings shown above.
+
+    Split into two lists on purpose. Tara Bala and Chandra Bala are driven
+    by the Moon, which changes nakshatra roughly daily and sign every ~2.3
+    days -- those genuinely differ day to day. The graha drishti come from
+    Mars, Saturn and the nodes, which hold the same sign for weeks or
+    months, so those lines are identical every day within a long window.
+    Presenting them as "today" makes the report look broken when a user
+    steps through dates, and overstates what the aspects actually say.
+    """
+    score = QUALITY_SCORE[tara["quality"]] + QUALITY_SCORE[chandra["quality"]]
+
+    today = [TARA_PLAIN[tara["name"]], MOON_HOUSE_PLAIN[chandra["house"]]]
+
+    # De-duplicate: a graha can hit two of your points at once, and
+    # repeating the identical sentence reads like a bug to the user.
+    ongoing = []
+    for aspect in aspects:
+        text = ASPECT_PLAIN.get((aspect["transit_planet"], aspect["natal_point"]))
+        if text and text not in ongoing:
+            ongoing.append(text)
+
+    return {"headline": HEADLINES[score], "today": today, "ongoing": ongoing}
+
+
 def daily_report(natal_bodies: dict, transit_bodies: dict) -> dict:
     natal_moon = natal_bodies["Moon"]
     transit_moon = transit_bodies["Moon"]
+
+    tara = tara_bala(natal_moon["nakshatra_index"], transit_moon["nakshatra_index"])
+    chandra = chandra_bala(natal_moon["sign_index"], transit_moon["sign_index"])
+    aspects = graha_drishti(natal_bodies, transit_bodies)
 
     return {
         "natal_moon": {
@@ -182,8 +277,9 @@ def daily_report(natal_bodies: dict, transit_bodies: dict) -> dict:
             "sign": transit_moon["sign"],
             "nakshatra": transit_moon["nakshatra"],
         },
-        "tara_bala": tara_bala(natal_moon["nakshatra_index"], transit_moon["nakshatra_index"]),
-        "chandra_bala": chandra_bala(natal_moon["sign_index"], transit_moon["sign_index"]),
+        "summary": plain_summary(tara, chandra, aspects),
+        "tara_bala": tara,
+        "chandra_bala": chandra,
         "planet_transits": planet_transits(natal_bodies, transit_bodies),
-        "aspects": graha_drishti(natal_bodies, transit_bodies),
+        "aspects": aspects,
     }

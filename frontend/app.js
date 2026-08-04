@@ -368,6 +368,12 @@ function renderTransit(data) {
     `Moon transits ${data.transit_moon.sign} (${data.transit_moon.nakshatra}). ` +
     `Your natal Moon is in ${data.natal_moon.sign} (${data.natal_moon.nakshatra}).`;
 
+  const asItems = (lines) => lines.map((p) => `<li>${p}</li>`).join("");
+  document.getElementById("summary-headline").textContent = data.summary.headline;
+  document.getElementById("summary-today").innerHTML = asItems(data.summary.today);
+  document.getElementById("summary-ongoing").innerHTML = asItems(data.summary.ongoing);
+  document.getElementById("summary-ongoing-block").hidden = data.summary.ongoing.length === 0;
+
   const tara = data.tara_bala;
   document.getElementById("tara-name").textContent = `${tara.number}. ${tara.name}`;
   document.getElementById("tara-text").textContent = tara.description;

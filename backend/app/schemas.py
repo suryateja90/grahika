@@ -56,6 +56,7 @@ class TransitResponse(BaseModel):
     transit_date: str
     natal_moon: dict
     transit_moon: dict
+    summary: dict
     tara_bala: dict
     chandra_bala: dict
     planet_transits: list
