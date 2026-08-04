@@ -120,7 +120,8 @@ function renderPositionsTable(positions) {
       <td>${name}</td>
       <td>${d.sign}</td>
       <td>${d.degree_in_sign.toFixed(2)}&deg;</td>
-      <td>${d.nakshatra} (${d.nakshatra_pada})</td>
+      <td>${d.nakshatra}</td>
+      <td>${d.nakshatra_pada}</td>
       <td>${d.retrograde ? "R" : ""}</td>
     `;
     tbody.appendChild(tr);
