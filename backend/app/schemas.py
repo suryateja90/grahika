@@ -20,3 +20,8 @@ class ChartResponse(BaseModel):
     positions: dict
     vargas: dict
     vimshottari_dasha: list
+
+
+class DoshaResponse(BaseModel):
+    kaal_sarp_yoga: dict
+    sade_sati: dict

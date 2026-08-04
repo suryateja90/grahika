@@ -112,6 +112,18 @@ def compute_positions(
     }
 
 
+def saturn_sign_index(dt_utc: datetime, ayanamsa: str = "lahiri") -> int:
+    """Fast path for repeated Saturn-only queries (e.g. a transit search),
+    skipping the other 9 bodies and the Ascendant that compute_positions
+    always computes.
+    """
+    swe.set_sid_mode(AYANAMSA_MODES[ayanamsa])
+    flags = swe.FLG_SIDEREAL | swe.FLG_MOSEPH
+    jd = julian_day_utc(dt_utc)
+    longitude, _ = _planet_position(jd, swe.SATURN, flags)
+    return sign_index(longitude)
+
+
 def _describe(longitude: float, retrograde: bool) -> dict:
     s_idx = sign_index(longitude)
     n_idx = nakshatra_index(longitude)

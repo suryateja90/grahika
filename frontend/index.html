@@ -62,45 +62,68 @@
   <p id="error" class="error" hidden></p>
 
   <section id="results" hidden>
-    <div class="table-block">
-      <h2>Birth Details</h2>
-      <table id="details-table">
-        <tbody></tbody>
-      </table>
+    <div class="tabs" role="tablist">
+      <button type="button" class="tab-btn active" data-tab="birth-chart">Birth Chart</button>
+      <button type="button" class="tab-btn" data-tab="doshas">Kaal Sarp &amp; Sade Sati</button>
     </div>
 
-    <label class="chart-style-picker">Chart style
-      <select id="chart_style">
-        <option value="north">North Indian (diamond)</option>
-        <option value="south_savya">South Indian - Savya (standard)</option>
-        <option value="south_apasavya" selected>South Indian - Apasavya (mirrored)</option>
-      </select>
-    </label>
-    <div class="charts">
-      <div class="chart-block">
-        <h2>D1 - Rasi</h2>
-        <div id="d1-chart"></div>
+    <div id="tab-birth-chart" class="tab-panel">
+      <div class="table-block">
+        <h2>Birth Details</h2>
+        <table id="details-table">
+          <tbody></tbody>
+        </table>
       </div>
-      <div class="chart-block">
-        <h2>D9 - Navamsa</h2>
-        <div id="d9-chart"></div>
+
+      <label class="chart-style-picker">Chart style
+        <select id="chart_style">
+          <option value="north">North Indian (diamond)</option>
+          <option value="south_savya">South Indian - Savya (standard)</option>
+          <option value="south_apasavya" selected>South Indian - Apasavya (mirrored)</option>
+        </select>
+      </label>
+      <div class="charts">
+        <div class="chart-block">
+          <h2>D1 - Rasi</h2>
+          <div id="d1-chart"></div>
+        </div>
+        <div class="chart-block">
+          <h2>D9 - Navamsa</h2>
+          <div id="d9-chart"></div>
+        </div>
+      </div>
+
+      <div class="table-block">
+        <h2>Positions</h2>
+        <table id="positions-table">
+          <thead><tr><th>Body</th><th>Sign</th><th>Degree</th><th>Nakshatra</th><th>Pada</th><th>Retro</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="table-block">
+        <h2>Vimshottari Mahadasha</h2>
+        <table id="dasha-table">
+          <thead><tr><th>Lord</th><th>Start</th><th>End</th><th>Years</th></tr></thead>
+          <tbody></tbody>
+        </table>
       </div>
     </div>
 
-    <div class="table-block">
-      <h2>Positions</h2>
-      <table id="positions-table">
-        <thead><tr><th>Body</th><th>Sign</th><th>Degree</th><th>Nakshatra</th><th>Pada</th><th>Retro</th></tr></thead>
-        <tbody></tbody>
-      </table>
-    </div>
-
-    <div class="table-block">
-      <h2>Vimshottari Mahadasha</h2>
-      <table id="dasha-table">
-        <thead><tr><th>Lord</th><th>Start</th><th>End</th><th>Years</th></tr></thead>
-        <tbody></tbody>
-      </table>
+    <div id="tab-doshas" class="tab-panel" hidden>
+      <div class="table-block">
+        <h2>Kaal Sarp Yoga</h2>
+        <p id="kaal-sarp-result">Loading&hellip;</p>
+      </div>
+      <div class="table-block">
+        <h2>Sade Sati</h2>
+        <p id="sade-sati-result">Loading&hellip;</p>
+        <p class="dosha-note">
+          Sade Sati window boundaries vary by convention (Saturn can retrograde in and out of
+          a sign before settling) -- treat the exact dates as approximate, not a substitute for
+          a pundit's reading.
+        </p>
+      </div>
     </div>
   </section>
 </main>

@@ -291,10 +291,54 @@ document.getElementById("chart-form").addEventListener("submit", async (e) => {
       ayanamsaLabel: document.getElementById("ayanamsa").selectedOptions[0].text,
     });
     resultsEl.hidden = false;
+
+    fetchAndRenderDoshas(payload);
   } catch (err) {
     errorEl.textContent = err.message;
     errorEl.hidden = false;
   }
+});
+
+async function fetchAndRenderDoshas(payload) {
+  const kaalEl = document.getElementById("kaal-sarp-result");
+  const sadeEl = document.getElementById("sade-sati-result");
+  kaalEl.textContent = "Loading…";
+  sadeEl.textContent = "Loading…";
+  try {
+    const resp = await fetch(`${API_BASE}/charts/doshas`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!resp.ok) throw new Error(`Request failed (${resp.status})`);
+    const data = await resp.json();
+
+    const ksy = data.kaal_sarp_yoga;
+    kaalEl.textContent = ksy.present
+      ? `Present -- all 7 classical planets fall between Rahu and Ketu (${ksy.direction}).`
+      : "Not present.";
+
+    const ss = data.sade_sati;
+    if (ss.in_sade_sati) {
+      sadeEl.textContent = `Currently in Sade Sati (${ss.phase} phase), approximately ${ss.current_window_start} to ${ss.current_window_end}.`;
+    } else if (ss.next_window_start) {
+      sadeEl.textContent = `Not currently in Sade Sati. Next window begins around ${ss.next_window_start}.`;
+    } else {
+      sadeEl.textContent = "Not currently in Sade Sati.";
+    }
+  } catch (err) {
+    kaalEl.textContent = `Couldn't load: ${err.message}`;
+    sadeEl.textContent = `Couldn't load: ${err.message}`;
+  }
+}
+
+document.querySelectorAll(".tab-btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
+    document.querySelectorAll(".tab-panel").forEach((p) => { p.hidden = true; });
+    btn.classList.add("active");
+    document.getElementById(`tab-${btn.dataset.tab}`).hidden = false;
+  });
 });
 
 let lastChartData = null;

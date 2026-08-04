@@ -1,14 +1,13 @@
 from fastapi import APIRouter, HTTPException
 
 from app import geocode
-from app.astro import dasha, ephemeris, vargas
-from app.schemas import ChartRequest, ChartResponse
+from app.astro import dasha, doshas, ephemeris, vargas
+from app.schemas import ChartRequest, ChartResponse, DoshaResponse
 
 router = APIRouter(prefix="/charts", tags=["charts"])
 
 
-@router.post("/compute", response_model=ChartResponse)
-def compute_chart(request: ChartRequest):
+def _resolve_birth_datetime(request: ChartRequest):
     birth_dt = request.birth_datetime
     if birth_dt.tzinfo is None:
         # No explicit UTC offset given -- resolve the historical local
@@ -16,9 +15,15 @@ def compute_chart(request: ChartRequest):
         # makes place-name-only input (no lat/lon or offset known by the
         # user) safe to use.
         try:
-            birth_dt = geocode.localize(birth_dt, request.latitude, request.longitude)
+            return geocode.localize(birth_dt, request.latitude, request.longitude)
         except ValueError as e:
             raise HTTPException(status_code=422, detail=str(e))
+    return birth_dt
+
+
+@router.post("/compute", response_model=ChartResponse)
+def compute_chart(request: ChartRequest):
+    birth_dt = _resolve_birth_datetime(request)
 
     positions = ephemeris.compute_positions(
         dt_utc=birth_dt,
@@ -43,3 +48,22 @@ def compute_chart(request: ChartRequest):
         vargas=varga_charts,
         vimshottari_dasha=dasha_timeline,
     )
+
+
+@router.post("/doshas", response_model=DoshaResponse)
+def compute_doshas(request: ChartRequest):
+    birth_dt = _resolve_birth_datetime(request)
+
+    positions = ephemeris.compute_positions(
+        dt_utc=birth_dt,
+        lat=request.latitude,
+        lon=request.longitude,
+        ayanamsa=request.ayanamsa,
+        node_type=request.node_type,
+    )
+
+    kaal_sarp = doshas.kaal_sarp_yoga(positions["bodies"])
+    moon_sign_index = positions["bodies"]["Moon"]["sign_index"]
+    sade_sati = doshas.sade_sati_status(moon_sign_index, ayanamsa=request.ayanamsa)
+
+    return DoshaResponse(kaal_sarp_yoga=kaal_sarp, sade_sati=sade_sati)
