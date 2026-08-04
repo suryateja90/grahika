@@ -166,17 +166,23 @@ currentLocationBtn.addEventListener("click", () => {
   }
   navigator.geolocation.getCurrentPosition(
     async (pos) => {
-      const { latitude, longitude } = pos.coords;
+      const { latitude, longitude, accuracy } = pos.coords;
+      // accuracy is a 1-sigma radius in meters -- browsers report this
+      // themselves; it's how far off the fix could be, e.g. IP-based
+      // fallback location on desktops routinely runs 10s of km.
+      const accuracyNote = accuracy > 10000
+        ? ` -- accurate to only ~${Math.round(accuracy / 1000)}km, consider searching your place by name instead`
+        : ` (accurate to ~${Math.round(accuracy)}m)`;
       document.getElementById("latitude").value = latitude;
       document.getElementById("longitude").value = longitude;
       const selected = document.getElementById("place_selected");
-      selected.textContent = `Selected: current location (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`;
+      selected.textContent = `Selected: current location (${latitude.toFixed(4)}, ${longitude.toFixed(4)})${accuracyNote}`;
       selected.hidden = false;
       try {
         const resp = await fetch(`${API_BASE}/geocode/reverse?lat=${latitude}&lon=${longitude}`);
         if (resp.ok) {
           const place = await resp.json();
-          selected.textContent = `Selected: ${place.display_name} (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`;
+          selected.textContent = `Selected: ${place.display_name} (${latitude.toFixed(4)}, ${longitude.toFixed(4)})${accuracyNote}`;
         }
       } catch (e) {
         // reverse lookup is a nice-to-have label only; coordinates are already filled in
@@ -185,7 +191,8 @@ currentLocationBtn.addEventListener("click", () => {
     (err) => {
       errorEl.textContent = `Couldn't get your location: ${err.message}`;
       errorEl.hidden = false;
-    }
+    },
+    { enableHighAccuracy: true, timeout: 10000 }
   );
 });
 
