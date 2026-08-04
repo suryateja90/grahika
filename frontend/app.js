@@ -306,7 +306,10 @@ document.getElementById("chart-form").addEventListener("submit", async (e) => {
     });
     resultsEl.hidden = false;
 
+    lastChartPayload = payload;
     fetchAndRenderDoshas(payload);
+    document.getElementById("transit_date").value = "";
+    fetchAndRenderTransit();
   } catch (err) {
     errorEl.textContent = err.message;
     errorEl.hidden = false;
@@ -345,6 +348,101 @@ async function fetchAndRenderDoshas(payload) {
     sadeEl.textContent = `Couldn't load: ${err.message}`;
   }
 }
+
+// ---------------------------- daily transit ----------------------------
+
+// Kept so the transit tab can re-query for a different date without
+// making the user re-enter their birth details.
+let lastChartPayload = null;
+
+function shiftTransitDate(days) {
+  const input = document.getElementById("transit_date");
+  const base = input.value ? new Date(`${input.value}T12:00:00`) : new Date();
+  base.setDate(base.getDate() + days);
+  const pad = (n) => String(n).padStart(2, "0");
+  input.value = `${base.getFullYear()}-${pad(base.getMonth() + 1)}-${pad(base.getDate())}`;
+  fetchAndRenderTransit();
+}
+
+function renderTransit(data) {
+  document.getElementById("transit-heading-date").textContent = formatChartDate(data.transit_date);
+  document.getElementById("transit-moon-summary").textContent =
+    `Moon transits ${data.transit_moon.sign} (${data.transit_moon.nakshatra}). ` +
+    `Your natal Moon is in ${data.natal_moon.sign} (${data.natal_moon.nakshatra}).`;
+
+  const tara = data.tara_bala;
+  document.getElementById("tara-name").textContent = `${tara.number}. ${tara.name}`;
+  document.getElementById("tara-text").textContent = tara.description;
+  const taraPill = document.getElementById("tara-quality");
+  taraPill.textContent = tara.quality;
+  taraPill.className = `quality-pill quality-${tara.quality}`;
+
+  const chandra = data.chandra_bala;
+  document.getElementById("chandra-name").textContent =
+    `House ${chandra.house} (${chandra.bhava})`;
+  document.getElementById("chandra-text").textContent = chandra.description;
+  const chandraPill = document.getElementById("chandra-quality");
+  chandraPill.textContent = chandra.quality;
+  chandraPill.className = `quality-pill quality-${chandra.quality}`;
+
+  const aspectsEl = document.getElementById("transit-aspects");
+  aspectsEl.innerHTML = data.aspects.length
+    ? data.aspects.map((a) => `
+        <li>
+          <div class="aspect-headline">
+            Transiting ${a.transit_planet} in ${a.transit_sign} is ${a.relation}
+            your natal ${a.natal_point} in ${a.natal_sign}
+          </div>
+          <div class="aspect-note">${a.note}</div>
+        </li>
+      `).join("")
+    : `<li class="aspect-empty">No aspects from the slow grahas on your Lagna, Moon or Sun today.</li>`;
+
+  document.querySelector("#transit-table tbody").innerHTML = data.planet_transits.map((p) => `
+    <tr>
+      <td>${p.planet}</td>
+      <td>${p.sign}</td>
+      <td>${p.degree_in_sign.toFixed(2)}&deg;</td>
+      <td>${p.nakshatra}</td>
+      <td>${p.house_from_moon}</td>
+      <td>${p.house_from_lagna}</td>
+      <td>${p.retrograde ? "R" : ""}</td>
+    </tr>
+  `).join("");
+}
+
+async function fetchAndRenderTransit() {
+  if (!lastChartPayload) return;
+  const summaryEl = document.getElementById("transit-moon-summary");
+  summaryEl.textContent = "Loading…";
+
+  const selectedDate = document.getElementById("transit_date").value;
+  const payload = { ...lastChartPayload };
+  if (selectedDate) payload.transit_date = selectedDate;
+
+  try {
+    const resp = await fetch(`${API_BASE}/transits/daily`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!resp.ok) throw new Error(`Request failed (${resp.status})`);
+    const data = await resp.json();
+    // Reflect the resolved date back so "Today" and the first load show it.
+    document.getElementById("transit_date").value = data.transit_date;
+    renderTransit(data);
+  } catch (err) {
+    summaryEl.textContent = `Couldn't load transit: ${err.message}`;
+  }
+}
+
+document.getElementById("transit_prev").addEventListener("click", () => shiftTransitDate(-1));
+document.getElementById("transit_next").addEventListener("click", () => shiftTransitDate(1));
+document.getElementById("transit_today").addEventListener("click", () => {
+  document.getElementById("transit_date").value = "";
+  fetchAndRenderTransit();
+});
+document.getElementById("transit_date").addEventListener("change", fetchAndRenderTransit);
 
 // Two independent tab levels: mode tabs (Birth Chart / Kundli Matching)
 // and, inside the chart mode, result tabs. Scoped by attribute so one

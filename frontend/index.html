@@ -72,6 +72,7 @@
       <div class="tabs" role="tablist">
         <button type="button" class="tab-btn active" data-tab="birth-chart">Chart &amp; Dasha</button>
         <button type="button" class="tab-btn" data-tab="doshas">Kaal Sarp &amp; Sade Sati</button>
+        <button type="button" class="tab-btn" data-tab="transit">Daily Transit</button>
       </div>
 
       <div id="tab-birth-chart" class="tab-panel">
@@ -131,6 +132,53 @@
             a pundit's reading.
           </p>
         </div>
+      </div>
+
+      <div id="tab-transit" class="tab-panel" hidden>
+        <div class="date-nav">
+          <button type="button" id="transit_prev" class="secondary">&laquo; Prev day</button>
+          <label>Date <input type="date" id="transit_date"></label>
+          <button type="button" id="transit_next" class="secondary">Next day &raquo;</button>
+          <button type="button" id="transit_today" class="secondary">Today</button>
+        </div>
+
+        <div class="table-block">
+          <h2 id="transit-heading">Gochar for <span id="transit-heading-date"></span></h2>
+          <p id="transit-moon-summary" class="transit-summary"></p>
+        </div>
+
+        <div class="reading-grid">
+          <div class="reading-card" id="tara-card">
+            <h3>Tara Bala <span class="quality-pill" id="tara-quality"></span></h3>
+            <p class="reading-title" id="tara-name"></p>
+            <p id="tara-text"></p>
+          </div>
+          <div class="reading-card" id="chandra-card">
+            <h3>Chandra Bala <span class="quality-pill" id="chandra-quality"></span></h3>
+            <p class="reading-title" id="chandra-name"></p>
+            <p id="chandra-text"></p>
+          </div>
+        </div>
+
+        <div class="table-block">
+          <h2>Aspects on Your Chart</h2>
+          <ul id="transit-aspects" class="aspect-list"></ul>
+        </div>
+
+        <div class="table-block">
+          <h2>All Transiting Grahas</h2>
+          <table id="transit-table">
+            <thead><tr><th>Graha</th><th>Sign</th><th>Degree</th><th>Nakshatra</th><th>House from Moon</th><th>House from Lagna</th><th>Retro</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <p class="dosha-note">
+          Cast for 12:00 noon at your birth place. The Moon moves about 13&deg; a day and can
+          change sign mid-day, so readings near a sign boundary shift depending on the hour.
+          Positions and house counts here are exact; the readings are conventional traditional
+          significations stated generically, not personalised prediction.
+        </p>
       </div>
     </section>
   </section>

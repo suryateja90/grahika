@@ -1,5 +1,5 @@
-from datetime import datetime
-from typing import Literal
+from datetime import date, datetime
+from typing import Literal, Optional
 
 from pydantic import BaseModel, Field
 
@@ -39,6 +39,27 @@ class MatchRequest(BaseModel):
     groom: PersonBirth
     ayanamsa: Literal["lahiri", "raman", "kp", "true_chitra"] = "lahiri"
     node_type: Literal["mean", "true"] = "mean"
+
+
+class TransitRequest(BaseModel):
+    birth_datetime: datetime
+    latitude: float = Field(..., ge=-90, le=90)
+    longitude: float = Field(..., ge=-180, le=180)
+    ayanamsa: Literal["lahiri", "raman", "kp", "true_chitra"] = "lahiri"
+    node_type: Literal["mean", "true"] = "mean"
+    transit_date: Optional[date] = Field(
+        None, description="Date to report on; defaults to today in the birth place's timezone"
+    )
+
+
+class TransitResponse(BaseModel):
+    transit_date: str
+    natal_moon: dict
+    transit_moon: dict
+    tara_bala: dict
+    chandra_bala: dict
+    planet_transits: list
+    aspects: list
 
 
 class MatchResponse(BaseModel):
