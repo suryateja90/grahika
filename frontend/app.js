@@ -248,6 +248,7 @@ function wirePlaceSearch(prefix, errorElId) {
 }
 
 wirePlaceSearch("", "error");
+wirePlaceSearch("dh_", "horoscope-error");
 wirePlaceSearch("bride_", "match-error");
 wirePlaceSearch("groom_", "match-error");
 
@@ -306,10 +307,7 @@ document.getElementById("chart-form").addEventListener("submit", async (e) => {
     });
     resultsEl.hidden = false;
 
-    lastChartPayload = payload;
     fetchAndRenderDoshas(payload);
-    document.getElementById("transit_date").value = "";
-    fetchAndRenderTransit();
   } catch (err) {
     errorEl.textContent = err.message;
     errorEl.hidden = false;
@@ -349,11 +347,11 @@ async function fetchAndRenderDoshas(payload) {
   }
 }
 
-// ---------------------------- daily transit ----------------------------
+// ---------------------- personal daily horoscope ----------------------
 
-// Kept so the transit tab can re-query for a different date without
-// making the user re-enter their birth details.
-let lastChartPayload = null;
+// Set once the horoscope form is submitted, so the date navigator can
+// re-query other dates without making the user re-enter birth details.
+let horoscopePayload = null;
 
 function shiftTransitDate(days) {
   const input = document.getElementById("transit_date");
@@ -412,12 +410,12 @@ function renderTransit(data) {
 }
 
 async function fetchAndRenderTransit() {
-  if (!lastChartPayload) return;
+  if (!horoscopePayload) return;
   const summaryEl = document.getElementById("transit-moon-summary");
   summaryEl.textContent = "Loading…";
 
   const selectedDate = document.getElementById("transit_date").value;
-  const payload = { ...lastChartPayload };
+  const payload = { ...horoscopePayload };
   if (selectedDate) payload.transit_date = selectedDate;
 
   try {
@@ -435,6 +433,35 @@ async function fetchAndRenderTransit() {
     summaryEl.textContent = `Couldn't load transit: ${err.message}`;
   }
 }
+
+document.getElementById("horoscope-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const errorEl = document.getElementById("horoscope-error");
+  const resultsEl = document.getElementById("horoscope-results");
+  errorEl.hidden = true;
+
+  const latitude = parseFloat(document.getElementById("dh_latitude").value);
+  const longitude = parseFloat(document.getElementById("dh_longitude").value);
+  if (Number.isNaN(latitude) || Number.isNaN(longitude)) {
+    resultsEl.hidden = true;
+    errorEl.textContent = "Search for your birth place above, or expand \"Enter coordinates manually\" and fill in latitude/longitude.";
+    errorEl.hidden = false;
+    return;
+  }
+
+  horoscopePayload = {
+    birth_datetime: `${document.getElementById("dh_birth_date").value}T${document.getElementById("dh_birth_time").value}`,
+    latitude,
+    longitude,
+    ayanamsa: document.getElementById("dh_ayanamsa").value,
+  };
+
+  // Blank the date so the backend defaults to today in the birth place's
+  // timezone rather than reusing whatever date was last browsed to.
+  document.getElementById("transit_date").value = "";
+  resultsEl.hidden = false;
+  fetchAndRenderTransit();
+});
 
 document.getElementById("transit_prev").addEventListener("click", () => shiftTransitDate(-1));
 document.getElementById("transit_next").addEventListener("click", () => shiftTransitDate(1));

@@ -12,6 +12,7 @@
 
   <div class="tabs mode-tabs" role="tablist">
     <button type="button" class="tab-btn active" data-mode="chart">Birth Chart</button>
+    <button type="button" class="tab-btn" data-mode="horoscope">Personal Daily Horoscope</button>
     <button type="button" class="tab-btn" data-mode="matching">Kundli Matching</button>
   </div>
 
@@ -72,7 +73,6 @@
       <div class="tabs" role="tablist">
         <button type="button" class="tab-btn active" data-tab="birth-chart">Chart &amp; Dasha</button>
         <button type="button" class="tab-btn" data-tab="doshas">Kaal Sarp &amp; Sade Sati</button>
-        <button type="button" class="tab-btn" data-tab="transit">Daily Transit</button>
       </div>
 
       <div id="tab-birth-chart" class="tab-panel">
@@ -134,52 +134,101 @@
         </div>
       </div>
 
-      <div id="tab-transit" class="tab-panel" hidden>
-        <div class="date-nav">
-          <button type="button" id="transit_prev" class="secondary">&laquo; Prev day</button>
-          <label>Date <input type="date" id="transit_date"></label>
-          <button type="button" id="transit_next" class="secondary">Next day &raquo;</button>
-          <button type="button" id="transit_today" class="secondary">Today</button>
-        </div>
+    </section>
+  </section>
 
-        <div class="table-block">
-          <h2 id="transit-heading">Gochar for <span id="transit-heading-date"></span></h2>
-          <p id="transit-moon-summary" class="transit-summary"></p>
-        </div>
+  <!-- ==================== PERSONAL DAILY HOROSCOPE ==================== -->
+  <section id="mode-horoscope" class="mode-panel" hidden>
+    <p class="mode-intro">
+      Your daily forecast by Gochar (Vedic transits) -- where the grahas are today relative to
+      your birth chart. Enter your birth details once, then step through any date.
+    </p>
 
-        <div class="reading-grid">
-          <div class="reading-card" id="tara-card">
-            <h3>Tara Bala <span class="quality-pill" id="tara-quality"></span></h3>
-            <p class="reading-title" id="tara-name"></p>
-            <p id="tara-text"></p>
-          </div>
-          <div class="reading-card" id="chandra-card">
-            <h3>Chandra Bala <span class="quality-pill" id="chandra-quality"></span></h3>
-            <p class="reading-title" id="chandra-name"></p>
-            <p id="chandra-text"></p>
-          </div>
-        </div>
-
-        <div class="table-block">
-          <h2>Aspects on Your Chart</h2>
-          <ul id="transit-aspects" class="aspect-list"></ul>
-        </div>
-
-        <div class="table-block">
-          <h2>All Transiting Grahas</h2>
-          <table id="transit-table">
-            <thead><tr><th>Graha</th><th>Sign</th><th>Degree</th><th>Nakshatra</th><th>House from Moon</th><th>House from Lagna</th><th>Retro</th></tr></thead>
-            <tbody></tbody>
-          </table>
-        </div>
-
-        <p class="dosha-note">
-          Cast for 12:00 noon at your birth place. The Moon moves about 13&deg; a day and can
-          change sign mid-day, so readings near a sign boundary shift depending on the hour.
-          Positions and house counts here are exact; the readings are conventional traditional
-          significations stated generically, not personalised prediction.
-        </p>
+    <form id="horoscope-form">
+      <div class="row">
+        <label>Birth date <input type="date" id="dh_birth_date" required></label>
+        <label>Birth time <input type="time" id="dh_birth_time" step="1" required></label>
       </div>
+
+      <div class="place-search">
+        <label class="grow">Birth place
+          <div class="search-row">
+            <input type="text" id="dh_place_query" placeholder="e.g. Chennai, India">
+            <button type="button" id="dh_place_search_btn">Search</button>
+          </div>
+        </label>
+        <ul id="dh_place_results"></ul>
+        <p id="dh_place_selected" class="selected-place" hidden></p>
+      </div>
+
+      <details>
+        <summary>Enter coordinates manually instead</summary>
+        <div class="row">
+          <label>Latitude <input type="number" id="dh_latitude" step="any"></label>
+          <label>Longitude <input type="number" id="dh_longitude" step="any"></label>
+        </div>
+      </details>
+
+      <div class="row">
+        <label>Ayanamsa
+          <select id="dh_ayanamsa">
+            <option value="lahiri" selected>Lahiri</option>
+            <option value="raman">Raman</option>
+            <option value="kp">KP (Krishnamurti)</option>
+            <option value="true_chitra">True Chitrapaksha</option>
+          </select>
+        </label>
+      </div>
+      <button type="submit">Get my horoscope</button>
+    </form>
+
+    <p id="horoscope-error" class="error" hidden></p>
+
+    <section id="horoscope-results" hidden>
+      <div class="date-nav">
+        <button type="button" id="transit_prev" class="secondary">&laquo; Prev day</button>
+        <label>Date <input type="date" id="transit_date"></label>
+        <button type="button" id="transit_next" class="secondary">Next day &raquo;</button>
+        <button type="button" id="transit_today" class="secondary">Today</button>
+      </div>
+
+      <div class="table-block">
+        <h2 id="transit-heading">Horoscope for <span id="transit-heading-date"></span></h2>
+        <p id="transit-moon-summary" class="transit-summary"></p>
+      </div>
+
+      <div class="reading-grid">
+        <div class="reading-card" id="tara-card">
+          <h3>Tara Bala <span class="quality-pill" id="tara-quality"></span></h3>
+          <p class="reading-title" id="tara-name"></p>
+          <p id="tara-text"></p>
+        </div>
+        <div class="reading-card" id="chandra-card">
+          <h3>Chandra Bala <span class="quality-pill" id="chandra-quality"></span></h3>
+          <p class="reading-title" id="chandra-name"></p>
+          <p id="chandra-text"></p>
+        </div>
+      </div>
+
+      <div class="table-block">
+        <h2>Aspects on Your Chart</h2>
+        <ul id="transit-aspects" class="aspect-list"></ul>
+      </div>
+
+      <div class="table-block">
+        <h2>All Transiting Grahas</h2>
+        <table id="transit-table">
+          <thead><tr><th>Graha</th><th>Sign</th><th>Degree</th><th>Nakshatra</th><th>House from Moon</th><th>House from Lagna</th><th>Retro</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <p class="dosha-note">
+        Cast for 12:00 noon at your birth place. The Moon moves about 13&deg; a day and can
+        change sign mid-day, so readings near a sign boundary shift depending on the hour.
+        Positions and house counts here are exact; the readings are conventional traditional
+        significations stated generically, not personalised prediction.
+      </p>
     </section>
   </section>
 
