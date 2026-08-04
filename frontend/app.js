@@ -150,6 +150,19 @@ function renderCharts(positions, vargas) {
   document.getElementById("d9-chart").innerHTML = build(d9SignIndex, "Navamsa") + caption;
 }
 
+function renderDetailsTable({ name, dateLabel, timeLabel, placeLabel, moon, ayanamsaLabel }) {
+  const tbody = document.querySelector("#details-table tbody");
+  const rows = [];
+  if (name) rows.push(["Name", name]);
+  rows.push(["Birth Date", dateLabel]);
+  rows.push(["Birth Time", timeLabel]);
+  rows.push(["Place of Birth", placeLabel]);
+  rows.push(["Nakshatra", moon.nakshatra]);
+  rows.push(["Rasi", moon.sign]);
+  rows.push(["Ayanamsa", ayanamsaLabel]);
+  tbody.innerHTML = rows.map(([k, v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join("");
+}
+
 function renderPositionsTable(positions) {
   const tbody = document.querySelector("#positions-table tbody");
   tbody.innerHTML = "";
@@ -186,6 +199,8 @@ document.getElementById("now_btn").addEventListener("click", () => {
   document.getElementById("birth_time").value = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
 });
 
+let selectedPlaceName = null;
+
 document.getElementById("place_search_btn").addEventListener("click", async () => {
   const errorEl = document.getElementById("error");
   const query = document.getElementById("place_query").value.trim();
@@ -208,6 +223,7 @@ document.getElementById("place_search_btn").addEventListener("click", async () =
       li.addEventListener("click", () => {
         document.getElementById("latitude").value = place.latitude;
         document.getElementById("longitude").value = place.longitude;
+        selectedPlaceName = place.display_name;
         const selected = document.getElementById("place_selected");
         selected.textContent = `Selected: ${place.display_name} (${place.latitude.toFixed(4)}, ${place.longitude.toFixed(4)})`;
         selected.hidden = false;
@@ -266,6 +282,14 @@ document.getElementById("chart-form").addEventListener("submit", async (e) => {
     renderCharts(data.positions, data.vargas);
     renderPositionsTable(data.positions);
     renderDashaTable(data.vimshottari_dasha);
+    renderDetailsTable({
+      name: document.getElementById("person_name").value.trim(),
+      dateLabel: formatChartDate(date),
+      timeLabel: formatChartTime(time),
+      placeLabel: selectedPlaceName || `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
+      moon: data.positions.Moon,
+      ayanamsaLabel: document.getElementById("ayanamsa").selectedOptions[0].text,
+    });
     resultsEl.hidden = false;
   } catch (err) {
     errorEl.textContent = err.message;

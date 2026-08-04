@@ -12,6 +12,9 @@
 
   <form id="chart-form">
     <div class="row">
+      <label>Name (optional) <input type="text" id="person_name" placeholder="e.g. Teja"></label>
+    </div>
+    <div class="row">
       <label>Birth date <input type="date" id="birth_date" required></label>
       <label>Birth time <input type="time" id="birth_time" step="1" required></label>
       <button type="button" id="now_btn" class="secondary">Now</button>
@@ -59,6 +62,13 @@
   <p id="error" class="error" hidden></p>
 
   <section id="results" hidden>
+    <div class="table-block">
+      <h2>Birth Details</h2>
+      <table id="details-table">
+        <tbody></tbody>
+      </table>
+    </div>
+
     <label class="chart-style-picker">Chart style
       <select id="chart_style">
         <option value="north">North Indian (diamond)</option>
