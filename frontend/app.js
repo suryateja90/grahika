@@ -58,7 +58,27 @@ const SOUTH_INDIAN_CELLS_SAVYA = [
 ];
 const SOUTH_INDIAN_CELLS_APASAVYA = SOUTH_INDIAN_CELLS_SAVYA.map(([r, c]) => [r, 3 - c]);
 
-function buildSouthIndianSvg(bodies, signIndexFor, mirrored) {
+const MONTH_NAMES = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+
+function formatChartDate(dateStr) {
+  if (!dateStr) return "";
+  const [y, m, d] = dateStr.split("-").map(Number);
+  return `${d} - ${MONTH_NAMES[m - 1]} - ${y}`;
+}
+
+function formatChartTime(timeStr) {
+  if (!timeStr) return "";
+  const [h, m, s] = timeStr.split(":").map(Number);
+  const period = h >= 12 ? "PM" : "AM";
+  const h12 = ((h + 11) % 12) + 1;
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${pad(h12)}:${pad(m)}:${pad(s || 0)} ${period}`;
+}
+
+function buildSouthIndianSvg(bodies, signIndexFor, mirrored, centerInfo) {
   const cellFor = mirrored ? SOUTH_INDIAN_CELLS_APASAVYA : SOUTH_INDIAN_CELLS_SAVYA;
   const ascSignIndex = signIndexFor("Ascendant");
 
@@ -93,7 +113,17 @@ function buildSouthIndianSvg(bodies, signIndexFor, mirrored) {
     `;
   }
 
-  return `<svg viewBox="0 0 320 320" width="320" height="320">${lines}${cells}</svg>`;
+  let center = "";
+  if (centerInfo) {
+    center = `
+      <text x="160" y="140" font-size="10" text-anchor="middle">${centerInfo.dateLabel}</text>
+      <text x="160" y="155" font-size="10" text-anchor="middle">${centerInfo.timeLabel}</text>
+      <text x="160" y="178" font-size="15" font-weight="700" text-anchor="middle">${centerInfo.chartLabel}</text>
+      <text x="160" y="196" font-size="11" opacity="0.75" text-anchor="middle">${centerInfo.moonNakshatra}</text>
+    `;
+  }
+
+  return `<svg viewBox="0 0 320 320" width="320" height="320">${lines}${cells}${center}</svg>`;
 }
 
 function renderCharts(positions, vargas) {
@@ -101,14 +131,23 @@ function renderCharts(positions, vargas) {
   const d1SignIndex = (name) => vargas[name].D1.sign_index;
   const d9SignIndex = (name) => vargas[name].D9.sign_index;
 
-  const build = (signIndexFor) => {
-    if (style === "south_savya") return buildSouthIndianSvg(positions, signIndexFor, false);
-    if (style === "south_apasavya") return buildSouthIndianSvg(positions, signIndexFor, true);
+  const dateLabel = formatChartDate(document.getElementById("birth_date").value);
+  const timeLabel = formatChartTime(document.getElementById("birth_time").value);
+  const moonNakshatra = positions.Moon.nakshatra;
+
+  const build = (signIndexFor, chartLabel) => {
+    const centerInfo = { dateLabel, timeLabel, chartLabel, moonNakshatra };
+    if (style === "south_savya") return buildSouthIndianSvg(positions, signIndexFor, false, centerInfo);
+    if (style === "south_apasavya") return buildSouthIndianSvg(positions, signIndexFor, true, centerInfo);
     return buildNorthIndianSvg(positions, signIndexFor);
   };
 
-  document.getElementById("d1-chart").innerHTML = build(d1SignIndex);
-  document.getElementById("d9-chart").innerHTML = build(d9SignIndex);
+  const caption = style === "north"
+    ? `<p class="chart-caption">${dateLabel}, ${timeLabel} &middot; Moon: ${moonNakshatra}</p>`
+    : "";
+
+  document.getElementById("d1-chart").innerHTML = build(d1SignIndex, "Rasi") + caption;
+  document.getElementById("d9-chart").innerHTML = build(d9SignIndex, "Navamsa") + caption;
 }
 
 function renderPositionsTable(positions) {

@@ -72,6 +72,7 @@ details .row { margin-top: 0.5rem; }
 .chart-style-picker { display: inline-flex; flex-direction: column; gap: 0.25rem; font-size: 0.85rem; margin-bottom: 0.5rem; }
 .charts { display: flex; flex-wrap: wrap; gap: 2rem; justify-content: center; margin: 1.5rem 0; }
 .chart-block { text-align: center; }
+.chart-caption { font-size: 0.8rem; opacity: 0.75; margin-top: 0.4rem; }
 
 table { border-collapse: collapse; width: 100%; margin-bottom: 1.5rem; font-size: 0.9rem; }
 th, td { border: 1px solid #888; padding: 0.4rem 0.6rem; text-align: left; }
