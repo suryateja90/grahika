@@ -21,6 +21,19 @@ app.include_router(charts.router)
 app.include_router(geocode.router)
 
 
+@app.middleware("http")
+async def no_cache_frontend(request, call_next):
+    # Without this, browsers may reuse a stale copy of the page/JS/CSS
+    # indefinitely (no explicit Cache-Control = heuristic caching kicks in),
+    # which is especially confusing when this is loaded inside an iframe --
+    # a plain refresh of the embedding page doesn't necessarily re-fetch the
+    # iframe's own cached resources. ETag-based revalidation is still cheap.
+    response = await call_next(request)
+    if request.url.path == "/" or request.url.path.endswith((".html", ".js", ".css")):
+        response.headers["Cache-Control"] = "no-cache"
+    return response
+
+
 @app.get("/health")
 def health():
     return {"status": "ok"}
