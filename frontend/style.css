@@ -43,6 +43,7 @@ button {
   cursor: pointer;
 }
 button:hover { opacity: 0.9; }
+button.secondary { background: transparent; border: 1px solid #888; color: inherit; align-self: flex-end; }
 
 .error { color: #c0392b; font-weight: 600; }
 

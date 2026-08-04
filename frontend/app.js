@@ -139,6 +139,46 @@ function renderDashaTable(periods) {
   }
 }
 
+document.getElementById("now_btn").addEventListener("click", () => {
+  const now = new Date();
+  const pad = (n) => String(n).padStart(2, "0");
+  document.getElementById("birth_date").value = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+  document.getElementById("birth_time").value = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+});
+
+document.getElementById("current_location_btn").addEventListener("click", () => {
+  const errorEl = document.getElementById("error");
+  errorEl.hidden = true;
+  if (!navigator.geolocation) {
+    errorEl.textContent = "Geolocation isn't available in this browser.";
+    errorEl.hidden = false;
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(
+    async (pos) => {
+      const { latitude, longitude } = pos.coords;
+      document.getElementById("latitude").value = latitude;
+      document.getElementById("longitude").value = longitude;
+      const selected = document.getElementById("place_selected");
+      selected.textContent = `Selected: current location (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`;
+      selected.hidden = false;
+      try {
+        const resp = await fetch(`${API_BASE}/geocode/reverse?lat=${latitude}&lon=${longitude}`);
+        if (resp.ok) {
+          const place = await resp.json();
+          selected.textContent = `Selected: ${place.display_name} (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`;
+        }
+      } catch (e) {
+        // reverse lookup is a nice-to-have label only; coordinates are already filled in
+      }
+    },
+    (err) => {
+      errorEl.textContent = `Couldn't get your location: ${err.message}`;
+      errorEl.hidden = false;
+    }
+  );
+});
+
 document.getElementById("place_search_btn").addEventListener("click", async () => {
   const errorEl = document.getElementById("error");
   const query = document.getElementById("place_query").value.trim();

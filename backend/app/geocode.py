@@ -23,13 +23,14 @@ from timezonefinder import TimezoneFinder
 
 _tf = TimezoneFinder()
 
-NOMINATIM_URL = "https://nominatim.openstreetmap.org/search"
+NOMINATIM_SEARCH_URL = "https://nominatim.openstreetmap.org/search"
+NOMINATIM_REVERSE_URL = "https://nominatim.openstreetmap.org/reverse"
 USER_AGENT = "GrahikaApp/0.1 (contact: suryafacts@gmail.com)"
 
 
 def search_places(query: str, limit: int = 5) -> list[dict]:
     params = urllib.parse.urlencode({"q": query, "format": "jsonv2", "limit": limit})
-    req = urllib.request.Request(f"{NOMINATIM_URL}?{params}", headers={"User-Agent": USER_AGENT})
+    req = urllib.request.Request(f"{NOMINATIM_SEARCH_URL}?{params}", headers={"User-Agent": USER_AGENT})
     with urllib.request.urlopen(req, timeout=8) as resp:
         results = json.loads(resp.read().decode())
     return [
@@ -40,6 +41,18 @@ def search_places(query: str, limit: int = 5) -> list[dict]:
         }
         for r in results
     ]
+
+
+def reverse_geocode(lat: float, lon: float) -> dict:
+    params = urllib.parse.urlencode({"lat": lat, "lon": lon, "format": "jsonv2"})
+    req = urllib.request.Request(f"{NOMINATIM_REVERSE_URL}?{params}", headers={"User-Agent": USER_AGENT})
+    with urllib.request.urlopen(req, timeout=8) as resp:
+        result = json.loads(resp.read().decode())
+    return {
+        "display_name": result.get("display_name", f"{lat:.4f}, {lon:.4f}"),
+        "latitude": lat,
+        "longitude": lon,
+    }
 
 
 def timezone_name_for(lat: float, lon: float) -> str:
