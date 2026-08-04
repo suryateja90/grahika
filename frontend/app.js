@@ -146,56 +146,6 @@ document.getElementById("now_btn").addEventListener("click", () => {
   document.getElementById("birth_time").value = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
 });
 
-const currentLocationBtn = document.getElementById("current_location_btn");
-if (!window.isSecureContext) {
-  // Geolocation is only granted on HTTPS (or localhost). Disable up front with
-  // an explanation instead of letting the browser fail silently or cryptically
-  // on click -- this matters if this page ends up embedded via iframe on a
-  // site still served over plain HTTP.
-  currentLocationBtn.disabled = true;
-  currentLocationBtn.title = "Current location requires HTTPS. This page (or the page embedding it) is being served over plain HTTP.";
-}
-
-currentLocationBtn.addEventListener("click", () => {
-  const errorEl = document.getElementById("error");
-  errorEl.hidden = true;
-  if (!navigator.geolocation) {
-    errorEl.textContent = "Geolocation isn't available in this browser.";
-    errorEl.hidden = false;
-    return;
-  }
-  navigator.geolocation.getCurrentPosition(
-    async (pos) => {
-      const { latitude, longitude, accuracy } = pos.coords;
-      // accuracy is a 1-sigma radius in meters -- browsers report this
-      // themselves; it's how far off the fix could be, e.g. IP-based
-      // fallback location on desktops routinely runs 10s of km.
-      const accuracyNote = accuracy > 10000
-        ? ` -- accurate to only ~${Math.round(accuracy / 1000)}km, consider searching your place by name instead`
-        : ` (accurate to ~${Math.round(accuracy)}m)`;
-      document.getElementById("latitude").value = latitude;
-      document.getElementById("longitude").value = longitude;
-      const selected = document.getElementById("place_selected");
-      selected.textContent = `Selected: current location (${latitude.toFixed(4)}, ${longitude.toFixed(4)})${accuracyNote}`;
-      selected.hidden = false;
-      try {
-        const resp = await fetch(`${API_BASE}/geocode/reverse?lat=${latitude}&lon=${longitude}`);
-        if (resp.ok) {
-          const place = await resp.json();
-          selected.textContent = `Selected: ${place.display_name} (${latitude.toFixed(4)}, ${longitude.toFixed(4)})${accuracyNote}`;
-        }
-      } catch (e) {
-        // reverse lookup is a nice-to-have label only; coordinates are already filled in
-      }
-    },
-    (err) => {
-      errorEl.textContent = `Couldn't get your location: ${err.message}`;
-      errorEl.hidden = false;
-    },
-    { enableHighAccuracy: true, timeout: 10000 }
-  );
-});
-
 document.getElementById("place_search_btn").addEventListener("click", async () => {
   const errorEl = document.getElementById("error");
   const query = document.getElementById("place_query").value.trim();
