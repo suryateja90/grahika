@@ -44,6 +44,8 @@ button {
 }
 button:hover { opacity: 0.9; }
 button.secondary { background: transparent; border: 1px solid #888; color: inherit; align-self: flex-end; }
+button:disabled { opacity: 0.4; cursor: not-allowed; }
+button:disabled:hover { opacity: 0.4; }
 
 .error { color: #c0392b; font-weight: 600; }
 

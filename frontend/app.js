@@ -146,7 +146,17 @@ document.getElementById("now_btn").addEventListener("click", () => {
   document.getElementById("birth_time").value = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
 });
 
-document.getElementById("current_location_btn").addEventListener("click", () => {
+const currentLocationBtn = document.getElementById("current_location_btn");
+if (!window.isSecureContext) {
+  // Geolocation is only granted on HTTPS (or localhost). Disable up front with
+  // an explanation instead of letting the browser fail silently or cryptically
+  // on click -- this matters if this page ends up embedded via iframe on a
+  // site still served over plain HTTP.
+  currentLocationBtn.disabled = true;
+  currentLocationBtn.title = "Current location requires HTTPS. This page (or the page embedding it) is being served over plain HTTP.";
+}
+
+currentLocationBtn.addEventListener("click", () => {
   const errorEl = document.getElementById("error");
   errorEl.hidden = true;
   if (!navigator.geolocation) {
