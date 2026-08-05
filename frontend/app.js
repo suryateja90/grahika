@@ -710,3 +710,48 @@ let lastChartData = null;
 document.getElementById("chart_style").addEventListener("change", () => {
   if (lastChartData) renderCharts(lastChartData.positions, lastChartData.vargas);
 });
+
+// ------------------------- iframe auto-height -------------------------
+// When embedded (e.g. the WordPress page), report our content height to
+// the parent so the iframe can grow to fit. Otherwise the iframe keeps a
+// fixed height and gets its own inner scrollbar -- nested scrolling,
+// which is awkward on desktop and genuinely bad on touch.
+//
+// Height is only ever sent, never received, and the message carries a
+// type tag so the parent can ignore unrelated postMessage traffic. The
+// parent still has to check event.origin before trusting it.
+(function reportHeightToParent() {
+  if (window.parent === window) return; // not embedded; nothing to do
+
+  let lastHeight = 0;
+
+  const send = () => {
+    const height = Math.ceil(
+      Math.max(
+        document.body.scrollHeight,
+        document.documentElement.scrollHeight,
+        document.body.offsetHeight,
+      )
+    );
+    // Only post on a real change, and ignore sub-pixel jitter that would
+    // otherwise fire a message on every animation frame.
+    if (Math.abs(height - lastHeight) < 2) return;
+    lastHeight = height;
+    window.parent.postMessage({ type: "grahika:height", height }, "*");
+  };
+
+  window.addEventListener("load", send);
+  window.addEventListener("resize", send);
+
+  // Results appear and tabs switch without any resize event, so watch the
+  // DOM itself rather than relying on window events alone.
+  if (typeof ResizeObserver !== "undefined") {
+    new ResizeObserver(send).observe(document.body);
+  } else {
+    new MutationObserver(send).observe(document.body, {
+      childList: true, subtree: true, attributes: true,
+    });
+  }
+
+  send();
+})();
