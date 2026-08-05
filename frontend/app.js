@@ -5,46 +5,101 @@ const PLANET_ABBR = {
   Venus: "Ve", Saturn: "Sa", Rahu: "Ra", Ketu: "Ke", Ascendant: "As",
 };
 
-// North Indian diamond chart: fixed house positions (1 = top kite, then
-// clockwise). Only the label anchor points are precise here; the dividing
-// lines are the standard square + diagonals + inner diamond construction.
-const HOUSE_LABEL_POS = [
-  [150, 50], [215, 35], [265, 85], [250, 150], [265, 215], [215, 265],
-  [150, 250], [85, 265], [35, 215], [50, 150], [35, 85], [85, 35],
+const SIGN_SHORT = [
+  "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",
+  "Libra", "Scorpi", "Sagitt", "Capric", "Aquari", "Pisces",
 ];
+const SIGN_GLYPHS = ["♈", "♉", "♊", "♋", "♌", "♍",
+                     "♎", "♏", "♐", "♑", "♒", "♓"];
+
+// Charts stay on their parchment palette in both light and dark themes.
+// A traditional kundli is always drawn on light stock, and inverting it
+// makes it read as a UI widget rather than a chart.
+const C = {
+  bg: "#FDF8EA", bgAsc: "#F4E7C8", border: "#8B5A2B", line: "#C9A063",
+  planet: "#8B1A1A", retro: "#C0392B", signNum: "#B8860B",
+  signName: "#93866A", houseNum: "#BEB197",
+  centerTitle: "#6B4423", centerSub: "#8A7350",
+};
 
 function houseOf(bodySignIndex, ascSignIndex) {
   return ((bodySignIndex - ascSignIndex + 12) % 12) + 1;
 }
 
+// Retrograde is shown as a raised R, so the trailing tspan resets the
+// baseline -- dy accumulates across tspans in SVG and without the reset
+// every planet after a retrograde one would sit progressively higher.
+function planetMarkup(names, bodies) {
+  return names.map((name) => {
+    const abbr = PLANET_ABBR[name] || name.slice(0, 2);
+    if (!bodies[name] || !bodies[name].retrograde) return abbr;
+    return `${abbr}<tspan font-size="65%" dy="-5" fill="${C.retro}">R</tspan><tspan dy="5"></tspan>`;
+  }).join("&#160;");
+}
+
+// Planets are laid out in rows of at most three so a stellium doesn't
+// overflow its cell.
+function planetRows(names, bodies, x, y, size) {
+  const rows = [];
+  for (let i = 0; i < names.length; i += 3) rows.push(names.slice(i, i + 3));
+  const startY = y - ((rows.length - 1) * (size + 2)) / 2;
+  return rows.map((row, i) => `
+    <text x="${x}" y="${startY + i * (size + 2)}" font-size="${size}" font-weight="700"
+          fill="${C.planet}" text-anchor="middle" dominant-baseline="middle"
+          font-family="Georgia, serif">${planetMarkup(row, bodies)}</text>
+  `).join("");
+}
+
+// North Indian: houses are fixed to regions and run ANTICLOCKWISE from the
+// top diamond (H1 top, H2 top-left, H3 left-upper, ...). Drawing them
+// clockwise mirrors the chart -- an easy mistake, since the house->rashi
+// arithmetic stays correct either way and only the picture is wrong.
+const NORTH_REGIONS = [
+  { poly: "200,0 300,100 200,200 100,100", num: [200, 26], planets: [200, 112] },
+  { poly: "0,0 200,0 100,100", num: [158, 20], planets: [100, 50] },
+  { poly: "0,0 100,100 0,200", num: [20, 158], planets: [50, 100] },
+  { poly: "0,200 100,100 200,200 100,300", num: [26, 200], planets: [112, 200] },
+  { poly: "0,200 100,300 0,400", num: [20, 246], planets: [50, 300] },
+  { poly: "0,400 100,300 200,400", num: [158, 386], planets: [100, 350] },
+  { poly: "200,400 100,300 200,200 300,300", num: [200, 378], planets: [200, 288] },
+  { poly: "200,400 300,300 400,400", num: [246, 386], planets: [300, 350] },
+  { poly: "400,400 300,300 400,200", num: [382, 246], planets: [350, 300] },
+  { poly: "400,200 300,300 200,200 300,100", num: [376, 200], planets: [288, 200] },
+  { poly: "400,200 300,100 400,0", num: [382, 158], planets: [350, 100] },
+  { poly: "400,0 300,100 200,0", num: [246, 20], planets: [300, 50] },
+];
+
 function buildNorthIndianSvg(bodies, signIndexFor) {
   const ascSignIndex = signIndexFor("Ascendant");
+  // The Ascendant isn't drawn as a token. In this style house 1 is always
+  // the top diamond by construction, so the Lagna is already unambiguous
+  // and an "As" label would just be noise.
   const byHouse = {};
-  for (let h = 1; h <= 12; h++) byHouse[h] = { sign: ((ascSignIndex + h - 1) % 12) + 1, planets: [] };
+  for (let h = 1; h <= 12; h++) byHouse[h] = [];
+  for (const name of Object.keys(bodies)) {
+    if (name === "Ascendant") continue;
+    byHouse[houseOf(signIndexFor(name), ascSignIndex)].push(name);
+  }
 
-  for (const [name, data] of Object.entries(bodies)) {
-    const h = houseOf(signIndexFor(name), ascSignIndex);
-    byHouse[h].planets.push(PLANET_ABBR[name] || name.slice(0, 2));
+  let regions = "";
+  for (let h = 1; h <= 12; h++) {
+    const r = NORTH_REGIONS[h - 1];
+    const rashi = ((ascSignIndex + h - 1) % 12) + 1;
+    regions += `<polygon points="${r.poly}" fill="${h === 1 ? C.bgAsc : C.bg}" stroke="none"/>`;
+    regions += `<text x="${r.num[0]}" y="${r.num[1]}" font-size="13" font-weight="700"
+                      fill="${C.signNum}" text-anchor="middle">${rashi}</text>`;
+    regions += planetRows(byHouse[h], bodies, r.planets[0], r.planets[1], 15);
   }
 
   const lines = `
-    <polygon points="0,0 300,0 300,300 0,300" fill="none" stroke-width="2"/>
-    <line x1="0" y1="0" x2="300" y2="300" stroke-width="1"/>
-    <line x1="300" y1="0" x2="0" y2="300" stroke-width="1"/>
-    <polygon points="150,0 300,150 150,300 0,150" fill="none" stroke-width="1"/>
+    <line x1="0" y1="0" x2="400" y2="400" stroke="${C.line}" stroke-width="1.5"/>
+    <line x1="400" y1="0" x2="0" y2="400" stroke="${C.line}" stroke-width="1.5"/>
+    <polygon points="200,0 400,200 200,400 0,200" fill="none" stroke="${C.line}" stroke-width="1.5"/>
+    <rect x="0" y="0" width="400" height="400" fill="none" stroke="${C.border}" stroke-width="3"/>
   `;
 
-  let labels = "";
-  for (let h = 1; h <= 12; h++) {
-    const [x, y] = HOUSE_LABEL_POS[h - 1];
-    const info = byHouse[h];
-    labels += `
-      <text x="${x}" y="${y - 6}" font-size="8" opacity="0.6" text-anchor="middle">${info.sign}</text>
-      <text x="${x}" y="${y + 8}" font-size="11" font-weight="600" text-anchor="middle">${info.planets.join(",")}</text>
-    `;
-  }
-
-  return `<svg viewBox="0 0 300 300" width="300" height="300">${lines}${labels}</svg>`;
+  return `<svg viewBox="0 0 400 400" class="kundli-svg" role="img"
+               aria-label="North Indian style chart">${regions}${lines}</svg>`;
 }
 
 // South Indian box chart: signs are fixed to grid cells (a 4x4 grid with
@@ -82,21 +137,17 @@ function buildSouthIndianSvg(bodies, signIndexFor, mirrored, centerInfo) {
   const cellFor = mirrored ? SOUTH_INDIAN_CELLS_APASAVYA : SOUTH_INDIAN_CELLS_SAVYA;
   const ascSignIndex = signIndexFor("Ascendant");
 
+  // As above: the Lagna is carried by the shaded cell and the centre
+  // caption, not by an "As" token among the grahas.
   const bySign = {};
   for (let s = 0; s < 12; s++) bySign[s] = [];
   for (const name of Object.keys(bodies)) {
-    bySign[signIndexFor(name)].push(PLANET_ABBR[name] || name.slice(0, 2));
+    if (name === "Ascendant") continue;
+    bySign[signIndexFor(name)].push(name);
   }
 
-  const CELL = 80;
-  const lines = `
-    <polygon points="0,0 320,0 320,320 0,320" fill="none" stroke-width="2"/>
-    <polygon points="80,80 240,80 240,240 80,240" fill="none" stroke-width="1"/>
-    <line x1="160" y1="0" x2="160" y2="80" stroke-width="1"/>
-    <line x1="160" y1="240" x2="160" y2="320" stroke-width="1"/>
-    <line x1="0" y1="160" x2="80" y2="160" stroke-width="1"/>
-    <line x1="240" y1="160" x2="320" y2="160" stroke-width="1"/>
-  `;
+  const CELL = 100;
+  const SIZE = 400;
 
   let cells = "";
   for (let s = 0; s < 12; s++) {
@@ -104,26 +155,42 @@ function buildSouthIndianSvg(bodies, signIndexFor, mirrored, centerInfo) {
     const x = col * CELL;
     const y = row * CELL;
     const isAsc = s === ascSignIndex;
-    if (isAsc) {
-      cells += `<rect x="${x + 2}" y="${y + 2}" width="${CELL - 4}" height="${CELL - 4}" fill="none" stroke-width="2" stroke-dasharray="4,2"/>`;
-    }
-    cells += `
-      <text x="${x + 10}" y="${y + 16}" font-size="9" opacity="0.6">${s + 1}</text>
-      <text x="${x + CELL / 2}" y="${y + CELL / 2 + 6}" font-size="11" font-weight="600" text-anchor="middle">${bySign[s].join(",")}</text>
-    `;
+    const house = houseOf(s, ascSignIndex);
+
+    cells += `<rect x="${x}" y="${y}" width="${CELL}" height="${CELL}"
+                    fill="${isAsc ? C.bgAsc : C.bg}" stroke="${C.line}" stroke-width="1"/>`;
+    cells += `<text x="${x + 9}" y="${y + 20}" font-size="14" font-weight="700"
+                    fill="${C.signNum}">${s + 1}</text>`;
+    cells += `<text x="${x + 27}" y="${y + 20}" font-size="11"
+                    fill="${C.signName}">${SIGN_SHORT[s]}</text>`;
+    cells += `<text x="${x + CELL - 9}" y="${y + 20}" font-size="10" fill="${C.houseNum}"
+                    text-anchor="end">H${house}</text>`;
+    cells += planetRows(bySign[s], bodies, x + CELL / 2, y + CELL / 2 + 8, 15);
   }
 
   let center = "";
   if (centerInfo) {
+    const ascName = centerInfo.ascSignName;
+    const ascGlyph = SIGN_GLYPHS[ascSignIndex];
     center = `
-      <text x="160" y="140" font-size="10" text-anchor="middle">${centerInfo.dateLabel}</text>
-      <text x="160" y="155" font-size="10" text-anchor="middle">${centerInfo.timeLabel}</text>
-      <text x="160" y="178" font-size="15" font-weight="700" text-anchor="middle">${centerInfo.chartLabel}</text>
-      <text x="160" y="196" font-size="11" opacity="0.75" text-anchor="middle">${centerInfo.moonNakshatra}</text>
+      <rect x="${CELL}" y="${CELL}" width="${CELL * 2}" height="${CELL * 2}"
+            fill="${C.bg}" stroke="none"/>
+      <text x="200" y="152" font-size="12" fill="${C.centerSub}" text-anchor="middle">${centerInfo.dateLabel}</text>
+      <text x="200" y="170" font-size="12" fill="${C.centerSub}" text-anchor="middle">${centerInfo.timeLabel}</text>
+      <text x="200" y="205" font-size="23" font-weight="700" fill="${C.centerTitle}"
+            text-anchor="middle" font-family="Georgia, serif">${centerInfo.chartLabel} Chart</text>
+      <text x="200" y="232" font-size="14" fill="${C.centerTitle}" text-anchor="middle">
+        Asc: ${ascGlyph} ${ascName}
+      </text>
+      <text x="200" y="253" font-size="11" fill="${C.centerSub}" text-anchor="middle">${centerInfo.vargaLabel}</text>
     `;
   }
 
-  return `<svg viewBox="0 0 320 320" width="320" height="320">${lines}${cells}${center}</svg>`;
+  const border = `<rect x="0" y="0" width="${SIZE}" height="${SIZE}" fill="none"
+                        stroke="${C.border}" stroke-width="3"/>`;
+
+  return `<svg viewBox="0 0 ${SIZE} ${SIZE}" class="kundli-svg" role="img"
+               aria-label="South Indian style chart">${cells}${center}${border}</svg>`;
 }
 
 function renderCharts(positions, vargas) {
@@ -135,8 +202,11 @@ function renderCharts(positions, vargas) {
   const timeLabel = formatChartTime(document.getElementById("birth_time").value);
   const moonNakshatra = positions.Moon.nakshatra;
 
-  const build = (signIndexFor, chartLabel) => {
-    const centerInfo = { dateLabel, timeLabel, chartLabel, moonNakshatra };
+  const build = (signIndexFor, chartLabel, vargaLabel) => {
+    const centerInfo = {
+      dateLabel, timeLabel, chartLabel, vargaLabel, moonNakshatra,
+      ascSignName: SIGN_SHORT[signIndexFor("Ascendant")],
+    };
     if (style === "south_savya") return buildSouthIndianSvg(positions, signIndexFor, false, centerInfo);
     if (style === "south_apasavya") return buildSouthIndianSvg(positions, signIndexFor, true, centerInfo);
     return buildNorthIndianSvg(positions, signIndexFor);
@@ -146,8 +216,8 @@ function renderCharts(positions, vargas) {
     ? `<p class="chart-caption">${dateLabel}, ${timeLabel} &middot; Moon: ${moonNakshatra}</p>`
     : "";
 
-  document.getElementById("d1-chart").innerHTML = build(d1SignIndex, "Rasi") + caption;
-  document.getElementById("d9-chart").innerHTML = build(d9SignIndex, "Navamsa") + caption;
+  document.getElementById("d1-chart").innerHTML = build(d1SignIndex, "Lagna", "D1 &middot; Rashi") + caption;
+  document.getElementById("d9-chart").innerHTML = build(d9SignIndex, "Navamsha", "D9 &middot; Navamsha") + caption;
 }
 
 function renderDetailsTable({ name, dateLabel, timeLabel, placeLabel, moon, ayanamsaLabel }) {
@@ -205,46 +275,94 @@ document.getElementById("now_btn").addEventListener("click", () => {
 // coordinates.
 const selectedPlaceNames = {};
 
+// Nominatim's usage policy caps requests at ~1/second and explicitly
+// discourages firing one per keystroke. So: wait for a real pause in
+// typing, require a few characters, and cache results per query so
+// backspacing or re-focusing never re-hits the API.
+const AUTOCOMPLETE_DELAY_MS = 650;
+const MIN_QUERY_LENGTH = 3;
+const placeCache = new Map();
+
+async function lookupPlaces(query) {
+  const key = query.toLowerCase();
+  if (placeCache.has(key)) return placeCache.get(key);
+  const resp = await fetch(`${API_BASE}/geocode/search?q=${encodeURIComponent(query)}`);
+  if (!resp.ok) throw new Error(`Place lookup failed (${resp.status})`);
+  const places = await resp.json();
+  placeCache.set(key, places);
+  return places;
+}
+
 function wirePlaceSearch(prefix, errorElId) {
   const id = (suffix) => `${prefix}${suffix}`;
-  const searchBtn = document.getElementById(id("place_search_btn"));
-  if (!searchBtn) return;
+  const input = document.getElementById(id("place_query"));
+  if (!input) return;
 
-  searchBtn.addEventListener("click", async () => {
-    const errorEl = document.getElementById(errorElId);
-    const query = document.getElementById(id("place_query")).value.trim();
-    const resultsEl = document.getElementById(id("place_results"));
+  const resultsEl = document.getElementById(id("place_results"));
+  const selectedEl = document.getElementById(id("place_selected"));
+  let timer = null;
+  let requestSeq = 0;
+
+  const choose = (place) => {
+    document.getElementById(id("latitude")).value = place.latitude;
+    document.getElementById(id("longitude")).value = place.longitude;
+    selectedPlaceNames[prefix] = place.display_name;
+    input.value = place.display_name;
+    selectedEl.textContent = `${place.latitude.toFixed(4)}, ${place.longitude.toFixed(4)}`;
+    selectedEl.hidden = false;
     resultsEl.innerHTML = "";
-    errorEl.hidden = true;
-    if (query.length < 2) return;
+  };
 
+  const search = async (query) => {
+    // Responses can land out of order; only the newest one may render.
+    const seq = ++requestSeq;
     try {
-      const resp = await fetch(`${API_BASE}/geocode/search?q=${encodeURIComponent(query)}`);
-      if (!resp.ok) throw new Error(`Place lookup failed (${resp.status})`);
-      const places = await resp.json();
+      const places = await lookupPlaces(query);
+      if (seq !== requestSeq) return;
+
       if (places.length === 0) {
-        resultsEl.innerHTML = "<li>No matches -- try a different spelling or add the country</li>";
+        resultsEl.innerHTML = `<li class="place-empty">No matches -- try adding the country</li>`;
         return;
       }
+      resultsEl.innerHTML = "";
       for (const place of places) {
         const li = document.createElement("li");
         li.textContent = place.display_name;
-        li.addEventListener("click", () => {
-          document.getElementById(id("latitude")).value = place.latitude;
-          document.getElementById(id("longitude")).value = place.longitude;
-          selectedPlaceNames[prefix] = place.display_name;
-          const selected = document.getElementById(id("place_selected"));
-          selected.textContent = `Selected: ${place.display_name} (${place.latitude.toFixed(4)}, ${place.longitude.toFixed(4)})`;
-          selected.hidden = false;
-          resultsEl.innerHTML = "";
+        li.addEventListener("mousedown", (e) => {
+          // mousedown, not click: blur fires first and would hide the
+          // list before the click ever registers.
+          e.preventDefault();
+          choose(place);
         });
         resultsEl.appendChild(li);
       }
     } catch (err) {
+      if (seq !== requestSeq) return;
+      const errorEl = document.getElementById(errorElId);
       errorEl.textContent = err.message;
       errorEl.hidden = false;
     }
+  };
+
+  input.addEventListener("input", () => {
+    clearTimeout(timer);
+    selectedEl.hidden = true;
+    // Any edit invalidates the previously picked place, so clear the
+    // coordinates -- otherwise a half-typed city silently keeps the old
+    // location and computes a chart for the wrong place.
+    document.getElementById(id("latitude")).value = "";
+    document.getElementById(id("longitude")).value = "";
+    delete selectedPlaceNames[prefix];
+
+    const query = input.value.trim();
+    if (query.length < MIN_QUERY_LENGTH) {
+      resultsEl.innerHTML = "";
+      return;
+    }
+    timer = setTimeout(() => search(query), AUTOCOMPLETE_DELAY_MS);
   });
+
+  input.addEventListener("blur", () => setTimeout(() => { resultsEl.innerHTML = ""; }, 150));
 }
 
 wirePlaceSearch("", "error");

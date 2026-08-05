@@ -49,21 +49,39 @@ button:disabled:hover { opacity: 0.4; }
 
 .error { color: #c0392b; font-weight: 600; }
 
-.place-search { display: flex; flex-direction: column; gap: 0.4rem; }
+.place-search { display: flex; flex-direction: column; gap: 0.3rem; position: relative; }
 .search-row { display: flex; gap: 0.5rem; }
-.search-row input { flex: 1; }
-.search-row button { padding: 0.4rem 0.8rem; }
-#place_results { list-style: none; margin: 0; padding: 0; max-height: 10rem; overflow-y: auto; }
-#place_results li {
-  padding: 0.4rem 0.6rem;
+.search-row input { flex: 1; width: 100%; }
+
+/* Autocomplete list floats over following content so it never pushes the
+   form around as the user types. */
+.place-search ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 13rem;
+  overflow-y: auto;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  background: var(--bg);
+  border-radius: 0 0 6px 6px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+}
+.place-search ul:empty { box-shadow: none; }
+.place-search li {
+  padding: 0.55rem 0.7rem;
   border: 1px solid #888;
   border-top: none;
   cursor: pointer;
   font-size: 0.85rem;
 }
-#place_results li:first-child { border-top: 1px solid #888; }
-#place_results li:hover { background: rgba(122,59,46,0.15); }
-.selected-place { font-size: 0.85rem; opacity: 0.8; margin: 0; }
+.place-search li:first-child { border-top: 1px solid #888; }
+.place-search li:hover { background: rgba(122, 59, 46, 0.15); }
+.place-search li.place-empty { cursor: default; opacity: 0.7; font-style: italic; }
+.selected-place { font-size: 0.78rem; opacity: 0.65; margin: 0; }
 
 details { font-size: 0.85rem; }
 details summary { cursor: pointer; opacity: 0.75; }
@@ -179,14 +197,63 @@ legend { font-weight: 700; padding: 0 0.4rem; }
 .aspect-list .aspect-empty { opacity: 0.7; font-style: italic; }
 
 .chart-style-picker { display: inline-flex; flex-direction: column; gap: 0.25rem; font-size: 0.85rem; margin-bottom: 0.5rem; }
-.charts { display: flex; flex-wrap: wrap; gap: 2rem; justify-content: center; margin: 1.5rem 0; }
-.chart-block { text-align: center; }
+.charts { display: flex; flex-wrap: wrap; gap: 1.5rem; justify-content: center; margin: 1.5rem 0; }
+.chart-block { text-align: center; flex: 1 1 340px; max-width: 420px; min-width: 0; }
 .chart-caption { font-size: 0.8rem; opacity: 0.75; margin-top: 0.4rem; }
 
+/* The chart scales with its column instead of sitting at a fixed pixel
+   size, which is what makes it usable on a phone. */
+.kundli-svg { width: 100%; height: auto; display: block; border-radius: 4px; }
+
+/* Tables scroll inside their own block rather than forcing the whole page
+   to scroll sideways on narrow screens. */
+.table-block { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 table { border-collapse: collapse; width: 100%; margin-bottom: 1.5rem; font-size: 0.9rem; }
-th, td { border: 1px solid #888; padding: 0.4rem 0.6rem; text-align: left; }
+th, td { border: 1px solid #888; padding: 0.4rem 0.6rem; text-align: left; white-space: nowrap; }
 th { background: rgba(128,128,128,0.15); }
 #details-table td:first-child { font-weight: 600; width: 12rem; }
+#details-table td, #koota-table td, #mangal-table td { white-space: normal; }
 
-svg text { fill: var(--fg); }
-svg line, svg polygon { stroke: var(--line); }
+/* Charts carry their own colours inline; this only styles other SVGs. */
+svg:not(.kundli-svg) text { fill: var(--fg); }
+svg:not(.kundli-svg) line, svg:not(.kundli-svg) polygon { stroke: var(--line); }
+
+/* ------------------------------ responsive ------------------------------ */
+@media (max-width: 720px) {
+  body { padding: 1rem 0.75rem; }
+  h1 { font-size: 1.6rem; }
+  .subtitle { font-size: 0.9rem; }
+
+  /* Tab strips scroll horizontally rather than wrapping into a ragged
+     block that pushes the content down. */
+  .tabs {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab-btn { white-space: nowrap; flex: 0 0 auto; padding: 0.6rem 0.5rem; }
+  .mode-tabs .tab-btn { font-size: 0.92rem; }
+
+  /* Full-width fields stack cleanly and stay above the 16px threshold that
+     makes iOS Safari zoom the viewport on focus. */
+  .row { flex-direction: column; gap: 0.75rem; }
+  .row > label, .row > button { width: 100%; }
+  input, select { font-size: 16px; width: 100%; }
+  button { width: 100%; align-self: stretch; text-align: center; }
+  button.secondary { align-self: stretch; }
+
+  .date-nav { display: grid; grid-template-columns: 1fr 1fr; }
+  .date-nav label { grid-column: 1 / -1; }
+
+  fieldset { padding: 0.85rem 0.75rem; }
+  .charts { gap: 1.75rem; }
+  .chart-block { flex: 1 1 100%; max-width: 100%; }
+  .summary-card { padding: 0.9rem 1rem; }
+  .summary-card h2 { font-size: 1.25rem; }
+  .score-value { font-size: 1.8rem; }
+  .reading-grid { grid-template-columns: 1fr; }
+  table { font-size: 0.82rem; }
+  th, td { padding: 0.35rem 0.45rem; }
+}
