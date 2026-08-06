@@ -1,14 +1,14 @@
 const API_BASE = ""; // same origin -- backend serves this page
 
-const PLANET_ABBR = {
-  Sun: "Su", Moon: "Mo", Mars: "Ma", Mercury: "Me", Jupiter: "Ju",
-  Venus: "Ve", Saturn: "Sa", Rahu: "Ra", Ketu: "Ke", Ascendant: "As",
-};
-
-const SIGN_SHORT = [
-  "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",
-  "Libra", "Scorpi", "Sagitt", "Capric", "Aquari", "Pisces",
-];
+// All display names resolve through the active language at render time,
+// so switching language re-renders from the response already in hand.
+const tSign = (i) => t("signs")[i];
+const tSignShort = (i) => t("signsShort")[i];
+const tNak = (i) => t("nakshatras")[i];
+const tPlanet = (n) => t("planets")[n] || n;
+const tAbbr = (n) => t("planetAbbr")[n] || n.slice(0, 2);
+const tKoota = (n) => t("kootas")[n] || n;
+const tQuality = (q) => t("qualities")[q] || q;
 const SIGN_GLYPHS = ["♈", "♉", "♊", "♋", "♌", "♍",
                      "♎", "♏", "♐", "♑", "♒", "♓"];
 
@@ -31,7 +31,7 @@ function houseOf(bodySignIndex, ascSignIndex) {
 // every planet after a retrograde one would sit progressively higher.
 function planetMarkup(names, bodies) {
   return names.map((name) => {
-    const abbr = PLANET_ABBR[name] || name.slice(0, 2);
+    const abbr = tAbbr(name);
     if (!bodies[name] || !bodies[name].retrograde) return abbr;
     return `${abbr}<tspan font-size="65%" dy="-5" fill="${C.retro}">R</tspan><tspan dy="5"></tspan>`;
   }).join("&#160;");
@@ -46,7 +46,7 @@ function planetRows(names, bodies, x, y, size) {
   return rows.map((row, i) => `
     <text x="${x}" y="${startY + i * (size + 2)}" font-size="${size}" font-weight="700"
           fill="${C.planet}" text-anchor="middle" dominant-baseline="middle"
-          font-family="Georgia, serif">${planetMarkup(row, bodies)}</text>
+          font-family="Georgia, 'Noto Sans Telugu', serif">${planetMarkup(row, bodies)}</text>
   `).join("");
 }
 
@@ -113,15 +113,11 @@ const SOUTH_INDIAN_CELLS_SAVYA = [
 ];
 const SOUTH_INDIAN_CELLS_APASAVYA = SOUTH_INDIAN_CELLS_SAVYA.map(([r, c]) => [r, 3 - c]);
 
-const MONTH_NAMES = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
-];
 
 function formatChartDate(dateStr) {
   if (!dateStr) return "";
   const [y, m, d] = dateStr.split("-").map(Number);
-  return `${d} - ${MONTH_NAMES[m - 1]} - ${y}`;
+  return `${d} - ${MONTHS[lang()][m - 1]} - ${y}`;
 }
 
 function formatChartTime(timeStr) {
@@ -162,7 +158,7 @@ function buildSouthIndianSvg(bodies, signIndexFor, mirrored, centerInfo) {
     cells += `<text x="${x + 9}" y="${y + 20}" font-size="14" font-weight="700"
                     fill="${C.signNum}">${s + 1}</text>`;
     cells += `<text x="${x + 27}" y="${y + 20}" font-size="11"
-                    fill="${C.signName}">${SIGN_SHORT[s]}</text>`;
+                    fill="${C.signName}">${tSignShort(s)}</text>`;
     cells += `<text x="${x + CELL - 9}" y="${y + 20}" font-size="10" fill="${C.houseNum}"
                     text-anchor="end">H${house}</text>`;
     cells += planetRows(bySign[s], bodies, x + CELL / 2, y + CELL / 2 + 8, 15);
@@ -180,7 +176,7 @@ function buildSouthIndianSvg(bodies, signIndexFor, mirrored, centerInfo) {
       <text x="200" y="205" font-size="23" font-weight="700" fill="${C.centerTitle}"
             text-anchor="middle" font-family="Georgia, serif">${centerInfo.chartLabel} Chart</text>
       <text x="200" y="232" font-size="14" fill="${C.centerTitle}" text-anchor="middle">
-        Asc: ${ascGlyph} ${ascName}
+        ${t("chart_asc")}: ${ascGlyph} ${ascName}
       </text>
       <text x="200" y="253" font-size="11" fill="${C.centerSub}" text-anchor="middle">${centerInfo.vargaLabel}</text>
     `;
@@ -200,12 +196,12 @@ function renderCharts(positions, vargas) {
 
   const dateLabel = formatChartDate(document.getElementById("birth_date").value);
   const timeLabel = formatChartTime(document.getElementById("birth_time").value);
-  const moonNakshatra = positions.Moon.nakshatra;
+  const moonNakshatra = tNak(positions.Moon.nakshatra_index);
 
   const build = (signIndexFor, chartLabel, vargaLabel) => {
     const centerInfo = {
       dateLabel, timeLabel, chartLabel, vargaLabel, moonNakshatra,
-      ascSignName: SIGN_SHORT[signIndexFor("Ascendant")],
+      ascSignName: tSignShort(signIndexFor("Ascendant")),
     };
     if (style === "south_savya") return buildSouthIndianSvg(positions, signIndexFor, false, centerInfo);
     if (style === "south_apasavya") return buildSouthIndianSvg(positions, signIndexFor, true, centerInfo);
@@ -216,20 +212,29 @@ function renderCharts(positions, vargas) {
     ? `<p class="chart-caption">${dateLabel}, ${timeLabel} &middot; Moon: ${moonNakshatra}</p>`
     : "";
 
-  document.getElementById("d1-chart").innerHTML = build(d1SignIndex, "Lagna", "D1 &middot; Rashi") + caption;
-  document.getElementById("d9-chart").innerHTML = build(d9SignIndex, "Navamsha", "D9 &middot; Navamsha") + caption;
+  document.getElementById("d1-chart").innerHTML =
+    build(d1SignIndex, t("chart_lagna"), t("chart_d1")) + caption;
+  document.getElementById("d9-chart").innerHTML =
+    build(d9SignIndex, t("chart_navamsha"), t("chart_d9")) + caption;
 }
 
-function renderDetailsTable({ name, dateLabel, timeLabel, placeLabel, moon, ayanamsaLabel }) {
+// Takes the raw date/time strings rather than pre-formatted labels, so a
+// language switch can re-run this and get the month name in the new
+// language without the caller having to re-derive anything.
+let lastDetailsArgs = null;
+
+function renderDetailsTable(args) {
+  lastDetailsArgs = args;
+  const { name, date, time, placeLabel, moon, ayanamsaLabel } = args;
   const tbody = document.querySelector("#details-table tbody");
   const rows = [];
-  if (name) rows.push(["Name", name]);
-  rows.push(["Birth Date", dateLabel]);
-  rows.push(["Birth Time", timeLabel]);
-  rows.push(["Place of Birth", placeLabel]);
-  rows.push(["Nakshatra", moon.nakshatra]);
-  rows.push(["Rasi", moon.sign]);
-  rows.push(["Ayanamsa", ayanamsaLabel]);
+  if (name) rows.push([t("row_name"), name]);
+  rows.push([t("row_birth_date"), formatChartDate(date)]);
+  rows.push([t("row_birth_time"), formatChartTime(time)]);
+  rows.push([t("row_place"), placeLabel]);
+  rows.push([t("row_nakshatra"), tNak(moon.nakshatra_index)]);
+  rows.push([t("row_rasi"), tSign(moon.sign_index)]);
+  rows.push([t("row_ayanamsa"), ayanamsaLabel]);
   tbody.innerHTML = rows.map(([k, v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join("");
 }
 
@@ -239,10 +244,10 @@ function renderPositionsTable(positions) {
   for (const [name, d] of Object.entries(positions)) {
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td>${name}</td>
-      <td>${d.sign}</td>
+      <td>${tPlanet(name)}</td>
+      <td>${tSign(d.sign_index)}</td>
       <td>${d.degree_in_sign.toFixed(2)}&deg;</td>
-      <td>${d.nakshatra}</td>
+      <td>${tNak(d.nakshatra_index)}</td>
       <td>${d.nakshatra_pada}</td>
       <td>${d.retrograde ? "R" : ""}</td>
     `;
@@ -257,7 +262,7 @@ function renderDashaTable(periods) {
     const tr = document.createElement("tr");
     const start = new Date(p.start).toLocaleDateString();
     const end = new Date(p.end).toLocaleDateString();
-    tr.innerHTML = `<td>${p.lord}</td><td>${start}</td><td>${end}</td><td>${p.years}</td>`;
+    tr.innerHTML = `<td>${tPlanet(p.lord)}</td><td>${start}</td><td>${end}</td><td>${p.years}</td>`;
     tbody.appendChild(tr);
   }
 }
@@ -417,8 +422,8 @@ document.getElementById("chart-form").addEventListener("submit", async (e) => {
     renderDashaTable(data.vimshottari_dasha);
     renderDetailsTable({
       name: document.getElementById("person_name").value.trim(),
-      dateLabel: formatChartDate(date),
-      timeLabel: formatChartTime(time),
+      date,
+      time,
       placeLabel: selectedPlaceNames[""] || `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
       moon: data.positions.Moon,
       ayanamsaLabel: document.getElementById("ayanamsa").selectedOptions[0].text,
@@ -482,50 +487,71 @@ function shiftTransitDate(days) {
 
 function renderTransit(data) {
   document.getElementById("transit-heading-date").textContent = formatChartDate(data.transit_date);
-  document.getElementById("transit-moon-summary").textContent =
-    `Moon transits ${data.transit_moon.sign} (${data.transit_moon.nakshatra}). ` +
-    `Your natal Moon is in ${data.natal_moon.sign} (${data.natal_moon.nakshatra}).`;
+  document.getElementById("transit-moon-summary").textContent = t("transit_summary")
+    .replace("{tsign}", tSign(data.transit_moon.sign_index))
+    .replace("{tnak}", tNak(data.transit_moon.nakshatra_index))
+    .replace("{nsign}", tSign(data.natal_moon.sign_index))
+    .replace("{nnak}", tNak(data.natal_moon.nakshatra_index));
 
   const asItems = (lines) => lines.map((p) => `<li>${p}</li>`).join("");
-  document.getElementById("summary-headline").textContent = data.summary.headline;
-  document.getElementById("summary-today").innerHTML = asItems(data.summary.today);
-  document.getElementById("summary-ongoing").innerHTML = asItems(data.summary.ongoing);
-  document.getElementById("summary-ongoing-block").hidden = data.summary.ongoing.length === 0;
+  // Rebuilt from the numeric keys rather than reusing the server's English
+  // sentences, so switching language needs no new request.
+  const todayLines = [
+    TARA_TEXT[lang()][data.tara_bala.number - 1],
+    HOUSE_TEXT[lang()][data.chandra_bala.house],
+  ];
+  const ongoingLines = [];
+  for (const a of data.aspects) {
+    const line = ASPECT_TEXT[lang()][`${a.transit_planet}|${a.natal_point}`];
+    if (line && !ongoingLines.includes(line)) ongoingLines.push(line);
+  }
+  document.getElementById("summary-headline").textContent =
+    t("headlines")[data.summary.headline] || data.summary.headline;
+  document.getElementById("summary-today").innerHTML = asItems(todayLines);
+  document.getElementById("summary-ongoing").innerHTML = asItems(ongoingLines);
+  document.getElementById("summary-ongoing-block").hidden = ongoingLines.length === 0;
 
   const tara = data.tara_bala;
-  document.getElementById("tara-name").textContent = `${tara.number}. ${tara.name}`;
-  document.getElementById("tara-text").textContent = tara.description;
+  document.getElementById("tara-name").textContent =
+    `${tara.number}. ${t("taraNames")[tara.number - 1]}`;
+  document.getElementById("tara-text").textContent = TARA_TEXT[lang()][tara.number - 1];
   const taraPill = document.getElementById("tara-quality");
-  taraPill.textContent = tara.quality;
+  taraPill.textContent = tQuality(tara.quality);
   taraPill.className = `quality-pill quality-${tara.quality}`;
 
   const chandra = data.chandra_bala;
   document.getElementById("chandra-name").textContent =
-    `House ${chandra.house} (${chandra.bhava})`;
-  document.getElementById("chandra-text").textContent = chandra.description;
+    `${t("house_label")} ${chandra.house} (${t("bhavas")[chandra.house - 1]})`;
+  document.getElementById("chandra-text").textContent = HOUSE_TEXT[lang()][chandra.house];
   const chandraPill = document.getElementById("chandra-quality");
-  chandraPill.textContent = chandra.quality;
+  chandraPill.textContent = tQuality(chandra.quality);
   chandraPill.className = `quality-pill quality-${chandra.quality}`;
 
   const aspectsEl = document.getElementById("transit-aspects");
   aspectsEl.innerHTML = data.aspects.length
     ? data.aspects.map((a) => `
         <li>
-          <div class="aspect-headline">
-            Transiting ${a.transit_planet} in ${a.transit_sign} is ${a.relation}
-            your natal ${a.natal_point} in ${a.natal_sign}
-          </div>
-          <div class="aspect-note">${a.note}</div>
+          <div class="aspect-headline">${
+            t("aspect_line")
+              .replace("{planet}", tPlanet(a.transit_planet))
+              .replace("{tsign}", tSign(a.transit_sign_index))
+              .replace("{relation}", a.distance === 1
+                ? t("aspect_conjunct")
+                : t("aspect_drishti").replace("{n}", a.distance))
+              .replace("{point}", tPlanet(a.natal_point))
+              .replace("{nsign}", tSign(a.natal_sign_index))
+          }</div>
+          <div class="aspect-note">${ASPECT_TEXT[lang()][`${a.transit_planet}|${a.natal_point}`] || a.note}</div>
         </li>
       `).join("")
-    : `<li class="aspect-empty">No aspects from the slow grahas on your Lagna, Moon or Sun today.</li>`;
+    : `<li class="aspect-empty">${t("aspect_none")}</li>`;
 
   document.querySelector("#transit-table tbody").innerHTML = data.planet_transits.map((p) => `
     <tr>
-      <td>${p.planet}</td>
-      <td>${p.sign}</td>
+      <td>${tPlanet(p.planet)}</td>
+      <td>${tSign(p.sign_index)}</td>
       <td>${p.degree_in_sign.toFixed(2)}&deg;</td>
-      <td>${p.nakshatra}</td>
+      <td>${tNak(p.nakshatra_index)}</td>
       <td>${p.house_from_moon}</td>
       <td>${p.house_from_lagna}</td>
       <td>${p.retrograde ? "R" : ""}</td>
@@ -552,6 +578,7 @@ async function fetchAndRenderTransit() {
     const data = await resp.json();
     // Reflect the resolved date back so "Today" and the first load show it.
     document.getElementById("transit_date").value = data.transit_date;
+    lastTransitData = data;
     renderTransit(data);
   } catch (err) {
     summaryEl.textContent = `Couldn't load transit: ${err.message}`;
@@ -638,24 +665,25 @@ function readPerson(prefix) {
 
 function renderMatchResults(data, brideLabel, groomLabel) {
   document.getElementById("match-total").textContent = data.total;
-  document.getElementById("match-verdict").textContent = data.interpretation;
+  document.getElementById("match-verdict").textContent =
+    t("verdicts")[data.interpretation] || data.interpretation;
 
   const moonBody = document.querySelector("#match-moon-table tbody");
   moonBody.innerHTML = `
-    <tr><td>${brideLabel}</td><td>${data.bride_moon.sign}</td><td>${data.bride_moon.nakshatra}</td></tr>
-    <tr><td>${groomLabel}</td><td>${data.groom_moon.sign}</td><td>${data.groom_moon.nakshatra}</td></tr>
+    <tr><td>${brideLabel}</td><td>${tSign(data.bride_moon.sign_index)}</td><td>${tNak(data.bride_moon.nakshatra_index)}</td></tr>
+    <tr><td>${groomLabel}</td><td>${tSign(data.groom_moon.sign_index)}</td><td>${tNak(data.groom_moon.nakshatra_index)}</td></tr>
   `;
 
   const kootaBody = document.querySelector("#koota-table tbody");
   kootaBody.innerHTML = data.kootas.map((k) => `
     <tr class="${k.score === 0 ? "koota-zero" : ""}">
-      <td>${k.name}</td>
+      <td>${tKoota(k.name)}</td>
       <td>${k.bride}</td>
       <td>${k.groom}</td>
       <td>${k.score} / ${k.max}</td>
     </tr>
   `).join("") + `
-    <tr class="koota-total"><td>Total</td><td></td><td></td><td>${data.total} / ${data.max_total}</td></tr>
+    <tr class="koota-total"><td>${t("col_total")}</td><td></td><td></td><td>${data.total} / ${data.max_total}</td></tr>
   `;
 
   const mangalRow = (label, m) => `
@@ -698,7 +726,9 @@ document.getElementById("match-form").addEventListener("submit", async (e) => {
       const detail = await resp.json().catch(() => ({}));
       throw new Error(detail.detail ? JSON.stringify(detail.detail) : `Request failed (${resp.status})`);
     }
-    renderMatchResults(await resp.json(), bride.label, groom.label);
+    const matchData = await resp.json();
+    lastMatchData = { data: matchData, bride: bride.label, groom: groom.label };
+    renderMatchResults(matchData, bride.label, groom.label);
     resultsEl.hidden = false;
   } catch (err) {
     errorEl.textContent = err.message;
@@ -755,3 +785,59 @@ document.getElementById("chart_style").addEventListener("change", () => {
 
   send();
 })();
+
+
+// --------------------------- language switch ---------------------------
+
+let lastTransitData = null;
+let lastMatchData = null;
+
+// Static markup carries data-i18n. Elements that also contain an <input>
+// (labels) get only their first text node replaced, so the field survives.
+function applyTranslations() {
+  document.documentElement.lang = lang();
+  document.title = t("title") + " - " + t("subtitle");
+
+  document.querySelectorAll("[data-i18n]").forEach((el) => {
+    const value = t(el.dataset.i18n);
+    if (typeof value !== "string") return;
+    const firstText = [...el.childNodes].find(
+      (n) => n.nodeType === Node.TEXT_NODE && n.textContent.trim()
+    );
+    if (el.children.length && firstText) firstText.textContent = value + " ";
+    else el.textContent = value;
+  });
+
+  document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
+    el.placeholder = t(el.dataset.i18nPlaceholder);
+  });
+
+  document.querySelectorAll(".lang-btn").forEach((b) => {
+    b.classList.toggle("active", b.dataset.lang === lang());
+  });
+}
+
+// Re-render whatever is already on screen from responses we still hold, so
+// switching language never costs another request.
+function rerenderAll() {
+  if (lastChartData) {
+    renderCharts(lastChartData.positions, lastChartData.vargas);
+    renderPositionsTable(lastChartData.positions);
+    renderDashaTable(lastChartData.vimshottari_dasha);
+    if (lastDetailsArgs) renderDetailsTable(lastDetailsArgs);
+  }
+  if (lastTransitData) renderTransit(lastTransitData);
+  if (lastMatchData) {
+    renderMatchResults(lastMatchData.data, lastMatchData.bride, lastMatchData.groom);
+  }
+}
+
+document.querySelectorAll(".lang-btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    setLang(btn.dataset.lang);
+    applyTranslations();
+    rerenderAll();
+  });
+});
+
+applyTranslations();

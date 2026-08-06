@@ -8,31 +8,36 @@
 </head>
 <body>
 <main>
-  <h1>Grahika</h1>
-  <p class="subtitle">Vedic birth chart, dasha &amp; compatibility calculator</p>
+  <h1 data-i18n="title">Grahika</h1>
+  <p class="subtitle" data-i18n="subtitle">Vedic birth chart, dasha &amp; compatibility calculator</p>
+
+  <div class="lang-switch">
+    <button type="button" class="lang-btn" data-lang="en">English</button>
+    <button type="button" class="lang-btn" data-lang="te">తెలుగు</button>
+  </div>
 
   <div class="tabs mode-tabs" role="tablist">
-    <button type="button" class="tab-btn active" data-mode="chart">Birth Chart</button>
-    <button type="button" class="tab-btn" data-mode="horoscope">Personal Daily Horoscope</button>
-    <button type="button" class="tab-btn" data-mode="matching">Kundli Matching</button>
+    <button type="button" class="tab-btn active" data-mode="chart" data-i18n="tab_chart">Birth Chart</button>
+    <button type="button" class="tab-btn" data-mode="horoscope" data-i18n="tab_horoscope">Personal Daily Horoscope</button>
+    <button type="button" class="tab-btn" data-mode="matching" data-i18n="tab_matching">Kundli Matching</button>
   </div>
 
   <!-- ============================ BIRTH CHART ============================ -->
   <section id="mode-chart" class="mode-panel">
     <form id="chart-form">
       <div class="row">
-        <label>Name (optional) <input type="text" id="person_name" placeholder="e.g. Teja"></label>
+        <label data-i18n="label_name">Name (optional) <input type="text" id="person_name" placeholder="e.g. Teja" data-i18n-placeholder="placeholder_name"></label>
       </div>
       <div class="row">
-        <label>Birth date <input type="date" id="birth_date" required></label>
-        <label>Birth time <input type="time" id="birth_time" step="1" required></label>
-        <button type="button" id="now_btn" class="secondary">Now</button>
+        <label data-i18n="label_birth_date">Birth date <input type="date" id="birth_date" required></label>
+        <label data-i18n="label_birth_time">Birth time <input type="time" id="birth_time" step="1" required></label>
+        <button type="button" id="now_btn" class="secondary" data-i18n="label_now">Now</button>
       </div>
 
       <div class="place-search">
-        <label class="grow">Birth place
+        <label class="grow" data-i18n="label_birth_place">Birth place
           <div class="search-row">
-            <input type="text" id="place_query" placeholder="e.g. Chennai, India">
+            <input type="text" id="place_query" placeholder="e.g. Chennai, India" data-i18n-placeholder="placeholder_place">
           </div>
         </label>
         <ul id="place_results"></ul>
@@ -40,16 +45,16 @@
       </div>
 
       <details>
-        <summary>Enter coordinates manually instead</summary>
+        <summary data-i18n="label_manual_coords">Enter coordinates manually instead</summary>
         <div class="row">
-          <label>Latitude <input type="number" id="latitude" step="any"></label>
-          <label>Longitude <input type="number" id="longitude" step="any"></label>
-          <label>Override UTC offset <input type="text" id="utc_offset" placeholder="+05:30 (optional)"></label>
+          <label data-i18n="label_latitude">Latitude <input type="number" id="latitude" step="any"></label>
+          <label data-i18n="label_longitude">Longitude <input type="number" id="longitude" step="any"></label>
+          <label data-i18n="label_utc_offset">Override UTC offset <input type="text" id="utc_offset" placeholder="+05:30 (optional)"></label>
         </div>
       </details>
 
       <div class="row">
-        <label>Ayanamsa
+        <label data-i18n="label_ayanamsa">Ayanamsa
           <select id="ayanamsa">
             <option value="lahiri" selected>Lahiri</option>
             <option value="raman">Raman</option>
@@ -57,37 +62,37 @@
             <option value="true_chitra">True Chitrapaksha</option>
           </select>
         </label>
-        <label>Node
+        <label data-i18n="label_node">Node
           <select id="node_type">
-            <option value="mean" selected>Mean</option>
-            <option value="true">True</option>
+            <option value="mean" selected data-i18n="label_node_mean">Mean</option>
+            <option value="true" data-i18n="label_node_true">True</option>
           </select>
         </label>
       </div>
-      <button type="submit">Compute chart</button>
+      <button type="submit" data-i18n="btn_compute">Compute chart</button>
     </form>
 
     <p id="error" class="error" hidden></p>
 
     <section id="results" hidden>
       <div class="tabs" role="tablist">
-        <button type="button" class="tab-btn active" data-tab="birth-chart">Chart &amp; Dasha</button>
-        <button type="button" class="tab-btn" data-tab="doshas">Kaal Sarp &amp; Sade Sati</button>
+        <button type="button" class="tab-btn active" data-tab="birth-chart" data-i18n="tab_chart_dasha">Chart &amp; Dasha</button>
+        <button type="button" class="tab-btn" data-tab="doshas" data-i18n="tab_doshas">Kaal Sarp &amp; Sade Sati</button>
       </div>
 
       <div id="tab-birth-chart" class="tab-panel">
         <div class="table-block">
-          <h2>Birth Details</h2>
+          <h2 data-i18n="h_birth_details">Birth Details</h2>
           <table id="details-table">
             <tbody></tbody>
           </table>
         </div>
 
-        <label class="chart-style-picker">Chart style
+        <label class="chart-style-picker" data-i18n="label_chart_style">Chart style
           <select id="chart_style">
-            <option value="north">North Indian (diamond)</option>
-            <option value="south_savya">South Indian - Savya (standard)</option>
-            <option value="south_apasavya" selected>South Indian - Apasavya (mirrored)</option>
+            <option value="north" data-i18n="style_north">North Indian (diamond)</option>
+            <option value="south_savya" data-i18n="style_south_savya">South Indian - Savya (standard)</option>
+            <option value="south_apasavya" selected data-i18n="style_south_apasavya">South Indian - Apasavya (mirrored)</option>
           </select>
         </label>
         <div class="charts">
@@ -102,17 +107,17 @@
         </div>
 
         <div class="table-block">
-          <h2>Positions</h2>
+          <h2 data-i18n="h_positions">Positions</h2>
           <table id="positions-table">
-            <thead><tr><th>Body</th><th>Sign</th><th>Degree</th><th>Nakshatra</th><th>Pada</th><th>Retro</th></tr></thead>
+            <thead><tr><th data-i18n="col_body">Body</th><th data-i18n="col_sign">Sign</th><th data-i18n="col_degree">Degree</th><th data-i18n="col_nakshatra">Nakshatra</th><th data-i18n="col_pada">Pada</th><th data-i18n="col_retro">Retro</th></tr></thead>
             <tbody></tbody>
           </table>
         </div>
 
         <div class="table-block">
-          <h2>Vimshottari Mahadasha</h2>
+          <h2 data-i18n="h_dasha">Vimshottari Mahadasha</h2>
           <table id="dasha-table">
-            <thead><tr><th>Lord</th><th>Start</th><th>End</th><th>Years</th></tr></thead>
+            <thead><tr><th data-i18n="col_lord">Lord</th><th data-i18n="col_start">Start</th><th data-i18n="col_end">End</th><th data-i18n="col_years">Years</th></tr></thead>
             <tbody></tbody>
           </table>
         </div>
@@ -120,11 +125,11 @@
 
       <div id="tab-doshas" class="tab-panel" hidden>
         <div class="table-block">
-          <h2>Kaal Sarp Yoga</h2>
+          <h2 data-i18n="h_kaal_sarp">Kaal Sarp Yoga</h2>
           <p id="kaal-sarp-result">Loading&hellip;</p>
         </div>
         <div class="table-block">
-          <h2>Sade Sati</h2>
+          <h2 data-i18n="h_sade_sati">Sade Sati</h2>
           <p id="sade-sati-result">Loading&hellip;</p>
           <p class="dosha-note">
             Sade Sati window boundaries vary by convention (Saturn can retrograde in and out of
@@ -153,7 +158,7 @@
       <div class="place-search">
         <label class="grow">Birth place
           <div class="search-row">
-            <input type="text" id="dh_place_query" placeholder="e.g. Chennai, India">
+            <input type="text" id="dh_place_query" placeholder="e.g. Chennai, India" data-i18n-placeholder="placeholder_place">
           </div>
         </label>
         <ul id="dh_place_results"></ul>
@@ -178,17 +183,17 @@
           </select>
         </label>
       </div>
-      <button type="submit">Get my horoscope</button>
+      <button type="submit" data-i18n="btn_horoscope">Get my horoscope</button>
     </form>
 
     <p id="horoscope-error" class="error" hidden></p>
 
     <section id="horoscope-results" hidden>
       <div class="date-nav">
-        <button type="button" id="transit_prev" class="secondary">&laquo; Prev day</button>
-        <label>Date <input type="date" id="transit_date"></label>
-        <button type="button" id="transit_next" class="secondary">Next day &raquo;</button>
-        <button type="button" id="transit_today" class="secondary">Today</button>
+        <button type="button" id="transit_prev" class="secondary" data-i18n="btn_prev_day">&laquo; Prev day</button>
+        <label data-i18n="label_date">Date <input type="date" id="transit_date"></label>
+        <button type="button" id="transit_next" class="secondary" data-i18n="btn_next_day">Next day &raquo;</button>
+        <button type="button" id="transit_today" class="secondary" data-i18n="btn_today">Today</button>
       </div>
 
       <div class="table-block">
@@ -201,7 +206,7 @@
         <ul id="summary-today" class="summary-points"></ul>
 
         <div id="summary-ongoing-block">
-          <h3 class="summary-subhead">Ongoing influences</h3>
+          <h3 class="summary-subhead" data-i18n="h_ongoing">Ongoing influences</h3>
           <p class="summary-subnote">
             These come from the slow-moving grahas and stay in place for weeks or months --
             they are the backdrop to your day, not today's news.
@@ -210,7 +215,7 @@
         </div>
       </div>
 
-      <h2 class="detail-heading">The detail behind it</h2>
+      <h2 class="detail-heading" data-i18n="h_detail">The detail behind it</h2>
       <p class="detail-note">
         The traditional terms for the same readings, for anyone who wants them.
       </p>
@@ -229,14 +234,14 @@
       </div>
 
       <div class="table-block">
-        <h2>Aspects on Your Chart</h2>
+        <h2 data-i18n="h_aspects">Aspects on Your Chart</h2>
         <ul id="transit-aspects" class="aspect-list"></ul>
       </div>
 
       <div class="table-block">
-        <h2>All Transiting Grahas</h2>
+        <h2 data-i18n="h_all_transits">All Transiting Grahas</h2>
         <table id="transit-table">
-          <thead><tr><th>Graha</th><th>Sign</th><th>Degree</th><th>Nakshatra</th><th>House from Moon</th><th>House from Lagna</th><th>Retro</th></tr></thead>
+          <thead><tr><th data-i18n="col_graha">Graha</th><th data-i18n="col_sign">Sign</th><th data-i18n="col_degree">Degree</th><th data-i18n="col_nakshatra">Nakshatra</th><th data-i18n="col_house_moon">House from Moon</th><th data-i18n="col_house_lagna">House from Lagna</th><th data-i18n="col_retro">Retro</th></tr></thead>
           <tbody></tbody>
         </table>
       </div>
@@ -259,7 +264,7 @@
 
     <form id="match-form">
       <fieldset>
-        <legend>Bride</legend>
+        <legend data-i18n="h_bride">Bride</legend>
         <div class="row">
           <label>Name (optional) <input type="text" id="bride_name" placeholder="e.g. Priya"></label>
           <label>Birth date <input type="date" id="bride_birth_date" required></label>
@@ -268,7 +273,7 @@
         <div class="place-search">
           <label class="grow">Birth place
             <div class="search-row">
-              <input type="text" id="bride_place_query" placeholder="e.g. Chennai, India">
+              <input type="text" id="bride_place_query" placeholder="e.g. Chennai, India" data-i18n-placeholder="placeholder_place">
             </div>
           </label>
           <ul id="bride_place_results"></ul>
@@ -284,7 +289,7 @@
       </fieldset>
 
       <fieldset>
-        <legend>Groom</legend>
+        <legend data-i18n="h_groom">Groom</legend>
         <div class="row">
           <label>Name (optional) <input type="text" id="groom_name" placeholder="e.g. Arjun"></label>
           <label>Birth date <input type="date" id="groom_birth_date" required></label>
@@ -293,7 +298,7 @@
         <div class="place-search">
           <label class="grow">Birth place
             <div class="search-row">
-              <input type="text" id="groom_place_query" placeholder="e.g. Chennai, India">
+              <input type="text" id="groom_place_query" placeholder="e.g. Chennai, India" data-i18n-placeholder="placeholder_place">
             </div>
           </label>
           <ul id="groom_place_results"></ul>
@@ -318,7 +323,7 @@
           </select>
         </label>
       </div>
-      <button type="submit">Match kundlis</button>
+      <button type="submit" data-i18n="btn_match">Match kundlis</button>
     </form>
 
     <p id="match-error" class="error" hidden></p>
@@ -330,25 +335,25 @@
       </div>
 
       <div class="table-block">
-        <h2>Moon Placements</h2>
+        <h2 data-i18n="h_moon_placements">Moon Placements</h2>
         <table id="match-moon-table">
-          <thead><tr><th></th><th>Rasi (Moon sign)</th><th>Nakshatra</th></tr></thead>
+          <thead><tr><th></th><th data-i18n="col_rasi_moon">Rasi (Moon sign)</th><th data-i18n="col_nakshatra">Nakshatra</th></tr></thead>
           <tbody></tbody>
         </table>
       </div>
 
       <div class="table-block">
-        <h2>Ashtakoot Breakdown</h2>
+        <h2 data-i18n="h_ashtakoot">Ashtakoot Breakdown</h2>
         <table id="koota-table">
-          <thead><tr><th>Koota</th><th>Bride</th><th>Groom</th><th>Score</th></tr></thead>
+          <thead><tr><th data-i18n="col_koota">Koota</th><th data-i18n="h_bride">Bride</th><th data-i18n="h_groom">Groom</th><th data-i18n="col_score">Score</th></tr></thead>
           <tbody></tbody>
         </table>
       </div>
 
       <div class="table-block">
-        <h2>Mangal Dosha (Manglik)</h2>
+        <h2 data-i18n="h_mangal">Mangal Dosha (Manglik)</h2>
         <table id="mangal-table">
-          <thead><tr><th></th><th>From Lagna</th><th>From Moon</th></tr></thead>
+          <thead><tr><th></th><th data-i18n="col_from_lagna">From Lagna</th><th data-i18n="col_from_moon">From Moon</th></tr></thead>
           <tbody></tbody>
         </table>
         <p class="dosha-note">
@@ -367,6 +372,7 @@
     </section>
   </section>
 </main>
+<script src="i18n.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

@@ -32,12 +32,18 @@ def compute_match(request: MatchRequest):
 
     return MatchResponse(
         **result,
+        # Indices accompany the names so a client can localise without a
+        # second request.
         bride_moon={
             "sign": bride_bodies["Moon"]["sign"],
+            "sign_index": bride_bodies["Moon"]["sign_index"],
             "nakshatra": bride_bodies["Moon"]["nakshatra"],
+            "nakshatra_index": bride_bodies["Moon"]["nakshatra_index"],
         },
         groom_moon={
             "sign": groom_bodies["Moon"]["sign"],
+            "sign_index": groom_bodies["Moon"]["sign_index"],
             "nakshatra": groom_bodies["Moon"]["nakshatra"],
+            "nakshatra_index": groom_bodies["Moon"]["nakshatra_index"],
         },
     )

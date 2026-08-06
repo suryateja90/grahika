@@ -11,7 +11,10 @@
 
 * { box-sizing: border-box; }
 body {
-  font-family: system-ui, sans-serif;
+  /* Noto Sans Telugu is the standard Telugu UI face on Android and is
+     present on most Windows/macOS installs; the generic families after it
+     cover the rest, so no webfont download is needed. */
+  font-family: system-ui, "Noto Sans Telugu", "Gautami", "Nirmala UI", sans-serif;
   background: var(--bg);
   color: var(--fg);
   margin: 0;
@@ -86,6 +89,19 @@ button:disabled:hover { opacity: 0.4; }
 details { font-size: 0.85rem; }
 details summary { cursor: pointer; opacity: 0.75; }
 details .row { margin-top: 0.5rem; }
+
+.lang-switch { display: flex; gap: 0.4rem; margin-top: 1rem; }
+.lang-btn {
+  background: transparent;
+  border: 1px solid #888;
+  color: inherit;
+  padding: 0.3rem 0.85rem;
+  font-size: 0.82rem;
+  border-radius: 999px;
+  align-self: flex-start;
+  width: auto;
+}
+.lang-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
 
 .tabs { display: flex; gap: 0.5rem; border-bottom: 1px solid #888; margin-bottom: 1.5rem; }
 .tab-btn {
@@ -243,6 +259,8 @@ svg:not(.kundli-svg) line, svg:not(.kundli-svg) polygon { stroke: var(--line); }
   input, select { font-size: 16px; width: 100%; }
   button { width: 100%; align-self: stretch; text-align: center; }
   button.secondary { align-self: stretch; }
+  /* the language pills stay side by side rather than stacking full-width */
+  .lang-btn { width: auto; align-self: flex-start; }
 
   .date-nav { display: grid; grid-template-columns: 1fr 1fr; }
   .date-nav label { grid-column: 1 / -1; }

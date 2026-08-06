@@ -136,9 +136,12 @@ def graha_drishti(natal_bodies: dict, transit_bodies: dict) -> list[dict]:
             aspects.append({
                 "transit_planet": planet,
                 "relation": relation,
+                "distance": distance,
                 "natal_point": point,
                 "transit_sign": transit_bodies[planet]["sign"],
+                "transit_sign_index": transit_sign,
                 "natal_sign": natal_bodies[point]["sign"],
+                "natal_sign_index": natal_sign,
                 "note": ASPECT_NOTES[planet],
             })
     return aspects
@@ -160,8 +163,12 @@ def planet_transits(natal_bodies: dict, transit_bodies: dict) -> list[dict]:
         rows.append({
             "planet": planet,
             "sign": t["sign"],
+            # Indices travel alongside the names so a client can render the
+            # same response in another language without re-requesting.
+            "sign_index": t["sign_index"],
             "degree_in_sign": t["degree_in_sign"],
             "nakshatra": t["nakshatra"],
+            "nakshatra_index": t["nakshatra_index"],
             "retrograde": t["retrograde"],
             "house_from_moon": ((t["sign_index"] - natal_moon_sign) % 12) + 1,
             "house_from_lagna": ((t["sign_index"] - natal_asc_sign) % 12) + 1,
@@ -271,11 +278,15 @@ def daily_report(natal_bodies: dict, transit_bodies: dict) -> dict:
     return {
         "natal_moon": {
             "sign": natal_moon["sign"],
+            "sign_index": natal_moon["sign_index"],
             "nakshatra": natal_moon["nakshatra"],
+            "nakshatra_index": natal_moon["nakshatra_index"],
         },
         "transit_moon": {
             "sign": transit_moon["sign"],
+            "sign_index": transit_moon["sign_index"],
             "nakshatra": transit_moon["nakshatra"],
+            "nakshatra_index": transit_moon["nakshatra_index"],
         },
         "summary": plain_summary(tara, chandra, aspects),
         "tara_bala": tara,
