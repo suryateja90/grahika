@@ -20,6 +20,11 @@ const I18N = {
     tab_chart: "Birth Chart",
     tab_horoscope: "Personal Daily Horoscope",
     tab_matching: "Kundli Matching",
+    tab_chart_short: "Chart",
+    tab_horoscope_short: "Daily",
+    tab_matching_short: "Matching",
+    tab_chart_dasha_short: "Chart",
+    tab_doshas_short: "Doshas",
     tab_chart_dasha: "Chart & Dasha",
     tab_doshas: "Kaal Sarp & Sade Sati",
 
@@ -146,6 +151,11 @@ const I18N = {
     tab_chart: "జాతకం",
     tab_horoscope: "దినఫలం",
     tab_matching: "వివాహ పొంతన",
+    tab_chart_short: "జాతకం",
+    tab_horoscope_short: "దినఫలం",
+    tab_matching_short: "పొంతన",
+    tab_chart_dasha_short: "జాతకం",
+    tab_doshas_short: "దోషాలు",
     tab_chart_dasha: "జాతకం & దశలు",
     tab_doshas: "కాలసర్ప & ఏలినాటి శని",
 

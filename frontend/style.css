@@ -116,6 +116,11 @@ details .row { margin-top: 0.5rem; }
 .tab-btn.active { opacity: 1; border-bottom-color: var(--accent); font-weight: 600; }
 .tab-btn:hover { opacity: 1; }
 
+/* Each tab carries a full and an abbreviated label; the wide one shows on
+   desktop, the short one on phones where a third of the screen cannot fit
+   "Personal Daily Horoscope". */
+.tab-short { display: none; }
+
 .dosha-note { font-size: 0.8rem; opacity: 0.7; }
 .mode-tabs { margin-top: 1.5rem; }
 .mode-tabs .tab-btn { font-size: 1.05rem; padding: 0.7rem 0.4rem; }
@@ -240,27 +245,46 @@ svg:not(.kundli-svg) line, svg:not(.kundli-svg) polygon { stroke: var(--line); }
   h1 { font-size: 1.6rem; }
   .subtitle { font-size: 0.9rem; }
 
-  /* Tabs wrap onto as many rows as they need. They used to scroll
-     horizontally with the scrollbar hidden, which put every tab after the
-     first off-screen with nothing to indicate they were there. */
+  /* Segmented control rather than wrapped underline tabs. Equal columns
+     put every section on screen at once, and a filled active segment is a
+     stronger signal on a small screen than a 2px underline. Wrapping did
+     show all three, but ragged rows read as a layout accident. */
+  .tab-short { display: inline; }
+  .tab-full { display: none; }
+
   .tabs {
-    flex-wrap: wrap;
-    gap: 0.15rem 0.9rem;
-    row-gap: 0;
+    display: grid;
+    gap: 4px;
+    border-bottom: none;
+    background: rgba(128, 128, 128, 0.14);
+    border-radius: 10px;
+    padding: 4px;
+    margin-bottom: 1.25rem;
   }
-  /* width:auto is the load-bearing line -- the blanket `button { width:
-     100% }` above also matched these, so each tab took a full row and only
-     the first one was ever on screen. */
+  .mode-tabs { grid-template-columns: repeat(3, 1fr); }
+  #results > .tabs { grid-template-columns: repeat(2, 1fr); }
+
+  /* width:auto is load-bearing -- the blanket `button { width: 100% }`
+     above also matches these. */
   .tab-btn {
     width: auto;
-    flex: 0 0 auto;
-    padding: 0.55rem 0;
-    font-size: 0.9rem;
-    max-width: 100%;
-    white-space: normal;
-    text-align: left;
+    border-bottom: none;
+    border-radius: 7px;
+    padding: 0.6rem 0.25rem;
+    font-size: 0.88rem;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    opacity: 0.75;
   }
-  .mode-tabs .tab-btn { font-size: 0.95rem; }
+  .mode-tabs .tab-btn { font-size: 0.9rem; }
+  .tab-btn.active {
+    background: var(--accent);
+    color: #fff;
+    opacity: 1;
+    border-bottom-color: transparent;
+  }
 
   /* Full-width fields stack cleanly and stay above the 16px threshold that
      makes iOS Safari zoom the viewport on focus. */
@@ -268,7 +292,10 @@ svg:not(.kundli-svg) line, svg:not(.kundli-svg) polygon { stroke: var(--line); }
   .row > label, .row > button { width: 100%; }
   input, select { font-size: 16px; width: 100%; }
   button { width: 100%; align-self: stretch; text-align: center; }
-  button.secondary { align-self: stretch; }
+  /* Secondary actions sitting in a field row (the "Now" shortcut) stay
+     small. Stretching them full-width gives a minor helper the same
+     visual weight as the form's primary button. */
+  .row > button.secondary { width: auto; align-self: flex-start; }
   /* the language pills stay side by side rather than stacking full-width */
   .lang-btn { width: auto; align-self: flex-start; }
 
