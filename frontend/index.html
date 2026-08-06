@@ -131,7 +131,7 @@
         <div class="table-block">
           <h2 data-i18n="h_sade_sati">Sade Sati</h2>
           <p id="sade-sati-result">Loading&hellip;</p>
-          <p class="dosha-note">
+          <p class="dosha-note" data-i18n="note_sade_sati">
             Sade Sati window boundaries vary by convention (Saturn can retrograde in and out of
             a sign before settling) -- treat the exact dates as approximate, not a substitute for
             a pundit's reading.
@@ -144,19 +144,19 @@
 
   <!-- ==================== PERSONAL DAILY HOROSCOPE ==================== -->
   <section id="mode-horoscope" class="mode-panel" hidden>
-    <p class="mode-intro">
+    <p class="mode-intro" data-i18n="intro_horoscope">
       Your daily forecast by Gochar (Vedic transits) -- where the grahas are today relative to
       your birth chart. Enter your birth details once, then step through any date.
     </p>
 
     <form id="horoscope-form">
       <div class="row">
-        <label>Birth date <input type="date" id="dh_birth_date" required></label>
-        <label>Birth time <input type="time" id="dh_birth_time" step="1" required></label>
+        <label data-i18n="label_birth_date">Birth date <input type="date" id="dh_birth_date" required></label>
+        <label data-i18n="label_birth_time">Birth time <input type="time" id="dh_birth_time" step="1" required></label>
       </div>
 
       <div class="place-search">
-        <label class="grow">Birth place
+        <label class="grow" data-i18n="label_birth_place">Birth place
           <div class="search-row">
             <input type="text" id="dh_place_query" placeholder="e.g. Chennai, India" data-i18n-placeholder="placeholder_place">
           </div>
@@ -166,15 +166,15 @@
       </div>
 
       <details>
-        <summary>Enter coordinates manually instead</summary>
+        <summary data-i18n="label_manual_coords">Enter coordinates manually instead</summary>
         <div class="row">
-          <label>Latitude <input type="number" id="dh_latitude" step="any"></label>
-          <label>Longitude <input type="number" id="dh_longitude" step="any"></label>
+          <label data-i18n="label_latitude">Latitude <input type="number" id="dh_latitude" step="any"></label>
+          <label data-i18n="label_longitude">Longitude <input type="number" id="dh_longitude" step="any"></label>
         </div>
       </details>
 
       <div class="row">
-        <label>Ayanamsa
+        <label data-i18n="label_ayanamsa">Ayanamsa
           <select id="dh_ayanamsa">
             <option value="lahiri" selected>Lahiri</option>
             <option value="raman">Raman</option>
@@ -207,7 +207,7 @@
 
         <div id="summary-ongoing-block">
           <h3 class="summary-subhead" data-i18n="h_ongoing">Ongoing influences</h3>
-          <p class="summary-subnote">
+          <p class="summary-subnote" data-i18n="note_ongoing">
             These come from the slow-moving grahas and stay in place for weeks or months --
             they are the backdrop to your day, not today's news.
           </p>
@@ -216,7 +216,7 @@
       </div>
 
       <h2 class="detail-heading" data-i18n="h_detail">The detail behind it</h2>
-      <p class="detail-note">
+      <p class="detail-note" data-i18n="note_detail">
         The traditional terms for the same readings, for anyone who wants them.
       </p>
 
@@ -246,7 +246,7 @@
         </table>
       </div>
 
-      <p class="dosha-note">
+      <p class="dosha-note" data-i18n="note_transit">
         Cast for 12:00 noon at your birth place. The Moon moves about 13&deg; a day and can
         change sign mid-day, so readings near a sign boundary shift depending on the hour.
         Positions and house counts here are exact; the readings are conventional traditional
@@ -257,7 +257,7 @@
 
   <!-- ========================== KUNDLI MATCHING ========================== -->
   <section id="mode-matching" class="mode-panel" hidden>
-    <p class="mode-intro">
+    <p class="mode-intro" data-i18n="intro_matching">
       Ashtakoot (Guna Milan) compatibility -- the 36-point system. Both charts are built from
       the Moon's sign and nakshatra, so only birth date, time and place are needed for each person.
     </p>
@@ -266,12 +266,12 @@
       <fieldset>
         <legend data-i18n="h_bride">Bride</legend>
         <div class="row">
-          <label>Name (optional) <input type="text" id="bride_name" placeholder="e.g. Priya"></label>
-          <label>Birth date <input type="date" id="bride_birth_date" required></label>
-          <label>Birth time <input type="time" id="bride_birth_time" step="1" required></label>
+          <label data-i18n="label_name">Name (optional) <input type="text" id="bride_name" placeholder="e.g. Priya"></label>
+          <label data-i18n="label_birth_date">Birth date <input type="date" id="bride_birth_date" required></label>
+          <label data-i18n="label_birth_time">Birth time <input type="time" id="bride_birth_time" step="1" required></label>
         </div>
         <div class="place-search">
-          <label class="grow">Birth place
+          <label class="grow" data-i18n="label_birth_place">Birth place
             <div class="search-row">
               <input type="text" id="bride_place_query" placeholder="e.g. Chennai, India" data-i18n-placeholder="placeholder_place">
             </div>
@@ -280,10 +280,10 @@
           <p id="bride_place_selected" class="selected-place" hidden></p>
         </div>
         <details>
-          <summary>Enter coordinates manually instead</summary>
+          <summary data-i18n="label_manual_coords">Enter coordinates manually instead</summary>
           <div class="row">
-            <label>Latitude <input type="number" id="bride_latitude" step="any"></label>
-            <label>Longitude <input type="number" id="bride_longitude" step="any"></label>
+            <label data-i18n="label_latitude">Latitude <input type="number" id="bride_latitude" step="any"></label>
+            <label data-i18n="label_longitude">Longitude <input type="number" id="bride_longitude" step="any"></label>
           </div>
         </details>
       </fieldset>
@@ -291,12 +291,12 @@
       <fieldset>
         <legend data-i18n="h_groom">Groom</legend>
         <div class="row">
-          <label>Name (optional) <input type="text" id="groom_name" placeholder="e.g. Arjun"></label>
-          <label>Birth date <input type="date" id="groom_birth_date" required></label>
-          <label>Birth time <input type="time" id="groom_birth_time" step="1" required></label>
+          <label data-i18n="label_name">Name (optional) <input type="text" id="groom_name" placeholder="e.g. Arjun"></label>
+          <label data-i18n="label_birth_date">Birth date <input type="date" id="groom_birth_date" required></label>
+          <label data-i18n="label_birth_time">Birth time <input type="time" id="groom_birth_time" step="1" required></label>
         </div>
         <div class="place-search">
-          <label class="grow">Birth place
+          <label class="grow" data-i18n="label_birth_place">Birth place
             <div class="search-row">
               <input type="text" id="groom_place_query" placeholder="e.g. Chennai, India" data-i18n-placeholder="placeholder_place">
             </div>
@@ -305,16 +305,16 @@
           <p id="groom_place_selected" class="selected-place" hidden></p>
         </div>
         <details>
-          <summary>Enter coordinates manually instead</summary>
+          <summary data-i18n="label_manual_coords">Enter coordinates manually instead</summary>
           <div class="row">
-            <label>Latitude <input type="number" id="groom_latitude" step="any"></label>
-            <label>Longitude <input type="number" id="groom_longitude" step="any"></label>
+            <label data-i18n="label_latitude">Latitude <input type="number" id="groom_latitude" step="any"></label>
+            <label data-i18n="label_longitude">Longitude <input type="number" id="groom_longitude" step="any"></label>
           </div>
         </details>
       </fieldset>
 
       <div class="row">
-        <label>Ayanamsa
+        <label data-i18n="label_ayanamsa">Ayanamsa
           <select id="match_ayanamsa">
             <option value="lahiri" selected>Lahiri</option>
             <option value="raman">Raman</option>
@@ -356,13 +356,13 @@
           <thead><tr><th></th><th data-i18n="col_from_lagna">From Lagna</th><th data-i18n="col_from_moon">From Moon</th></tr></thead>
           <tbody></tbody>
         </table>
-        <p class="dosha-note">
+        <p class="dosha-note" data-i18n="note_mangal">
           Mangal Dosha is reported separately and is never folded into the 36 points.
           Traditions differ on whether the Moon-based check counts.
         </p>
       </div>
 
-      <p class="dosha-note">
+      <p class="dosha-note" data-i18n="note_guna">
         Guna Milan tables vary between lineages and between commercial software. Kootas with
         unambiguous classical tables (Nadi, Bhakoot, Gana, Varna, Tara) are exact here; the
         Yoni koota's intermediate gradations are simplified, so small per-koota differences

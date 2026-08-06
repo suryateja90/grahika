@@ -122,6 +122,14 @@ const I18N = {
              "Kalatra", "Randhra", "Dharma", "Karma", "Labha", "Vyaya"],
 
     house_label: "House",
+    intro_horoscope: "Your daily forecast by Gochar (Vedic transits) -- where the grahas are today relative to your birth chart. Enter your birth details once, then step through any date.",
+    intro_matching: "Ashtakoot (Guna Milan) compatibility -- the 36-point system. Both charts are built from the Moon's sign and nakshatra, so only birth date, time and place are needed for each person.",
+    note_sade_sati: "Sade Sati window boundaries vary by convention (Saturn can retrograde in and out of a sign before settling) -- treat the exact dates as approximate, not a substitute for a pundit's reading.",
+    note_ongoing: "These come from the slow-moving grahas and stay in place for weeks or months -- they are the backdrop to your day, not today's news.",
+    note_detail: "The traditional terms for the same readings, for anyone who wants them.",
+    note_transit: "Cast for 12:00 noon at your birth place. The Moon moves about 13 degrees a day and can change sign mid-day, so readings near a sign boundary shift depending on the hour. Positions and house counts here are exact; the readings are conventional traditional significations stated generically, not personalised prediction.",
+    note_mangal: "Mangal Dosha is reported separately and is never folded into the 36 points. Traditions differ on whether the Moon-based check counts.",
+    note_guna: "Guna Milan tables vary between lineages and between commercial software. Kootas with unambiguous classical tables (Nadi, Bhakoot, Gana, Varna, Tara) are exact here; the Yoni koota's intermediate gradations are simplified, so small per-koota differences against other sites are expected. Treat this as a starting point for a pundit's reading, not a verdict.",
     transit_summary: "Moon transits {tsign} ({tnak}). Your natal Moon is in {nsign} ({nnak}).",
     aspect_line: "Transiting {planet} in {tsign} is {relation} your natal {point} in {nsign}",
     aspect_conjunct: "conjunct",
@@ -132,12 +140,12 @@ const I18N = {
   te: {
     dir: "ltr",
     title: "గ్రహిక",
-    subtitle: "జాతకం, దశలు మరియు కుండలి మ్యాచింగ్",
+    subtitle: "జాతకం, దశలు మరియు వివాహ పొంతన",
     langName: "తెలుగు",
 
     tab_chart: "జాతకం",
     tab_horoscope: "దినఫలం",
-    tab_matching: "కుండలి మ్యాచింగ్",
+    tab_matching: "వివాహ పొంతన",
     tab_chart_dasha: "జాతకం & దశలు",
     tab_doshas: "కాలసర్ప & ఏలినాటి శని",
 
@@ -163,7 +171,7 @@ const I18N = {
 
     btn_compute: "జాతకం చూడండి",
     btn_horoscope: "నా దినఫలం చూడండి",
-    btn_match: "కుండలి కలపండి",
+    btn_match: "పొంతన చూడండి",
     btn_prev_day: "« నిన్న",
     btn_next_day: "రేపు »",
     btn_today: "ఈరోజు",
@@ -241,6 +249,14 @@ const I18N = {
              "కళత్ర", "రంధ్ర", "ధర్మ", "కర్మ", "లాభ", "వ్యయ"],
 
     house_label: "భావం",
+    intro_horoscope: "గోచార గ్రహాల ఆధారంగా మీ దినఫలం — ఈరోజు గ్రహాలు మీ జన్మ జాతకంతో ఎలా ఉన్నాయో చూడండి. జనన వివరాలు ఒకసారి నమోదు చేసి, ఏ తేదీకైనా చూడవచ్చు.",
+    intro_matching: "అష్టకూట (గుణ మిలన్) పొంతన — 36 పాయింట్ల పద్ధతి. రెండు జాతకాలూ చంద్రుని రాశి, నక్షత్రం ఆధారంగా లెక్కిస్తారు కాబట్టి, ప్రతి ఒక్కరికీ పుట్టిన తేదీ, సమయం, ప్రదేశం మాత్రమే అవసరం.",
+    note_sade_sati: "ఏలినాటి శని కాలపరిమితి సంప్రదాయాన్ని బట్టి మారుతుంది (శని వక్రించి రాశిలోకి వెళ్లి తిరిగి రావచ్చు) — ఈ తేదీలను సుమారుగా భావించండి, పండితుని సలహాకు ప్రత్యామ్నాయంగా కాదు.",
+    note_ongoing: "ఇవి మంద గతి గ్రహాల నుండి వస్తాయి, వారాలు లేదా నెలల పాటు కొనసాగుతాయి — ఇవి మీ రోజుకు నేపథ్యం మాత్రమే, ఈరోజు ప్రత్యేక ఫలితం కాదు.",
+    note_detail: "అవే ఫలితాలకు సంప్రదాయ పదాలు, ఆసక్తి ఉన్నవారి కోసం.",
+    note_transit: "మీ జన్మ స్థలంలో మధ్యాహ్నం 12:00 గంటలకు లెక్కించబడింది. చంద్రుడు రోజుకు సుమారు 13 డిగ్రీలు కదులుతాడు, మధ్యలో రాశి మారవచ్చు. గ్రహ స్థితులు, భావ గణన కచ్చితమైనవి; ఫలితాలు సాధారణ సంప్రదాయ సూచనలు మాత్రమే, వ్యక్తిగత జోస్యం కాదు.",
+    note_mangal: "కుజ దోషాన్ని విడిగా చూపిస్తారు, 36 పాయింట్లలో కలపరు. చంద్రుని నుండి చూసే పద్ధతి లెక్కలోకి వస్తుందా అనే విషయంలో సంప్రదాయాలు వేర్వేరుగా ఉంటాయి.",
+    note_guna: "గుణ మిలన్ పట్టికలు వంశ పరంపరను బట్టి, సాఫ్ట్‌వేర్‌ను బట్టి మారుతాయి. స్పష్టమైన సంప్రదాయ పట్టికలు ఉన్న కూటాలు (నాడి, భకూట, గణ, వర్ణ, తార) ఇక్కడ కచ్చితమైనవి; యోని కూటంలోని మధ్యస్థ విభజనలు సరళీకరించబడ్డాయి, కాబట్టి ఇతర సైట్లతో చిన్న తేడాలు రావచ్చు. దీన్ని పండితుని సలహాకు ఆరంభంగా భావించండి, తుది నిర్ణయంగా కాదు.",
     transit_summary: "చంద్రుడు {tsign} రాశిలో ({tnak} నక్షత్రం) సంచరిస్తున్నాడు. మీ జన్మ చంద్రుడు {nsign} రాశిలో ({nnak}).",
     aspect_line: "{tsign} రాశిలోని గోచార {planet} మీ జన్మ {point} ({nsign} రాశి) పై {relation}",
     aspect_conjunct: "కలిసి ఉన్నాడు",
