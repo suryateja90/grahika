@@ -240,17 +240,27 @@ svg:not(.kundli-svg) line, svg:not(.kundli-svg) polygon { stroke: var(--line); }
   h1 { font-size: 1.6rem; }
   .subtitle { font-size: 0.9rem; }
 
-  /* Tab strips scroll horizontally rather than wrapping into a ragged
-     block that pushes the content down. */
+  /* Tabs wrap onto as many rows as they need. They used to scroll
+     horizontally with the scrollbar hidden, which put every tab after the
+     first off-screen with nothing to indicate they were there. */
   .tabs {
-    overflow-x: auto;
-    flex-wrap: nowrap;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
+    flex-wrap: wrap;
+    gap: 0.15rem 0.9rem;
+    row-gap: 0;
   }
-  .tabs::-webkit-scrollbar { display: none; }
-  .tab-btn { white-space: nowrap; flex: 0 0 auto; padding: 0.6rem 0.5rem; }
-  .mode-tabs .tab-btn { font-size: 0.92rem; }
+  /* width:auto is the load-bearing line -- the blanket `button { width:
+     100% }` above also matched these, so each tab took a full row and only
+     the first one was ever on screen. */
+  .tab-btn {
+    width: auto;
+    flex: 0 0 auto;
+    padding: 0.55rem 0;
+    font-size: 0.9rem;
+    max-width: 100%;
+    white-space: normal;
+    text-align: left;
+  }
+  .mode-tabs .tab-btn { font-size: 0.95rem; }
 
   /* Full-width fields stack cleanly and stay above the 16px threshold that
      makes iOS Safari zoom the viewport on focus. */
