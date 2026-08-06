@@ -17,6 +17,19 @@ const I18N = {
     subtitle: "Vedic birth chart, dasha & compatibility calculator",
     langName: "English",
 
+    err_need_place: "Search for a place above, or enter latitude and longitude manually.",
+    tab_panchanga: "Panchangam",
+    tab_panchanga_short: "Panchang",
+    intro_panchanga: "Today's panchangam for your place -- the five limbs, sunrise and sunset, and the periods to keep clear.",
+    p_tithi: "Tithi", p_vara: "Vara", p_nakshatra: "Nakshatra",
+    p_yoga: "Yoga", p_karana: "Karana",
+    p_sunrise: "Sunrise", p_sunset: "Sunset",
+    p_until: "until", p_all_day: "all day",
+    p_inauspicious: "Periods to avoid", p_auspicious: "Auspicious",
+    p_rahu: "Rahu Kalam", p_yama: "Yamagandam", p_gulika: "Gulika Kalam",
+    p_varjyam: "Varjyam", p_abhijit: "Abhijit Muhurta",
+    p_place: "Place", btn_panchanga: "Show panchangam",
+    note_panchanga: "The five limbs, sunrise and sunset are exact. Rahu Kalam, Yamagandam, Gulika and Abhijit are standard eighth and fifteenth divisions of the day. Varjyam uses a per-nakshatra table whose values differ slightly between almanacs -- treat it as indicative.",
     tab_chart: "Birth Chart",
     tab_horoscope: "Personal Daily Horoscope",
     tab_matching: "Kundli Matching",
@@ -148,6 +161,19 @@ const I18N = {
     subtitle: "జాతకం, దశలు మరియు వివాహ పొంతన",
     langName: "తెలుగు",
 
+    err_need_place: "పైన ప్రాంతం వెతకండి, లేదా అక్షాంశ రేఖాంశాలు నమోదు చేయండి.",
+    tab_panchanga: "పంచాంగం",
+    tab_panchanga_short: "పంచాంగం",
+    intro_panchanga: "మీ ప్రాంతానికి ఈరోజు పంచాంగం — పంచాంగాలు, సూర్యోదయాస్తమయాలు, మరియు వర్జించవలసిన సమయాలు.",
+    p_tithi: "తిథి", p_vara: "వారం", p_nakshatra: "నక్షత్రం",
+    p_yoga: "యోగం", p_karana: "కరణం",
+    p_sunrise: "సూర్యోదయం", p_sunset: "సూర్యాస్తమయం",
+    p_until: "వరకు", p_all_day: "రోజంతా",
+    p_inauspicious: "వర్జించవలసిన సమయాలు", p_auspicious: "శుభ సమయం",
+    p_rahu: "రాహు కాలం", p_yama: "యమగండం", p_gulika: "గుళిక కాలం",
+    p_varjyam: "వర్జ్యం", p_abhijit: "అభిజిత్ ముహూర్తం",
+    p_place: "ప్రాంతం", btn_panchanga: "పంచాంగం చూడండి",
+    note_panchanga: "పంచాంగాలు, సూర్యోదయాస్తమయాలు కచ్చితమైనవి. రాహు కాలం, యమగండం, గుళిక, అభిజిత్ పగటి విభజనల ప్రకారం లెక్కించబడతాయి. వర్జ్యం నక్షత్ర పట్టిక ఆధారంగా ఉంటుంది, పంచాంగాలను బట్టి కొంచెం మారవచ్చు.",
     tab_chart: "జాతకం",
     tab_horoscope: "దినఫలం",
     tab_matching: "వివాహ పొంతన",
@@ -376,6 +402,31 @@ const MONTHS = {
        "July", "August", "September", "October", "November", "December"],
   te: ["జనవరి", "ఫిబ్రవరి", "మార్చి", "ఏప్రిల్", "మే", "జూన్",
        "జూలై", "ఆగస్టు", "సెప్టెంబర్", "అక్టోబర్", "నవంబర్", "డిసెంబర్"],
+};
+
+
+const TITHI_NAMES_I18N = {
+  en: ["Padyami","Vidiya","Tadiya","Chaviti","Panchami","Shashti","Saptami","Ashtami",
+       "Navami","Dasami","Ekadasi","Dwadasi","Trayodasi","Chaturdasi","Pournami","Amavasya"],
+  te: ["\u0c2a\u0c3e\u0c21\u0c4d\u0c2f\u0c2e\u0c3f","\u0c35\u0c3f\u0c26\u0c3f\u0c2f","\u0c24\u0c26\u0c3f\u0c2f","\u0c1a\u0c35\u0c3f\u0c24\u0c3f","\u0c2a\u0c02\u0c1a\u0c2e\u0c3f","\u0c37\u0c37\u0c4d\u0c20\u0c3f","\u0c38\u0c2a\u0c4d\u0c24\u0c2e\u0c3f","\u0c05\u0c37\u0c4d\u0c1f\u0c2e\u0c3f",
+       "\u0c28\u0c35\u0c2e\u0c3f","\u0c26\u0c36\u0c2e\u0c3f","\u0c0f\u0c15\u0c3e\u0c26\u0c36\u0c3f","\u0c26\u0c4d\u0c35\u0c3e\u0c26\u0c36\u0c3f","\u0c24\u0c4d\u0c30\u0c2f\u0c4b\u0c26\u0c36\u0c3f","\u0c1a\u0c24\u0c41\u0c30\u0c4d\u0c26\u0c36\u0c3f","\u0c2a\u0c4c\u0c30\u0c4d\u0c23\u0c2e\u0c3f","\u0c05\u0c2e\u0c3e\u0c35\u0c3e\u0c38\u0c4d\u0c2f"],
+};
+const PAKSHA_I18N = {
+  en: { Shukla: "Shukla", Krishna: "Krishna" },
+  te: { Shukla: "\u0c36\u0c41\u0c15\u0c4d\u0c32", Krishna: "\u0c2c\u0c39\u0c41\u0c33" },
+};
+const VARA_I18N = {
+  en: ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],
+  te: ["\u0c06\u0c26\u0c3f\u0c35\u0c3e\u0c30\u0c02","\u0c38\u0c4b\u0c2e\u0c35\u0c3e\u0c30\u0c02","\u0c2e\u0c02\u0c17\u0c33\u0c35\u0c3e\u0c30\u0c02","\u0c2c\u0c41\u0c27\u0c35\u0c3e\u0c30\u0c02","\u0c17\u0c41\u0c30\u0c41\u0c35\u0c3e\u0c30\u0c02","\u0c36\u0c41\u0c15\u0c4d\u0c30\u0c35\u0c3e\u0c30\u0c02","\u0c36\u0c28\u0c3f\u0c35\u0c3e\u0c30\u0c02"],
+};
+
+const YOGA_I18N = {
+  en: ["Vishkambha","Priti","Ayushman","Saubhagya","Shobhana","Atiganda","Sukarma","Dhriti","Shula","Ganda","Vriddhi","Dhruva","Vyaghata","Harshana","Vajra","Siddhi","Vyatipata","Variyana","Parigha","Shiva","Siddha","Sadhya","Shubha","Shukla","Brahma","Indra","Vaidhriti"],
+  te: ["విష్కంభ","ప్రీతి","ఆయుష్మాన్","సౌభాగ్య","శోభన","అతిగండ","సుకర్మ","ధృతి","శూల","గండ","వృద్ధి","ధ్రువ","వ్యాఘాత","హర్షణ","వజ్ర","సిద్ధి","వ్యతీపాత","వరీయాన్","పరిఘ","శివ","సిద్ధ","సాధ్య","శుభ","శుక్ల","బ్రహ్మ","ఐంద్ర","వైధృతి"],
+};
+const KARANA_I18N = {
+  en: {"Bava":"Bava","Balava":"Balava","Kaulava":"Kaulava","Taitila":"Taitila","Gara":"Gara","Vanija":"Vanija","Vishti":"Vishti","Shakuni":"Shakuni","Chatushpada":"Chatushpada","Naga":"Naga","Kimstughna":"Kimstughna"},
+  te: {"Bava":"బవ","Balava":"బాలవ","Kaulava":"కౌలవ","Taitila":"తైతిల","Gara":"గర","Vanija":"వణిజ","Vishti":"విష్టి","Shakuni":"శకుని","Chatushpada":"చతుష్పాద","Naga":"నాగ","Kimstughna":"కింస్తుघ్న"},
 };
 
 let currentLang = localStorage.getItem("grahika_lang") || "en";

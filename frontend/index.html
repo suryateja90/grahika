@@ -20,7 +20,73 @@
     <button type="button" class="tab-btn active" data-mode="chart"><span class="tab-full" data-i18n="tab_chart">Birth Chart</span><span class="tab-short" data-i18n="tab_chart_short">Chart</span></button>
     <button type="button" class="tab-btn" data-mode="horoscope"><span class="tab-full" data-i18n="tab_horoscope">Personal Daily Horoscope</span><span class="tab-short" data-i18n="tab_horoscope_short">Daily</span></button>
     <button type="button" class="tab-btn" data-mode="matching"><span class="tab-full" data-i18n="tab_matching">Kundli Matching</span><span class="tab-short" data-i18n="tab_matching_short">Matching</span></button>
+    <button type="button" class="tab-btn" data-mode="panchanga"><span class="tab-full" data-i18n="tab_panchanga">Panchangam</span><span class="tab-short" data-i18n="tab_panchanga_short">Panchang</span></button>
   </div>
+
+  <!-- ============================= PANCHANGAM ============================= -->
+  <section id="mode-panchanga" class="mode-panel" hidden>
+    <p class="mode-intro" data-i18n="intro_panchanga">
+      Today's panchangam for your place -- the five limbs, sunrise and sunset, and the
+      periods to keep clear.
+    </p>
+
+    <form id="panchanga-form">
+      <div class="place-search">
+        <label class="grow" data-i18n="p_place">Place
+          <div class="search-row">
+            <input type="text" id="pa_place_query" placeholder="e.g. Chennai, India"
+                   data-i18n-placeholder="placeholder_place">
+          </div>
+        </label>
+        <ul id="pa_place_results"></ul>
+        <p id="pa_place_selected" class="selected-place" hidden></p>
+      </div>
+
+      <details>
+        <summary data-i18n="label_manual_coords">Enter coordinates manually instead</summary>
+        <div class="row">
+          <label data-i18n="label_latitude">Latitude <input type="number" id="pa_latitude" step="any"></label>
+          <label data-i18n="label_longitude">Longitude <input type="number" id="pa_longitude" step="any"></label>
+        </div>
+      </details>
+
+      <button type="submit" data-i18n="btn_panchanga">Show panchangam</button>
+    </form>
+
+    <p id="panchanga-error" class="error" hidden></p>
+
+    <section id="panchanga-results" hidden>
+      <div class="date-nav">
+        <button type="button" id="pa_prev" class="secondary" data-i18n="btn_prev_day">&laquo; Prev day</button>
+        <label data-i18n="label_date">Date <input type="date" id="pa_date"></label>
+        <button type="button" id="pa_next" class="secondary" data-i18n="btn_next_day">Next day &raquo;</button>
+        <button type="button" id="pa_today" class="secondary" data-i18n="btn_today">Today</button>
+      </div>
+
+      <div class="pa-header">
+        <div class="pa-date" id="pa-date-label"></div>
+        <div class="pa-sun">
+          <span><span data-i18n="p_sunrise">Sunrise</span> <b id="pa-sunrise"></b></span>
+          <span><span data-i18n="p_sunset">Sunset</span> <b id="pa-sunset"></b></span>
+        </div>
+      </div>
+
+      <div class="pa-grid" id="pa-limbs"></div>
+
+      <h2 class="pa-section" data-i18n="p_inauspicious">Periods to avoid</h2>
+      <div class="pa-periods" id="pa-bad"></div>
+
+      <h2 class="pa-section" data-i18n="p_auspicious">Auspicious</h2>
+      <div class="pa-periods" id="pa-good"></div>
+
+      <p class="dosha-note" data-i18n="note_panchanga">
+        The five limbs, sunrise and sunset are exact. Rahu Kalam, Yamagandam, Gulika and
+        Abhijit are standard eighth and fifteenth divisions of the day. Varjyam uses a
+        per-nakshatra table whose values differ slightly between almanacs -- treat it as
+        indicative.
+      </p>
+    </section>
+  </section>
 
   <!-- ============================ BIRTH CHART ============================ -->
   <section id="mode-chart" class="mode-panel">

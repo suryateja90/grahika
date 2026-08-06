@@ -1,4 +1,5 @@
 from datetime import date, datetime
+from datetime import date as date_type  # see PanchangaRequest.date
 from typing import Literal, Optional
 
 from pydantic import BaseModel, Field
@@ -61,6 +62,29 @@ class TransitResponse(BaseModel):
     chandra_bala: dict
     planet_transits: list
     aspects: list
+
+
+class PanchangaRequest(BaseModel):
+    latitude: float = Field(..., ge=-90, le=90)
+    longitude: float = Field(..., ge=-180, le=180)
+    # date_type, not date: for `x: ann = val` CPython assigns the value
+    # before evaluating the annotation, so by the time Optional[...] is
+    # evaluated the name `date` in this class body is already the FieldInfo.
+    date: Optional[date_type] = Field(None, description="Defaults to today in the place's timezone")
+    ayanamsa: Literal["lahiri", "raman", "kp", "true_chitra"] = "lahiri"
+
+
+class PanchangaResponse(BaseModel):
+    date: str
+    vara: dict
+    tithi: dict
+    nakshatra: dict
+    yoga: dict
+    karana: dict
+    sunrise: Optional[str]
+    sunset: Optional[str]
+    periods: dict
+    varjyam_is_conventional: bool
 
 
 class MatchResponse(BaseModel):

@@ -160,6 +160,59 @@ legend { font-weight: 700; padding: 0 0.4rem; }
 .koota-zero { opacity: 0.65; }
 .koota-total td { font-weight: 700; border-top: 2px solid #888; }
 
+/* ------------------------------ panchangam ------------------------------ */
+.pa-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  padding-bottom: 0.7rem;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.35);
+  margin-bottom: 1.25rem;
+}
+.pa-date { font-size: 1.15rem; font-weight: 700; }
+.pa-sun { display: flex; gap: 1.25rem; font-size: 0.85rem; opacity: 0.8; }
+.pa-sun b { font-weight: 700; }
+
+.pa-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.7rem;
+  margin-bottom: 1.75rem;
+}
+.pa-card {
+  border: 1px solid rgba(128, 128, 128, 0.4);
+  border-radius: 10px;
+  padding: 0.8rem 0.9rem;
+}
+.pa-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.6; }
+.pa-value { font-size: 1.2rem; font-weight: 700; margin: 0.15rem 0 0.2rem; }
+.pa-sub { font-size: 0.78rem; opacity: 0.7; }
+
+.pa-section { font-size: 1rem; margin: 0 0 0.6rem; }
+.pa-periods { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 1.5rem; }
+.pa-period {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.6rem 0.85rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  /* Tone carries a left bar rather than a fill, so the palette stays
+     monochrome and only the status is coloured. */
+  border: 1px solid rgba(128, 128, 128, 0.35);
+  border-left-width: 4px;
+}
+.pa-period.bad { border-left-color: #c0392b; }
+.pa-period.good { border-left-color: #2e7d32; }
+.pa-period-name { font-weight: 600; }
+.pa-period-time { font-variant-numeric: tabular-nums; opacity: 0.85; }
+@media (prefers-color-scheme: dark) {
+  .pa-period.bad { border-left-color: #f08a7a; }
+  .pa-period.good { border-left-color: #7fd18a; }
+}
+
 .date-nav { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.6rem; margin-bottom: 1.5rem; }
 .date-nav button { padding: 0.45rem 0.8rem; font-size: 0.9rem; }
 .transit-summary { font-size: 1.05rem; }
@@ -268,7 +321,10 @@ svg:not(.kundli-svg) line, svg:not(.kundli-svg) polygon { stroke: var(--line); }
     padding: 4px;
     margin-bottom: 1.25rem;
   }
-  .mode-tabs { grid-template-columns: repeat(3, 1fr); }
+  /* 2x2 rather than four columns. At four across a 360px screen each
+     segment gets ~77px, which ellipsises the longer Telugu labels
+     (దినఫలం, పంచాంగం); a second row is better than a clipped word. */
+  .mode-tabs { grid-template-columns: repeat(2, 1fr); }
   #results > .tabs { grid-template-columns: repeat(2, 1fr); }
 
   /* width:auto is load-bearing -- the blanket `button { width: 100% }`
@@ -306,8 +362,12 @@ svg:not(.kundli-svg) line, svg:not(.kundli-svg) polygon { stroke: var(--line); }
   /* the language pills stay side by side rather than stacking full-width */
   .lang-btn { width: auto; align-self: flex-start; }
 
-  .date-nav { display: grid; grid-template-columns: 1fr 1fr; }
-  .date-nav label { grid-column: 1 / -1; }
+  /* Date picker on its own row above three equal buttons. Without the
+     order flip the picker lands mid-strip and leaves "Prev" stranded
+     alone on the first row. */
+  .date-nav { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+  .date-nav label { grid-column: 1 / -1; order: -1; }
+  .date-nav button { font-size: 0.82rem; padding: 0.45rem 0.2rem; }
 
   fieldset { padding: 0.85rem 0.75rem; }
   .charts { gap: 1.75rem; }

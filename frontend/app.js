@@ -372,6 +372,7 @@ function wirePlaceSearch(prefix, errorElId) {
 
 wirePlaceSearch("", "error");
 wirePlaceSearch("dh_", "horoscope-error");
+wirePlaceSearch("pa_", "panchanga-error");
 wirePlaceSearch("bride_", "match-error");
 wirePlaceSearch("groom_", "match-error");
 
@@ -787,6 +788,119 @@ document.getElementById("chart_style").addEventListener("change", () => {
 })();
 
 
+
+// ----------------------------- panchangam -----------------------------
+
+let panchangaPlace = null;
+let lastPanchanga = null;
+
+// The API sends indices beside every name, so the limbs localise the same
+// way the rest of the app does -- from the response already in hand.
+const tTithi = (d) =>
+  d.name === "Pournami" ? TITHI_NAMES_I18N[lang()][14]
+  : d.name === "Amavasya" ? TITHI_NAMES_I18N[lang()][15]
+  : TITHI_NAMES_I18N[lang()][d.number - 1];
+const tPaksha = (name) => PAKSHA_I18N[lang()][name] || name;
+const tVara = (i) => VARA_I18N[lang()][i];
+
+function renderPanchanga(data) {
+  lastPanchanga = data;
+  document.getElementById("pa_date").value = data.date;
+  document.getElementById("pa-date-label").textContent =
+    `${formatChartDate(data.date)} \u00b7 ${tVara(data.vara.index)}`;
+  document.getElementById("pa-sunrise").textContent = data.sunrise || "--";
+  document.getElementById("pa-sunset").textContent = data.sunset || "--";
+
+  const card = (label, value, sub) => `
+    <div class="pa-card">
+      <div class="pa-label">${label}</div>
+      <div class="pa-value">${value}</div>
+      <div class="pa-sub">${sub || ""}</div>
+    </div>`;
+
+  const until = (ends) => (ends ? `${t("p_until")} ${ends}` : t("p_all_day"));
+
+  document.getElementById("pa-limbs").innerHTML = [
+    card(t("p_tithi"), tTithi(data.tithi),
+         `${tPaksha(data.tithi.paksha)} \u00b7 ${until(data.tithi.ends_at)}`),
+    card(t("p_nakshatra"), tNak(data.nakshatra.index), until(data.nakshatra.ends_at)),
+    card(t("p_yoga"), YOGA_I18N[lang()][data.yoga.index], until(data.yoga.ends_at)),
+    card(t("p_karana"), KARANA_I18N[lang()][data.karana.name] || data.karana.name, until(data.karana.ends_at)),
+    card(t("p_vara"), tVara(data.vara.index), ""),
+  ].join("");
+
+  const period = (label, w, tone) => {
+    if (!w) return "";
+    return `<div class="pa-period ${tone}">
+      <span class="pa-period-name">${label}</span>
+      <span class="pa-period-time">${w.start} &ndash; ${w.end}</span>
+    </div>`;
+  };
+  const per = data.periods || {};
+  document.getElementById("pa-bad").innerHTML =
+    period(t("p_rahu"), per.rahu_kalam, "bad") +
+    period(t("p_yama"), per.yamagandam, "bad") +
+    period(t("p_gulika"), per.gulika_kalam, "bad") +
+    period(t("p_varjyam"), per.varjyam, "bad");
+  document.getElementById("pa-good").innerHTML =
+    period(t("p_abhijit"), per.abhijit, "good");
+}
+
+async function fetchPanchanga() {
+  if (!panchangaPlace) return;
+  const errorEl = document.getElementById("panchanga-error");
+  errorEl.hidden = true;
+  const chosen = document.getElementById("pa_date").value;
+  const payload = { ...panchangaPlace };
+  if (chosen) payload.date = chosen;
+  try {
+    const resp = await fetch(`${API_BASE}/panchanga/daily`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!resp.ok) throw new Error(`Request failed (${resp.status})`);
+    renderPanchanga(await resp.json());
+    document.getElementById("panchanga-results").hidden = false;
+  } catch (err) {
+    errorEl.textContent = err.message;
+    errorEl.hidden = false;
+  }
+}
+
+function shiftPanchangaDate(days) {
+  const input = document.getElementById("pa_date");
+  const base = input.value ? new Date(`${input.value}T12:00:00`) : new Date();
+  base.setDate(base.getDate() + days);
+  const pad = (n) => String(n).padStart(2, "0");
+  input.value = `${base.getFullYear()}-${pad(base.getMonth() + 1)}-${pad(base.getDate())}`;
+  fetchPanchanga();
+}
+
+document.getElementById("panchanga-form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const errorEl = document.getElementById("panchanga-error");
+  const lat = parseFloat(document.getElementById("pa_latitude").value);
+  const lon = parseFloat(document.getElementById("pa_longitude").value);
+  if (Number.isNaN(lat) || Number.isNaN(lon)) {
+    document.getElementById("panchanga-results").hidden = true;
+    errorEl.textContent = t("err_need_place");
+    errorEl.hidden = false;
+    return;
+  }
+  panchangaPlace = { latitude: lat, longitude: lon };
+  document.getElementById("pa_date").value = "";
+  fetchPanchanga();
+});
+
+document.getElementById("pa_prev").addEventListener("click", () => shiftPanchangaDate(-1));
+document.getElementById("pa_next").addEventListener("click", () => shiftPanchangaDate(1));
+document.getElementById("pa_today").addEventListener("click", () => {
+  document.getElementById("pa_date").value = "";
+  fetchPanchanga();
+});
+document.getElementById("pa_date").addEventListener("change", fetchPanchanga);
+
 // --------------------------- language switch ---------------------------
 
 let lastTransitData = null;
@@ -827,6 +941,7 @@ function rerenderAll() {
     if (lastDetailsArgs) renderDetailsTable(lastDetailsArgs);
   }
   if (lastTransitData) renderTransit(lastTransitData);
+  if (lastPanchanga) renderPanchanga(lastPanchanga);
   if (lastMatchData) {
     renderMatchResults(lastMatchData.data, lastMatchData.bride, lastMatchData.groom);
   }

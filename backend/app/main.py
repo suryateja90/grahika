@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
-from app.routers import charts, geocode, matching, transits
+from app.routers import charts, geocode, matching, panchanga, transits
 
 app = FastAPI(title="Grahika API")
 
@@ -21,6 +21,7 @@ app.include_router(charts.router)
 app.include_router(geocode.router)
 app.include_router(matching.router)
 app.include_router(transits.router)
+app.include_router(panchanga.router)
 
 
 @app.middleware("http")
