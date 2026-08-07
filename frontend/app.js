@@ -373,6 +373,7 @@ function wirePlaceSearch(prefix, errorElId) {
 wirePlaceSearch("", "error");
 wirePlaceSearch("dh_", "horoscope-error");
 wirePlaceSearch("pa_", "panchanga-error");
+wirePlaceSearch("id_", "ishta-error");
 wirePlaceSearch("bride_", "match-error");
 wirePlaceSearch("groom_", "match-error");
 
@@ -901,6 +902,84 @@ document.getElementById("pa_today").addEventListener("click", () => {
 });
 document.getElementById("pa_date").addEventListener("change", fetchPanchanga);
 
+
+// ---------------------------- ishta devata ----------------------------
+
+let lastIshta = null;
+
+const tDeity = (n) => DEITY_I18N[lang()][n] || n;
+const tKaraka = (n) => KARAKA_I18N[lang()][n] || n;
+const tKarakaMeaning = (k) =>
+  lang() === "te" ? (KARAKA_MEANING_TE[k.karaka] || k.meaning) : k.meaning;
+
+function renderIshta(data) {
+  lastIshta = data;
+  document.getElementById("devata-name").textContent = tDeity(data.deity.primary);
+  document.getElementById("devata-alt").textContent =
+    `${t("id_also")} ${tDeity(data.deity.alternate)}`;
+
+  const card = (label, value, sub) => `
+    <div class="pa-card">
+      <div class="pa-label">${label}</div>
+      <div class="pa-value">${value}</div>
+      <div class="pa-sub">${sub || ""}</div>
+    </div>`;
+
+  document.getElementById("ishta-facts").innerHTML = [
+    card(t("id_atmakaraka"), tPlanet(data.atmakaraka),
+         `${data.atmakaraka_degree.toFixed(2)}\u00b0`),
+    card(t("id_karakamsha"), tSign(data.karakamsha_sign_index), ""),
+    card(t("id_twelfth"), tSign(data.twelfth_sign_index),
+         data.occupants.length ? data.occupants.map(tPlanet).join(", ") : ""),
+    card(t("id_indicator"), tPlanet(data.indicator_planet), ""),
+  ].join("");
+
+  document.querySelector("#karaka-table tbody").innerHTML = data.karakas.map((k) => `
+    <tr${k.karaka === "Atmakaraka" ? ' class="karaka-ak"' : ""}>
+      <td>${tKaraka(k.karaka)}</td>
+      <td>${tPlanet(k.planet)}</td>
+      <td>${k.degree.toFixed(2)}&deg;</td>
+      <td>${tKarakaMeaning(k)}</td>
+    </tr>`).join("");
+}
+
+document.getElementById("ishta-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const errorEl = document.getElementById("ishta-error");
+  const resultsEl = document.getElementById("ishta-results");
+  errorEl.hidden = true;
+
+  const q = (id) => document.getElementById(id);
+  const latitude = parseFloat(q("id_latitude").value);
+  const longitude = parseFloat(q("id_longitude").value);
+  if (Number.isNaN(latitude) || Number.isNaN(longitude)) {
+    resultsEl.hidden = true;
+    errorEl.textContent = t("err_need_place");
+    errorEl.hidden = false;
+    return;
+  }
+
+  try {
+    const resp = await fetch(`${API_BASE}/jaimini/ishta-devata`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        birth_datetime: `${q("id_birth_date").value}T${q("id_birth_time").value}`,
+        latitude, longitude,
+      }),
+    });
+    if (!resp.ok) {
+      const detail = await resp.json().catch(() => ({}));
+      throw new Error(detail.detail ? JSON.stringify(detail.detail) : `Request failed (${resp.status})`);
+    }
+    renderIshta(await resp.json());
+    resultsEl.hidden = false;
+  } catch (err) {
+    errorEl.textContent = err.message;
+    errorEl.hidden = false;
+  }
+});
+
 // --------------------------- language switch ---------------------------
 
 let lastTransitData = null;
@@ -942,6 +1021,7 @@ function rerenderAll() {
   }
   if (lastTransitData) renderTransit(lastTransitData);
   if (lastPanchanga) renderPanchanga(lastPanchanga);
+  if (lastIshta) renderIshta(lastIshta);
   if (lastMatchData) {
     renderMatchResults(lastMatchData.data, lastMatchData.bride, lastMatchData.groom);
   }

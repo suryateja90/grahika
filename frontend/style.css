@@ -160,6 +160,20 @@ legend { font-weight: 700; padding: 0 0.4rem; }
 .koota-zero { opacity: 0.65; }
 .koota-total td { font-weight: 700; border-top: 2px solid #888; }
 
+/* ----------------------------- ishta devata ----------------------------- */
+.devata-card {
+  border: 1px solid var(--accent);
+  border-radius: 12px;
+  padding: 1.5rem 1.25rem;
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+.devata-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.6; }
+.devata-name { font-size: 2rem; font-weight: 700; margin: 0.3rem 0 0.2rem; line-height: 1.2; }
+.devata-alt { font-size: 0.85rem; opacity: 0.7; }
+.karaka-ak td { font-weight: 700; }
+#karaka-table td:last-child { white-space: normal; font-size: 0.82rem; opacity: 0.8; }
+
 /* ------------------------------ panchangam ------------------------------ */
 .pa-header {
   display: flex;
@@ -325,6 +339,9 @@ svg:not(.kundli-svg) line, svg:not(.kundli-svg) polygon { stroke: var(--line); }
      segment gets ~77px, which ellipsises the longer Telugu labels
      (దినఫలం, పంచాంగం); a second row is better than a clipped word. */
   .mode-tabs { grid-template-columns: repeat(2, 1fr); }
+  /* With an odd number of tabs the last one would sit alone in a half-width
+     cell; span it so the block stays rectangular. */
+  .mode-tabs .tab-btn:last-child:nth-child(odd) { grid-column: 1 / -1; }
   #results > .tabs { grid-template-columns: repeat(2, 1fr); }
 
   /* width:auto is load-bearing -- the blanket `button { width: 100% }`

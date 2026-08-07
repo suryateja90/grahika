@@ -18,6 +18,16 @@ const I18N = {
     langName: "English",
 
     err_need_place: "Search for a place above, or enter latitude and longitude manually.",
+    tab_ishta: "Ishta Devata",
+    tab_ishta_short: "Devata",
+    intro_ishta: "Your Ishta Devata -- the personal deity -- is derived from your Atmakaraka (soul planet) and its position in the Navamsa chart. Not assigned by tradition; calculated from your birth details.",
+    btn_ishta: "Reveal my Ishta Devata",
+    h_your_devata: "Your Ishta Devata", h_karakas: "Chara Karakas",
+    id_atmakaraka: "Atmakaraka", id_karakamsha: "Karakamsha",
+    id_twelfth: "12th from Karakamsha", id_indicator: "Indicator",
+    id_also: "also given as", id_basis: "Derived from",
+    col_karaka: "Karaka", col_planet: "Planet", col_meaning: "Signifies",
+    note_ishta: "Two conventions here are genuinely contested and this tool states which it used: Rahu is counted among the karakas (the eight-karaka scheme), and the 12th from Karakamsha is read in the Rasi chart. Lineages that use seven karakas, or read the Navamsa instead, can arrive at a different deity for the same birth.",
     tab_panchanga: "Panchangam",
     tab_panchanga_short: "Panchang",
     intro_panchanga: "Today's panchangam for your place -- the five limbs, sunrise and sunset, and the periods to keep clear.",
@@ -162,6 +172,16 @@ const I18N = {
     langName: "తెలుగు",
 
     err_need_place: "పైన ప్రాంతం వెతకండి, లేదా అక్షాంశ రేఖాంశాలు నమోదు చేయండి.",
+    tab_ishta: "ఇష్ట దేవత",
+    tab_ishta_short: "దేవత",
+    intro_ishta: "మీ ఇష్ట దేవత — మీ ఆత్మకారక గ్రహం, నవాంశ చక్రంలో దాని స్థానం ఆధారంగా లెక్కించబడుతుంది. సంప్రదాయం ప్రకారం కాదు, మీ జనన వివరాల నుండి.",
+    btn_ishta: "నా ఇష్ట దేవత చూడండి",
+    h_your_devata: "మీ ఇష్ట దేవత", h_karakas: "చర కారకులు",
+    id_atmakaraka: "ఆత్మకారక", id_karakamsha: "కారకాంశ",
+    id_twelfth: "కారకాంశ నుండి 12వ రాశి", id_indicator: "సూచక గ్రహం",
+    id_also: "లేదా", id_basis: "ఆధారం",
+    col_karaka: "కారక", col_planet: "గ్రహం", col_meaning: "సూచించేది",
+    note_ishta: "ఇక్కడ రెండు సంప్రదాయాలు వేర్వేరుగా ఉన్నాయి: రాహువును కారకులలో కలపడం (అష్ట కారక పద్ధతి), మరియు 12వ రాశిని రాశి చక్రంలో చూడడం. ఏడు కారకులు వాడే లేదా నవాంశలో చూసే సంప్రదాయాలకు వేరే దేవత రావచ్చు.",
     tab_panchanga: "పంచాంగం",
     tab_panchanga_short: "పంచాంగం",
     intro_panchanga: "మీ ప్రాంతానికి ఈరోజు పంచాంగం — పంచాంగాలు, సూర్యోదయాస్తమయాలు, మరియు వర్జించవలసిన సమయాలు.",
@@ -427,6 +447,42 @@ const YOGA_I18N = {
 const KARANA_I18N = {
   en: {"Bava":"Bava","Balava":"Balava","Kaulava":"Kaulava","Taitila":"Taitila","Gara":"Gara","Vanija":"Vanija","Vishti":"Vishti","Shakuni":"Shakuni","Chatushpada":"Chatushpada","Naga":"Naga","Kimstughna":"Kimstughna"},
   te: {"Bava":"బవ","Balava":"బాలవ","Kaulava":"కౌలవ","Taitila":"తైతిల","Gara":"గర","Vanija":"వణిజ","Vishti":"విష్టి","Shakuni":"శకుని","Chatushpada":"చతుష్పాద","Naga":"నాగ","Kimstughna":"కింస్తుघ్న"},
+};
+
+const DEITY_I18N = {
+  en: { Shiva:"Shiva", Rama:"Rama", Parvati:"Parvati", Krishna:"Krishna",
+        Subrahmanya:"Subrahmanya", Narasimha:"Narasimha", Vishnu:"Vishnu", Buddha:"Buddha",
+        Dattatreya:"Dattatreya", Vamana:"Vamana", Lakshmi:"Lakshmi", Parashurama:"Parashurama",
+        Hanuman:"Hanuman", Kurma:"Kurma", Durga:"Durga", Varaha:"Varaha",
+        Ganesha:"Ganesha", Matsya:"Matsya" },
+  te: { Shiva:"\u0c36\u0c3f\u0c35\u0c41\u0c21\u0c41", Rama:"\u0c36\u0c4d\u0c30\u0c40\u0c30\u0c3e\u0c2e\u0c41\u0c21\u0c41",
+        Parvati:"\u0c2a\u0c3e\u0c30\u0c4d\u0c35\u0c24\u0c3f", Krishna:"\u0c36\u0c4d\u0c30\u0c40\u0c15\u0c43\u0c37\u0c4d\u0c23\u0c41\u0c21\u0c41",
+        Subrahmanya:"\u0c38\u0c41\u0c2c\u0c4d\u0c30\u0c39\u0c4d\u0c2e\u0c23\u0c4d\u0c2f\u0c47\u0c36\u0c4d\u0c35\u0c30\u0c41\u0c21\u0c41", Narasimha:"\u0c28\u0c30\u0c38\u0c3f\u0c02\u0c39\u0c38\u0c4d\u0c35\u0c3e\u0c2e\u0c3f",
+        Vishnu:"\u0c35\u0c3f\u0c37\u0c4d\u0c23\u0c41\u0c35\u0c41", Buddha:"\u0c2c\u0c41\u0c26\u0c4d\u0c27\u0c41\u0c21\u0c41",
+        Dattatreya:"\u0c26\u0c24\u0c4d\u0c24\u0c3e\u0c24\u0c4d\u0c30\u0c47\u0c2f\u0c41\u0c21\u0c41", Vamana:"\u0c35\u0c3e\u0c2e\u0c28\u0c41\u0c21\u0c41",
+        Lakshmi:"\u0c32\u0c15\u0c4d\u0c37\u0c4d\u0c2e\u0c40\u0c26\u0c47\u0c35\u0c3f", Parashurama:"\u0c2a\u0c30\u0c36\u0c41\u0c30\u0c3e\u0c2e\u0c41\u0c21\u0c41",
+        Hanuman:"\u0c39\u0c28\u0c41\u0c2e\u0c02\u0c24\u0c41\u0c21\u0c41", Kurma:"\u0c15\u0c42\u0c30\u0c4d\u0c2e\u0c3e\u0c35\u0c24\u0c3e\u0c30\u0c02",
+        Durga:"\u0c26\u0c41\u0c30\u0c4d\u0c17\u0c3e\u0c26\u0c47\u0c35\u0c3f", Varaha:"\u0c35\u0c30\u0c3e\u0c39\u0c38\u0c4d\u0c35\u0c3e\u0c2e\u0c3f",
+        Ganesha:"\u0c17\u0c23\u0c2a\u0c24\u0c3f", Matsya:"\u0c2e\u0c24\u0c4d\u0c38\u0c4d\u0c2f\u0c3e\u0c35\u0c24\u0c3e\u0c30\u0c02" },
+};
+const KARAKA_I18N = {
+  en: { Atmakaraka:"Atmakaraka", Amatyakaraka:"Amatyakaraka", Bhratrikaraka:"Bhratrikaraka",
+        Matrikaraka:"Matrikaraka", Pitrikaraka:"Pitrikaraka", Putrakaraka:"Putrakaraka",
+        Gnatikaraka:"Gnatikaraka", Darakaraka:"Darakaraka" },
+  te: { Atmakaraka:"\u0c06\u0c24\u0c4d\u0c2e\u0c15\u0c3e\u0c30\u0c15", Amatyakaraka:"\u0c05\u0c2e\u0c3e\u0c24\u0c4d\u0c2f\u0c15\u0c3e\u0c30\u0c15",
+        Bhratrikaraka:"\u0c2d\u0c4d\u0c30\u0c3e\u0c24\u0c43\u0c15\u0c3e\u0c30\u0c15", Matrikaraka:"\u0c2e\u0c3e\u0c24\u0c43\u0c15\u0c3e\u0c30\u0c15",
+        Pitrikaraka:"\u0c2a\u0c3f\u0c24\u0c43\u0c15\u0c3e\u0c30\u0c15", Putrakaraka:"\u0c2a\u0c41\u0c24\u0c4d\u0c30\u0c15\u0c3e\u0c30\u0c15",
+        Gnatikaraka:"\u0c1c\u0c4d\u0c1e\u0c3e\u0c24\u0c3f\u0c15\u0c3e\u0c30\u0c15", Darakaraka:"\u0c26\u0c3e\u0c30\u0c15\u0c3e\u0c30\u0c15" },
+};
+const KARAKA_MEANING_TE = {
+  Atmakaraka: "\u0c06\u0c24\u0c4d\u0c2e; \u0c08 \u0c1c\u0c40\u0c35\u0c3f\u0c24\u0c02 \u0c2f\u0c4a\u0c15\u0c4d\u0c15 \u0c2e\u0c42\u0c32 \u0c32\u0c15\u0c4d\u0c37\u0c4d\u0c2f\u0c02",
+  Amatyakaraka: "\u0c35\u0c43\u0c24\u0c4d\u0c24\u0c3f, \u0c38\u0c32\u0c39\u0c3e",
+  Bhratrikaraka: "\u0c38\u0c39\u0c4b\u0c26\u0c30\u0c41\u0c32\u0c41, \u0c27\u0c48\u0c30\u0c4d\u0c2f\u0c02, \u0c17\u0c41\u0c30\u0c41\u0c35\u0c41\u0c32\u0c41",
+  Matrikaraka: "\u0c24\u0c32\u0c4d\u0c32\u0c3f, \u0c2a\u0c4b\u0c37\u0c23, \u0c07\u0c32\u0c4d\u0c32\u0c41",
+  Pitrikaraka: "\u0c24\u0c02\u0c21\u0c4d\u0c30\u0c3f, \u0c05\u0c27\u0c3f\u0c15\u0c3e\u0c30\u0c02, \u0c35\u0c02\u0c36\u0c02",
+  Putrakaraka: "\u0c38\u0c02\u0c24\u0c3e\u0c28\u0c02, \u0c38\u0c43\u0c1c\u0c28\u0c3e\u0c24\u0c4d\u0c2e\u0c15\u0c24",
+  Gnatikaraka: "\u0c05\u0c21\u0c4d\u0c21\u0c02\u0c15\u0c41\u0c32\u0c41, \u0c05\u0c28\u0c3e\u0c30\u0c4b\u0c17\u0c4d\u0c2f\u0c02",
+  Darakaraka: "\u0c1c\u0c40\u0c35\u0c3f\u0c24 \u0c2d\u0c3e\u0c17\u0c38\u0c4d\u0c35\u0c3e\u0c2e\u0c3f",
 };
 
 let currentLang = localStorage.getItem("grahika_lang") || "en";

@@ -64,6 +64,19 @@ class TransitResponse(BaseModel):
     aspects: list
 
 
+class IshtaDevataResponse(BaseModel):
+    atmakaraka: str
+    atmakaraka_degree: float
+    karakamsha_sign_index: int
+    twelfth_sign_index: int
+    occupants: list
+    indicator_planet: str
+    basis: str
+    deity: dict
+    karakas: list
+    scheme: str
+
+
 class PanchangaRequest(BaseModel):
     latitude: float = Field(..., ge=-90, le=90)
     longitude: float = Field(..., ge=-180, le=180)

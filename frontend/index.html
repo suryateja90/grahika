@@ -21,7 +21,77 @@
     <button type="button" class="tab-btn" data-mode="horoscope"><span class="tab-full" data-i18n="tab_horoscope">Personal Daily Horoscope</span><span class="tab-short" data-i18n="tab_horoscope_short">Daily</span></button>
     <button type="button" class="tab-btn" data-mode="matching"><span class="tab-full" data-i18n="tab_matching">Kundli Matching</span><span class="tab-short" data-i18n="tab_matching_short">Matching</span></button>
     <button type="button" class="tab-btn" data-mode="panchanga"><span class="tab-full" data-i18n="tab_panchanga">Panchangam</span><span class="tab-short" data-i18n="tab_panchanga_short">Panchang</span></button>
+    <button type="button" class="tab-btn" data-mode="ishta"><span class="tab-full" data-i18n="tab_ishta">Ishta Devata</span><span class="tab-short" data-i18n="tab_ishta_short">Devata</span></button>
   </div>
+
+  <!-- ============================ ISHTA DEVATA ============================ -->
+  <section id="mode-ishta" class="mode-panel" hidden>
+    <p class="mode-intro" data-i18n="intro_ishta">
+      Your Ishta Devata -- the personal deity -- is derived from your Atmakaraka (soul planet)
+      and its position in the Navamsa chart. Not assigned by tradition; calculated from your
+      birth details.
+    </p>
+
+    <form id="ishta-form">
+      <div class="row">
+        <label data-i18n="label_birth_date">Birth date <input type="date" id="id_birth_date" required></label>
+        <label data-i18n="label_birth_time">Birth time <input type="time" id="id_birth_time" step="1" required></label>
+      </div>
+
+      <div class="place-search">
+        <label class="grow" data-i18n="label_birth_place">Birth place
+          <div class="search-row">
+            <input type="text" id="id_place_query" placeholder="e.g. Chennai, India"
+                   data-i18n-placeholder="placeholder_place">
+          </div>
+        </label>
+        <ul id="id_place_results"></ul>
+        <p id="id_place_selected" class="selected-place" hidden></p>
+      </div>
+
+      <details>
+        <summary data-i18n="label_manual_coords">Enter coordinates manually instead</summary>
+        <div class="row">
+          <label data-i18n="label_latitude">Latitude <input type="number" id="id_latitude" step="any"></label>
+          <label data-i18n="label_longitude">Longitude <input type="number" id="id_longitude" step="any"></label>
+        </div>
+      </details>
+
+      <button type="submit" data-i18n="btn_ishta">Reveal my Ishta Devata</button>
+    </form>
+
+    <p id="ishta-error" class="error" hidden></p>
+
+    <section id="ishta-results" hidden>
+      <div class="devata-card">
+        <div class="devata-label" data-i18n="h_your_devata">Your Ishta Devata</div>
+        <div class="devata-name" id="devata-name"></div>
+        <div class="devata-alt" id="devata-alt"></div>
+      </div>
+
+      <div class="pa-grid" id="ishta-facts"></div>
+
+      <div class="table-block">
+        <h2 data-i18n="h_karakas">Chara Karakas</h2>
+        <table id="karaka-table">
+          <thead><tr>
+            <th data-i18n="col_karaka">Karaka</th>
+            <th data-i18n="col_planet">Planet</th>
+            <th data-i18n="col_degree">Degree</th>
+            <th data-i18n="col_meaning">Signifies</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <p class="dosha-note" data-i18n="note_ishta">
+        Two conventions here are genuinely contested and this tool states which it used:
+        Rahu is counted among the karakas (the eight-karaka scheme), and the 12th from
+        Karakamsha is read in the Rasi chart. Lineages that use seven karakas, or read the
+        Navamsa instead, can arrive at a different deity for the same birth.
+      </p>
+    </section>
+  </section>
 
   <!-- ============================= PANCHANGAM ============================= -->
   <section id="mode-panchanga" class="mode-panel" hidden>
