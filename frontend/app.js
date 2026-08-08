@@ -1035,4 +1035,14 @@ document.querySelectorAll(".lang-btn").forEach((btn) => {
   });
 });
 
+// The parent-site bar is shown only when this page is the top-level
+// document. Embedded in an iframe the host page already supplies its own
+// header, and two stacked bars look like a mistake.
+(function revealSiteBar() {
+  if (window.parent === window) {
+    const bar = document.getElementById("site-bar");
+    if (bar) bar.hidden = false;
+  }
+})();
+
 applyTranslations();

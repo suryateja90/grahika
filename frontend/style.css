@@ -17,6 +17,41 @@
 }
 
 * { box-sizing: border-box; }
+
+/* ---------------------------- parent site bar ---------------------------- */
+/* Deliberately fixed black/white rather than theme-aware: it mirrors the
+   likhitham header, which is black in both themes, so the two read as one
+   site rather than two that happen to be linked. */
+.site-bar {
+  background: #111;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 0.9rem 1.5rem;
+}
+.site-bar-brand {
+  color: #fff;
+  text-decoration: none;
+  font-size: 1.35rem;
+  font-weight: 800;
+  line-height: 1.1;
+  display: flex;
+  flex-direction: column;
+}
+.site-bar-tagline { font-size: 0.72rem; font-weight: 400; opacity: 0.7; letter-spacing: 0.01em; }
+.site-bar-nav { display: flex; gap: 1.25rem; }
+.site-bar-nav a {
+  color: #fff;
+  text-decoration: none;
+  font-size: 0.92rem;
+  font-weight: 600;
+  opacity: 0.85;
+}
+.site-bar-nav a:hover { opacity: 1; text-decoration: underline; }
+
 body {
   /* Noto Sans Telugu is the standard Telugu UI face on Android and is
      present on most Windows/macOS installs; the generic families after it
@@ -315,6 +350,11 @@ svg:not(.kundli-svg) line, svg:not(.kundli-svg) polygon { stroke: var(--line); }
 
 /* ------------------------------ responsive ------------------------------ */
 @media (max-width: 720px) {
+  .site-bar { padding: 0.75rem 1rem; }
+  .site-bar-brand { font-size: 1.15rem; }
+  .site-bar-nav { gap: 1rem; }
+  .site-bar-nav a { font-size: 0.85rem; }
+
   body { padding: 1rem 0.75rem; }
   h1 { font-size: 1.6rem; }
   .subtitle { font-size: 0.9rem; }

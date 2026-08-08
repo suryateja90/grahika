@@ -18,6 +18,8 @@ const I18N = {
     langName: "English",
 
     err_need_place: "Search for a place above, or enter latitude and longitude manually.",
+    nav_home: "Home",
+    nav_articles: "Articles",
     tab_ishta: "Ishta Devata",
     tab_ishta_short: "Devata",
     intro_ishta: "Your Ishta Devata -- the personal deity -- is derived from your Atmakaraka (soul planet) and its position in the Navamsa chart. Not assigned by tradition; calculated from your birth details.",
@@ -172,6 +174,8 @@ const I18N = {
     langName: "తెలుగు",
 
     err_need_place: "పైన ప్రాంతం వెతకండి, లేదా అక్షాంశ రేఖాంశాలు నమోదు చేయండి.",
+    nav_home: "హోమ్",
+    nav_articles: "వ్యాసాలు",
     tab_ishta: "ఇష్ట దేవత",
     tab_ishta_short: "దేవత",
     intro_ishta: "మీ ఇష్ట దేవత — మీ ఆత్మకారక గ్రహం, నవాంశ చక్రంలో దాని స్థానం ఆధారంగా లెక్కించబడుతుంది. సంప్రదాయం ప్రకారం కాదు, మీ జనన వివరాల నుండి.",

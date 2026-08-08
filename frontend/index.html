@@ -7,6 +7,20 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
+<!-- Carries the parent site's identity so a visitor arriving from
+     likhitham.com does not feel dropped onto a stranger's page. Hidden
+     automatically when this app is embedded, to avoid two stacked headers. -->
+<header class="site-bar" id="site-bar" hidden>
+  <a class="site-bar-brand" href="https://likhitham.com">
+    Likhitham
+    <span class="site-bar-tagline">Words that Awaken</span>
+  </a>
+  <nav class="site-bar-nav">
+    <a href="https://likhitham.com" data-i18n="nav_home">Home</a>
+    <a href="https://likhitham.com/category/spirituality/" data-i18n="nav_articles">Articles</a>
+  </nav>
+</header>
+
 <main>
   <h1 data-i18n="title">Grahika</h1>
   <p class="subtitle" data-i18n="subtitle">Vedic birth chart, dasha &amp; compatibility calculator</p>
