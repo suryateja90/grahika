@@ -208,7 +208,7 @@ function buildSouthIndianSvg(bodies, signIndexFor, mirrored, centerInfo, overlay
       <text x="200" y="152" font-size="12" fill="${C.centerSub}" text-anchor="middle">${centerInfo.dateLabel}</text>
       <text x="200" y="170" font-size="12" fill="${C.centerSub}" text-anchor="middle">${centerInfo.timeLabel}</text>
       <text x="200" y="205" font-size="23" font-weight="700" fill="${C.centerTitle}"
-            text-anchor="middle" font-family="Georgia, serif">${centerInfo.chartLabel} Chart</text>
+            text-anchor="middle" font-family="Georgia, 'Noto Sans Telugu', serif">${centerInfo.chartLabel}</text>
       <text x="200" y="232" font-size="14" fill="${C.centerTitle}" text-anchor="middle">
         ${t("chart_asc")}: ${ascGlyph} ${ascName}
       </text>

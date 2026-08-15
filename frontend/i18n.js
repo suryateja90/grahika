@@ -130,7 +130,7 @@ const I18N = {
       Sun: "Su", Moon: "Mo", Mars: "Ma", Mercury: "Me", Jupiter: "Ju",
       Venus: "Ve", Saturn: "Sa", Rahu: "Ra", Ketu: "Ke", Ascendant: "As",
     },
-    chart_lagna: "Lagna", chart_navamsha: "Navamsha",
+    chart_lagna: "Lagna Chart", chart_navamsha: "Navamsha Chart",
     chart_d1: "D1 &middot; Rashi", chart_d9: "D9 &middot; Navamsha",
     chart_asc: "Asc",
 
@@ -292,7 +292,7 @@ const I18N = {
       Sun: "సూ", Moon: "చం", Mars: "కు", Mercury: "బు", Jupiter: "గు",
       Venus: "శు", Saturn: "శ", Rahu: "రా", Ketu: "కే", Ascendant: "ల",
     },
-    chart_lagna: "లగ్న", chart_navamsha: "నవాంశ",
+    chart_lagna: "లగ్న చక్రం", chart_navamsha: "నవాంశ చక్రం",
     chart_d1: "D1 &middot; రాశి", chart_d9: "D9 &middot; నవాంశ",
     chart_asc: "లగ్నం",
 
