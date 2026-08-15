@@ -39,15 +39,30 @@ function planetMarkup(names, bodies) {
 
 // Planets are laid out in rows of at most three so a stellium doesn't
 // overflow its cell.
-function planetRows(names, bodies, x, y, size) {
+function planetRows(names, bodies, x, y, size, fill) {
   const rows = [];
   for (let i = 0; i < names.length; i += 3) rows.push(names.slice(i, i + 3));
   const startY = y - ((rows.length - 1) * (size + 2)) / 2;
   return rows.map((row, i) => `
     <text x="${x}" y="${startY + i * (size + 2)}" font-size="${size}" font-weight="700"
-          fill="${C.planet}" text-anchor="middle" dominant-baseline="middle"
+          fill="${fill || C.planet}" text-anchor="middle" dominant-baseline="middle"
           font-family="Georgia, 'Noto Sans Telugu', serif">${planetMarkup(row, bodies)}</text>
   `).join("");
+}
+
+// Gochar overlay: transiting grahas drawn into the natal chart in a second
+// colour. Blue reads clearly against the parchment without competing with
+// the natal red, and the two never merge into one list.
+const TRANSIT_COLOUR = "#1F4E79";
+
+function groupBySign(bodies, signIndexFor) {
+  const bySign = {};
+  for (let s = 0; s < 12; s++) bySign[s] = [];
+  for (const name of Object.keys(bodies)) {
+    if (name === "Ascendant") continue;
+    bySign[signIndexFor(name)].push(name);
+  }
+  return bySign;
 }
 
 // North Indian: houses are fixed to regions and run ANTICLOCKWISE from the
@@ -69,7 +84,7 @@ const NORTH_REGIONS = [
   { poly: "400,0 300,100 200,0", num: [246, 20], planets: [300, 50] },
 ];
 
-function buildNorthIndianSvg(bodies, signIndexFor) {
+function buildNorthIndianSvg(bodies, signIndexFor, overlay) {
   const ascSignIndex = signIndexFor("Ascendant");
   // The Ascendant isn't drawn as a token. In this style house 1 is always
   // the top diamond by construction, so the Lagna is already unambiguous
@@ -81,6 +96,17 @@ function buildNorthIndianSvg(bodies, signIndexFor) {
     byHouse[houseOf(signIndexFor(name), ascSignIndex)].push(name);
   }
 
+  // Transits are grouped by the SAME house frame as the natal chart, so a
+  // graha appears in the house it is transiting for this person.
+  const overlayByHouse = {};
+  if (overlay) {
+    for (let h = 1; h <= 12; h++) overlayByHouse[h] = [];
+    for (const name of Object.keys(overlay.bodies)) {
+      if (name === "Ascendant") continue;
+      overlayByHouse[houseOf(overlay.signIndexFor(name), ascSignIndex)].push(name);
+    }
+  }
+
   let regions = "";
   for (let h = 1; h <= 12; h++) {
     const r = NORTH_REGIONS[h - 1];
@@ -88,7 +114,13 @@ function buildNorthIndianSvg(bodies, signIndexFor) {
     regions += `<polygon points="${r.poly}" fill="${h === 1 ? C.bgAsc : C.bg}" stroke="none"/>`;
     regions += `<text x="${r.num[0]}" y="${r.num[1]}" font-size="13" font-weight="700"
                       fill="${C.signNum}" text-anchor="middle">${rashi}</text>`;
-    regions += planetRows(byHouse[h], bodies, r.planets[0], r.planets[1], 15);
+    if (overlay) {
+      regions += planetRows(byHouse[h], bodies, r.planets[0], r.planets[1] - 9, 13);
+      regions += planetRows(overlayByHouse[h], overlay.bodies,
+                            r.planets[0], r.planets[1] + 9, 13, TRANSIT_COLOUR);
+    } else {
+      regions += planetRows(byHouse[h], bodies, r.planets[0], r.planets[1], 15);
+    }
   }
 
   const lines = `
@@ -129,18 +161,14 @@ function formatChartTime(timeStr) {
   return `${pad(h12)}:${pad(m)}:${pad(s || 0)} ${period}`;
 }
 
-function buildSouthIndianSvg(bodies, signIndexFor, mirrored, centerInfo) {
+function buildSouthIndianSvg(bodies, signIndexFor, mirrored, centerInfo, overlay) {
   const cellFor = mirrored ? SOUTH_INDIAN_CELLS_APASAVYA : SOUTH_INDIAN_CELLS_SAVYA;
   const ascSignIndex = signIndexFor("Ascendant");
 
   // As above: the Lagna is carried by the shaded cell and the centre
   // caption, not by an "As" token among the grahas.
-  const bySign = {};
-  for (let s = 0; s < 12; s++) bySign[s] = [];
-  for (const name of Object.keys(bodies)) {
-    if (name === "Ascendant") continue;
-    bySign[signIndexFor(name)].push(name);
-  }
+  const bySign = groupBySign(bodies, signIndexFor);
+  const overlayBySign = overlay ? groupBySign(overlay.bodies, overlay.signIndexFor) : null;
 
   const CELL = 100;
   const SIZE = 400;
@@ -161,7 +189,13 @@ function buildSouthIndianSvg(bodies, signIndexFor, mirrored, centerInfo) {
                     fill="${C.signName}">${tSignShort(s)}</text>`;
     cells += `<text x="${x + CELL - 9}" y="${y + 20}" font-size="10" fill="${C.houseNum}"
                     text-anchor="end">H${house}</text>`;
-    cells += planetRows(bySign[s], bodies, x + CELL / 2, y + CELL / 2 + 8, 15);
+    if (overlayBySign) {
+      cells += planetRows(bySign[s], bodies, x + CELL / 2, y + CELL / 2 + 1, 13);
+      cells += planetRows(overlayBySign[s], overlay.bodies,
+                          x + CELL / 2, y + CELL / 2 + 19, 13, TRANSIT_COLOUR);
+    } else {
+      cells += planetRows(bySign[s], bodies, x + CELL / 2, y + CELL / 2 + 8, 15);
+    }
   }
 
   let center = "";
@@ -548,6 +582,8 @@ function renderTransit(data) {
       `).join("")
     : `<li class="aspect-empty">${t("aspect_none")}</li>`;
 
+  renderGocharChart(data);
+
   document.querySelector("#transit-table tbody").innerHTML = data.planet_transits.map((p) => `
     <tr>
       <td>${tPlanet(p.planet)}</td>
@@ -561,14 +597,37 @@ function renderTransit(data) {
   `).join("");
 }
 
+// Gochar chart: the natal chart with today's grahas laid over it, so a
+// reader sees at a glance which of their houses are currently occupied.
+function renderGocharChart(data) {
+  const style = document.getElementById("gochar_style").value;
+  const natalSign = (n) => data.natal_chart[n].sign_index;
+  const transitSign = (n) => data.transit_chart[n].sign_index;
+  const overlay = { bodies: data.transit_chart, signIndexFor: transitSign };
+
+  const svg = style === "north"
+    ? buildNorthIndianSvg(data.natal_chart, natalSign, overlay)
+    : buildSouthIndianSvg(data.natal_chart, natalSign, style === "south_apasavya", {
+        dateLabel: formatChartDate(data.transit_date),
+        timeLabel: data.transit_time,
+        chartLabel: t("h_gochar"),
+        vargaLabel: t("gochar_caption"),
+        ascSignName: tSignShort(natalSign("Ascendant")),
+      }, overlay);
+
+  document.getElementById("gochar-chart").innerHTML = svg;
+}
+
 async function fetchAndRenderTransit() {
   if (!horoscopePayload) return;
   const summaryEl = document.getElementById("transit-moon-summary");
   summaryEl.textContent = "Loading…";
 
   const selectedDate = document.getElementById("transit_date").value;
+  const selectedTime = document.getElementById("transit_time").value;
   const payload = { ...horoscopePayload };
   if (selectedDate) payload.transit_date = selectedDate;
+  if (selectedTime) payload.transit_time = selectedTime.slice(0, 5);
 
   try {
     const resp = await fetch(`${API_BASE}/transits/daily`, {
@@ -580,6 +639,7 @@ async function fetchAndRenderTransit() {
     const data = await resp.json();
     // Reflect the resolved date back so "Today" and the first load show it.
     document.getElementById("transit_date").value = data.transit_date;
+    document.getElementById("transit_time").value = data.transit_time;
     lastTransitData = data;
     renderTransit(data);
   } catch (err) {
@@ -623,6 +683,10 @@ document.getElementById("transit_today").addEventListener("click", () => {
   fetchAndRenderTransit();
 });
 document.getElementById("transit_date").addEventListener("change", fetchAndRenderTransit);
+document.getElementById("transit_time").addEventListener("change", fetchAndRenderTransit);
+document.getElementById("gochar_style").addEventListener("change", () => {
+  if (lastTransitData) renderGocharChart(lastTransitData);
+});
 
 // Two independent tab levels: mode tabs (Birth Chart / Kundli Matching)
 // and, inside the chart mode, result tabs. Scoped by attribute so one

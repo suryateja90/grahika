@@ -51,10 +51,15 @@ class TransitRequest(BaseModel):
     transit_date: Optional[date] = Field(
         None, description="Date to report on; defaults to today in the birth place's timezone"
     )
+    transit_time: Optional[str] = Field(
+        None, pattern=r"^\d{2}:\d{2}(:\d{2})?$",
+        description="Local clock time to cast for, HH:MM. Defaults to 12:00 noon.",
+    )
 
 
 class TransitResponse(BaseModel):
     transit_date: str
+    transit_time: str
     natal_moon: dict
     transit_moon: dict
     summary: dict
@@ -62,6 +67,8 @@ class TransitResponse(BaseModel):
     chandra_bala: dict
     planet_transits: list
     aspects: list
+    natal_chart: dict
+    transit_chart: dict
 
 
 class IshtaDevataResponse(BaseModel):

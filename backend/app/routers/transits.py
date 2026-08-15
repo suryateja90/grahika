@@ -25,7 +25,20 @@ def daily_transit(request: TransitRequest):
         raise HTTPException(status_code=422, detail=str(e))
 
     report_date = request.transit_date or datetime.now(tz).date()
-    transit_dt = tz.localize(datetime(report_date.year, report_date.month, report_date.day, REPORT_HOUR))
+
+    if request.transit_time:
+        parts = [int(p) for p in request.transit_time.split(":")]
+        hour, minute = parts[0], parts[1]
+        second = parts[2] if len(parts) > 2 else 0
+    else:
+        hour, minute, second = REPORT_HOUR, 0, 0
+
+    if not (0 <= hour <= 23 and 0 <= minute <= 59 and 0 <= second <= 59):
+        raise HTTPException(status_code=422, detail="transit_time must be a valid 24-hour clock time")
+
+    transit_dt = tz.localize(
+        datetime(report_date.year, report_date.month, report_date.day, hour, minute, second)
+    )
 
     natal = ephemeris.compute_positions(
         dt_utc=birth_dt,
@@ -47,4 +60,8 @@ def daily_transit(request: TransitRequest):
     )["bodies"]
 
     report = transits.daily_report(natal, transit)
-    return TransitResponse(transit_date=report_date.isoformat(), **report)
+    return TransitResponse(
+        transit_date=report_date.isoformat(),
+        transit_time=transit_dt.strftime("%H:%M"),
+        **report,
+    )

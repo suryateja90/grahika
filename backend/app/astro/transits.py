@@ -267,6 +267,23 @@ def plain_summary(tara: dict, chandra: dict, aspects: list[dict]) -> dict:
     return {"headline": HEADLINES[score], "today": today, "ongoing": ongoing}
 
 
+CHART_BODIES = ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus",
+                "Saturn", "Rahu", "Ketu", "Ascendant"]
+
+
+def _chart_slice(bodies: dict) -> dict:
+    """Just enough of each body to draw a chart, without shipping the whole
+    position payload twice."""
+    return {
+        name: {
+            "sign_index": bodies[name]["sign_index"],
+            "degree_in_sign": bodies[name]["degree_in_sign"],
+            "retrograde": bodies[name]["retrograde"],
+        }
+        for name in CHART_BODIES
+    }
+
+
 def daily_report(natal_bodies: dict, transit_bodies: dict) -> dict:
     natal_moon = natal_bodies["Moon"]
     transit_moon = transit_bodies["Moon"]
@@ -293,4 +310,9 @@ def daily_report(natal_bodies: dict, transit_bodies: dict) -> dict:
         "chandra_bala": chandra,
         "planet_transits": planet_transits(natal_bodies, transit_bodies),
         "aspects": aspects,
+        # Both sets are returned so the client can draw the gochar chart --
+        # natal placements with the transiting grahas laid over them --
+        # without a second request.
+        "natal_chart": _chart_slice(natal_bodies),
+        "transit_chart": _chart_slice(transit_bodies),
     }

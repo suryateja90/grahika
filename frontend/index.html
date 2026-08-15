@@ -342,6 +342,7 @@
       <div class="date-nav">
         <button type="button" id="transit_prev" class="secondary" data-i18n="btn_prev_day">&laquo; Prev day</button>
         <label data-i18n="label_date">Date <input type="date" id="transit_date"></label>
+        <label data-i18n="label_time">Time <input type="time" id="transit_time"></label>
         <button type="button" id="transit_next" class="secondary" data-i18n="btn_next_day">Next day &raquo;</button>
         <button type="button" id="transit_today" class="secondary" data-i18n="btn_today">Today</button>
       </div>
@@ -349,6 +350,24 @@
       <div class="table-block">
         <h2 id="transit-heading">Horoscope for <span id="transit-heading-date"></span></h2>
         <p id="transit-moon-summary" class="transit-summary"></p>
+      </div>
+
+      <div class="table-block">
+        <h2 data-i18n="h_gochar">Gochar Chart</h2>
+        <label class="chart-style-picker" data-i18n="label_chart_style">Chart style
+          <select id="gochar_style">
+            <option value="north" data-i18n="style_north">North Indian (diamond)</option>
+            <option value="south_savya" data-i18n="style_south_savya">South Indian - Savya</option>
+            <option value="south_apasavya" selected data-i18n="style_south_apasavya">South Indian - Apasavya</option>
+          </select>
+        </label>
+        <div class="charts">
+          <div class="chart-block"><div id="gochar-chart"></div></div>
+        </div>
+        <p class="gochar-legend">
+          <span class="legend-natal" data-i18n="legend_natal">Natal</span>
+          <span class="legend-transit" data-i18n="legend_transit">Transiting</span>
+        </p>
       </div>
 
       <div class="summary-card">

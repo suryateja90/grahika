@@ -18,6 +18,11 @@ const I18N = {
     langName: "English",
 
     err_need_place: "Search for a place above, or enter latitude and longitude manually.",
+    h_gochar: "Gochar Chart",
+    gochar_caption: "Natal + transits",
+    legend_natal: "Natal",
+    legend_transit: "Transiting",
+    label_time: "Time",
     nav_home: "Home",
     nav_articles: "Articles",
     tab_ishta: "Ishta Devata",
@@ -174,6 +179,11 @@ const I18N = {
     langName: "తెలుగు",
 
     err_need_place: "పైన ప్రాంతం వెతకండి, లేదా అక్షాంశ రేఖాంశాలు నమోదు చేయండి.",
+    h_gochar: "గోచార చక్రం",
+    gochar_caption: "జనన + గోచారం",
+    legend_natal: "జనన",
+    legend_transit: "గోచారం",
+    label_time: "సమయం",
     nav_home: "హోమ్",
     nav_articles: "వ్యాసాలు",
     tab_ishta: "ఇష్ట దేవత",

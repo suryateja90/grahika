@@ -195,6 +195,16 @@ legend { font-weight: 700; padding: 0 0.4rem; }
 .koota-zero { opacity: 0.65; }
 .koota-total td { font-weight: 700; border-top: 2px solid #888; }
 
+/* Legend swatches use the same two colours the gochar SVG draws with. */
+.gochar-legend { display: flex; gap: 1.25rem; justify-content: center; font-size: 0.82rem; margin: 0 0 1rem; }
+.gochar-legend span { display: inline-flex; align-items: center; gap: 0.4rem; }
+.gochar-legend span::before {
+  content: "";
+  width: 11px; height: 11px; border-radius: 3px;
+}
+.legend-natal::before { background: #8B1A1A; }
+.legend-transit::before { background: #1F4E79; }
+
 /* ----------------------------- ishta devata ----------------------------- */
 .devata-card {
   border: 1px solid var(--accent);
