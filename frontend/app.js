@@ -33,7 +33,7 @@ function planetMarkup(names, bodies) {
   return names.map((name) => {
     const abbr = tAbbr(name);
     if (!bodies[name] || !bodies[name].retrograde) return abbr;
-    return `${abbr}<tspan font-size="65%" dy="-5" fill="${C.retro}">R</tspan><tspan dy="5"></tspan>`;
+    return `${abbr}<tspan font-size="65%" dy="-5" fill="${C.retro}">${t("retro_mark")}</tspan><tspan dy="5"></tspan>`;
   }).join("&#160;");
 }
 
@@ -283,7 +283,7 @@ function renderPositionsTable(positions) {
       <td>${d.degree_in_sign.toFixed(2)}&deg;</td>
       <td>${tNak(d.nakshatra_index)}</td>
       <td>${d.nakshatra_pada}</td>
-      <td>${d.retrograde ? "R" : ""}</td>
+      <td>${d.retrograde ? t("retro_mark") : ""}</td>
     `;
     tbody.appendChild(tr);
   }
@@ -592,7 +592,7 @@ function renderTransit(data) {
       <td>${tNak(p.nakshatra_index)}</td>
       <td>${p.house_from_moon}</td>
       <td>${p.house_from_lagna}</td>
-      <td>${p.retrograde ? "R" : ""}</td>
+      <td>${p.retrograde ? t("retro_mark") : ""}</td>
     </tr>
   `).join("");
 }
