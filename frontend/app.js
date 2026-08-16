@@ -326,7 +326,7 @@ async function lookupPlaces(query) {
   const key = query.toLowerCase();
   if (placeCache.has(key)) return placeCache.get(key);
   const resp = await fetch(`${API_BASE}/geocode/search?q=${encodeURIComponent(query)}`);
-  if (!resp.ok) throw new Error(`Place lookup failed (${resp.status})`);
+  if (!resp.ok) throw new Error(t("err_lookup_failed").replace("{status}", resp.status));
   const places = await resp.json();
   placeCache.set(key, places);
   return places;
@@ -360,7 +360,7 @@ function wirePlaceSearch(prefix, errorElId) {
       if (seq !== requestSeq) return;
 
       if (places.length === 0) {
-        resultsEl.innerHTML = `<li class="place-empty">No matches -- try adding the country</li>`;
+        resultsEl.innerHTML = `<li class="place-empty">${t("msg_no_matches")}</li>`;
         return;
       }
       resultsEl.innerHTML = "";
@@ -421,7 +421,7 @@ document.getElementById("chart-form").addEventListener("submit", async (e) => {
   const latitude = parseFloat(document.getElementById("latitude").value);
   const longitude = parseFloat(document.getElementById("longitude").value);
   if (Number.isNaN(latitude) || Number.isNaN(longitude)) {
-    errorEl.textContent = "Search for a birth place above, or expand \"Enter coordinates manually\" and fill in latitude/longitude.";
+    errorEl.textContent = t("err_need_place");
     errorEl.hidden = false;
     return;
   }
@@ -449,7 +449,8 @@ document.getElementById("chart-form").addEventListener("submit", async (e) => {
     });
     if (!resp.ok) {
       const detail = await resp.json().catch(() => ({}));
-      throw new Error(detail.detail ? JSON.stringify(detail.detail) : `Request failed (${resp.status})`);
+      throw new Error(detail.detail ? JSON.stringify(detail.detail)
+        : t("err_request_failed").replace("{status}", resp.status));
     }
     const data = await resp.json();
     lastChartData = data;
@@ -473,36 +474,51 @@ document.getElementById("chart-form").addEventListener("submit", async (e) => {
   }
 });
 
+let lastDoshaData = null;
+
+function renderDoshas(data) {
+  const kaalEl = document.getElementById("kaal-sarp-result");
+  const sadeEl = document.getElementById("sade-sati-result");
+
+  const ksy = data.kaal_sarp_yoga;
+  // The backend names the direction in English; map it to a key rather
+  // than interpolating the raw value into a translated sentence.
+  const dirKey = ksy.direction === "Rahu to Ketu" ? "ksy_dir_rk" : "ksy_dir_kr";
+  kaalEl.textContent = ksy.present
+    ? t("ksy_present").replace("{direction}", t(dirKey))
+    : t("ksy_absent");
+
+  const ss = data.sade_sati;
+  if (ss.in_sade_sati) {
+    sadeEl.textContent = t("ss_current")
+      .replace("{phase}", t(`ss_phase_${ss.phase}`))
+      .replace("{start}", ss.current_window_start)
+      .replace("{end}", ss.current_window_end);
+  } else if (ss.next_window_start) {
+    sadeEl.textContent = t("ss_next").replace("{start}", ss.next_window_start);
+  } else {
+    sadeEl.textContent = t("ss_none");
+  }
+}
+
 async function fetchAndRenderDoshas(payload) {
   const kaalEl = document.getElementById("kaal-sarp-result");
   const sadeEl = document.getElementById("sade-sati-result");
-  kaalEl.textContent = "Loading…";
-  sadeEl.textContent = "Loading…";
+  kaalEl.textContent = t("msg_loading");
+  sadeEl.textContent = t("msg_loading");
   try {
     const resp = await fetch(`${API_BASE}/charts/doshas`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
-    if (!resp.ok) throw new Error(`Request failed (${resp.status})`);
-    const data = await resp.json();
-
-    const ksy = data.kaal_sarp_yoga;
-    kaalEl.textContent = ksy.present
-      ? `Present -- all 7 classical planets fall between Rahu and Ketu (${ksy.direction}).`
-      : "Not present.";
-
-    const ss = data.sade_sati;
-    if (ss.in_sade_sati) {
-      sadeEl.textContent = `Currently in Sade Sati (${ss.phase} phase), approximately ${ss.current_window_start} to ${ss.current_window_end}.`;
-    } else if (ss.next_window_start) {
-      sadeEl.textContent = `Not currently in Sade Sati. Next window begins around ${ss.next_window_start}.`;
-    } else {
-      sadeEl.textContent = "Not currently in Sade Sati.";
-    }
+    if (!resp.ok) throw new Error(t("err_request_failed").replace("{status}", resp.status));
+    lastDoshaData = await resp.json();
+    renderDoshas(lastDoshaData);
   } catch (err) {
-    kaalEl.textContent = `Couldn't load: ${err.message}`;
-    sadeEl.textContent = `Couldn't load: ${err.message}`;
+    const failed = t("err_could_not_load").replace("{message}", err.message);
+    kaalEl.textContent = failed;
+    sadeEl.textContent = failed;
   }
 }
 
@@ -621,7 +637,7 @@ function renderGocharChart(data) {
 async function fetchAndRenderTransit() {
   if (!horoscopePayload) return;
   const summaryEl = document.getElementById("transit-moon-summary");
-  summaryEl.textContent = "Loading…";
+  summaryEl.textContent = t("msg_loading");
 
   const selectedDate = document.getElementById("transit_date").value;
   const selectedTime = document.getElementById("transit_time").value;
@@ -635,7 +651,7 @@ async function fetchAndRenderTransit() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
-    if (!resp.ok) throw new Error(`Request failed (${resp.status})`);
+    if (!resp.ok) throw new Error(t("err_request_failed").replace("{status}", resp.status));
     const data = await resp.json();
     // Reflect the resolved date back so "Today" and the first load show it.
     document.getElementById("transit_date").value = data.transit_date;
@@ -643,7 +659,7 @@ async function fetchAndRenderTransit() {
     lastTransitData = data;
     renderTransit(data);
   } catch (err) {
-    summaryEl.textContent = `Couldn't load transit: ${err.message}`;
+    summaryEl.textContent = t("err_could_not_load").replace("{message}", err.message);
   }
 }
 
@@ -657,7 +673,7 @@ document.getElementById("horoscope-form").addEventListener("submit", async (e) =
   const longitude = parseFloat(document.getElementById("dh_longitude").value);
   if (Number.isNaN(latitude) || Number.isNaN(longitude)) {
     resultsEl.hidden = true;
-    errorEl.textContent = "Search for your birth place above, or expand \"Enter coordinates manually\" and fill in latitude/longitude.";
+    errorEl.textContent = t("err_need_place");
     errorEl.hidden = false;
     return;
   }
@@ -773,7 +789,7 @@ document.getElementById("match-form").addEventListener("submit", async (e) => {
   const bride = readPerson("bride_");
   const groom = readPerson("groom_");
   if (!bride.valid || !groom.valid) {
-    errorEl.textContent = "Search for a birth place for both people (or enter coordinates manually).";
+    errorEl.textContent = t("err_need_both_places");
     errorEl.hidden = false;
     return;
   }
@@ -790,7 +806,8 @@ document.getElementById("match-form").addEventListener("submit", async (e) => {
     });
     if (!resp.ok) {
       const detail = await resp.json().catch(() => ({}));
-      throw new Error(detail.detail ? JSON.stringify(detail.detail) : `Request failed (${resp.status})`);
+      throw new Error(detail.detail ? JSON.stringify(detail.detail)
+        : t("err_request_failed").replace("{status}", resp.status));
     }
     const matchData = await resp.json();
     lastMatchData = { data: matchData, bride: bride.label, groom: groom.label };
@@ -924,7 +941,7 @@ async function fetchPanchanga() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
-    if (!resp.ok) throw new Error(`Request failed (${resp.status})`);
+    if (!resp.ok) throw new Error(t("err_request_failed").replace("{status}", resp.status));
     renderPanchanga(await resp.json());
     document.getElementById("panchanga-results").hidden = false;
   } catch (err) {
@@ -1034,7 +1051,8 @@ document.getElementById("ishta-form").addEventListener("submit", async (e) => {
     });
     if (!resp.ok) {
       const detail = await resp.json().catch(() => ({}));
-      throw new Error(detail.detail ? JSON.stringify(detail.detail) : `Request failed (${resp.status})`);
+      throw new Error(detail.detail ? JSON.stringify(detail.detail)
+        : t("err_request_failed").replace("{status}", resp.status));
     }
     renderIshta(await resp.json());
     resultsEl.hidden = false;
@@ -1082,6 +1100,7 @@ function rerenderAll() {
     renderPositionsTable(lastChartData.positions);
     renderDashaTable(lastChartData.vimshottari_dasha);
     if (lastDetailsArgs) renderDetailsTable(lastDetailsArgs);
+    if (lastDoshaData) renderDoshas(lastDoshaData);
   }
   if (lastTransitData) renderTransit(lastTransitData);
   if (lastPanchanga) renderPanchanga(lastPanchanga);
