@@ -27,16 +27,21 @@ DASHA_YEARS = {
 assert sum(DASHA_YEARS.values()) == 120
 
 
-def antardashas(maha_lord: str, start: datetime, maha_years: float) -> list[dict]:
-    """Sub-periods within one mahadasha.
+LEVEL_NAMES = ["Mahadasha", "Antardasha", "Pratyantardasha", "Sookshma", "Prana"]
 
-    The nine lords run in the same order, beginning with the mahadasha lord
-    itself, and each takes the share of the parent period that its own
-    120-year allocation represents.
+
+def antardashas(maha_lord: str, start: datetime, maha_years: float) -> list[dict]:
+    """Sub-periods of any period, one level down.
+
+    The rule is the same at every depth: the nine lords run in Vimshottari
+    order beginning with the parent's own lord, and each takes the share of
+    the parent that its 120-year allocation represents. So this same
+    function produces antardashas from a mahadasha, pratyantardashas from
+    an antardasha, and so on -- see `subdivide`.
 
     `maha_years` is passed rather than looked up because the first
-    mahadasha is shortened by the balance at birth, and its antardashas
-    have to shrink with it.
+    mahadasha is shortened by the balance at birth, and everything nested
+    inside it has to shrink to match.
     """
     lord_index = DASHA_ORDER.index(maha_lord)
     periods = []
@@ -57,6 +62,61 @@ def antardashas(maha_lord: str, start: datetime, maha_years: float) -> list[dict
     return periods
 
 
+def subdivide(period: dict) -> list[dict]:
+    """One level below the given period, whatever depth it sits at.
+
+    The span is measured from the stored timestamps rather than the
+    `years` field, because that field is rounded for display. Feeding the
+    rounded value back in compounds at every level -- by Sookshma it was
+    enough to push a period past the end of its own parent.
+    """
+    start = datetime.fromisoformat(period["start"])
+    end = datetime.fromisoformat(period["end"])
+    exact_years = (end - start).total_seconds() / (DAYS_PER_YEAR * 86400.0)
+    return antardashas(period["lord"], start, exact_years)
+
+
+def dasha_chain(timeline: list[dict], as_of: datetime, depth: int = 4) -> list[dict]:
+    """The nested periods running at `as_of`, from mahadasha downwards.
+
+    Returns one entry per level with its siblings alongside, so a caller
+    can show the running Pratyantardasha in the context of the ones either
+    side of it rather than on its own.
+    """
+    chain = []
+    candidates = timeline
+
+    for level in range(depth):
+        running = next(
+            (p for p in candidates
+             if datetime.fromisoformat(p["start"]) <= as_of <= datetime.fromisoformat(p["end"])),
+            None,
+        )
+        if running is None:
+            break
+        index = candidates.index(running)
+        chain.append({
+            "level": LEVEL_NAMES[level],
+            "period": running,
+            "siblings": candidates,
+            "index": index,
+        })
+        candidates = subdivide(running)
+
+    return chain
+
+
+def window(periods: list[dict], index: int, before: int = 5, after: int = 9) -> list[dict]:
+    """A slice around a period, clamped to the ends of the list.
+
+    Printed horoscopes present sub-periods as a band around the current
+    one rather than the whole set, which is what `before`/`after` describe.
+    """
+    lo = max(0, index - before)
+    hi = min(len(periods), index + after + 1)
+    return periods[lo:hi]
+
+
 def current_periods(timeline: list[dict], as_of: datetime) -> dict:
     """Which mahadasha and antardasha are running at `as_of`, plus the one
     that follows. Returns nulls rather than raising when the moment falls
@@ -70,7 +130,7 @@ def current_periods(timeline: list[dict], as_of: datetime) -> dict:
         return {"mahadasha": None, "antardasha": None, "next_antardasha": None}
 
     maha_index, maha = position
-    subs = antardashas(maha["lord"], datetime.fromisoformat(maha["start"]), maha["years"])
+    subs = subdivide(maha)
     index = next(
         (i for i, p in enumerate(subs)
          if datetime.fromisoformat(p["start"]) <= as_of <= datetime.fromisoformat(p["end"])),
@@ -85,10 +145,7 @@ def current_periods(timeline: list[dict], as_of: datetime) -> dict:
     if index + 1 < len(subs):
         following = subs[index + 1]
     elif maha_index + 1 < len(timeline):
-        next_maha = timeline[maha_index + 1]
-        following = antardashas(
-            next_maha["lord"], datetime.fromisoformat(next_maha["start"]), next_maha["years"]
-        )[0]
+        following = subdivide(timeline[maha_index + 1])[0]
     else:
         following = None
 

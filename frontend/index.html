@@ -36,7 +36,62 @@
     <button type="button" class="tab-btn" data-mode="matching"><span class="tab-full" data-i18n="tab_matching">Kundli Matching</span><span class="tab-short" data-i18n="tab_matching_short">Matching</span></button>
     <button type="button" class="tab-btn" data-mode="panchanga"><span class="tab-full" data-i18n="tab_panchanga">Panchangam</span><span class="tab-short" data-i18n="tab_panchanga_short">Panchang</span></button>
     <button type="button" class="tab-btn" data-mode="ishta"><span class="tab-full" data-i18n="tab_ishta">Ishta Devata</span><span class="tab-short" data-i18n="tab_ishta_short">Devata</span></button>
+    <button type="button" class="tab-btn" data-mode="reports"><span class="tab-full" data-i18n="tab_reports">Reports</span><span class="tab-short" data-i18n="tab_reports_short">Reports</span></button>
   </div>
+
+
+  <!-- =============================== REPORTS =============================== -->
+  <section id="mode-reports" class="mode-panel" hidden>
+    <p class="mode-intro" data-i18n="intro_reports">
+      A full horoscope assembled in order, ready to read or print. Pick a report,
+      enter birth details once, and everything is laid out on one page.
+    </p>
+
+    <form id="report-form">
+      <div class="row">
+        <label data-i18n="label_report">Report
+          <select id="report_kind">
+            <option value="pocket" selected data-i18n="report_pocket">Pocket Horoscope</option>
+            <option value="calculative" data-i18n="report_calculative">Calculative Horoscope</option>
+          </select>
+        </label>
+        <label data-i18n="label_name">Name (optional) <input type="text" id="rp_name" placeholder="e.g. Teja" data-i18n-placeholder="placeholder_name"></label>
+      </div>
+      <div class="row">
+        <label data-i18n="label_birth_date">Birth date <input type="date" id="rp_birth_date" required></label>
+        <label data-i18n="label_birth_time">Birth time <input type="time" id="rp_birth_time" step="1" required></label>
+      </div>
+
+      <div class="place-search">
+        <label class="grow" data-i18n="label_birth_place">Birth place
+          <div class="search-row">
+            <input type="text" id="rp_place_query" placeholder="e.g. Chennai, India" data-i18n-placeholder="placeholder_place">
+          </div>
+        </label>
+        <ul id="rp_place_results"></ul>
+        <p id="rp_place_selected" class="selected-place" hidden></p>
+      </div>
+
+      <details>
+        <summary data-i18n="label_manual_coords">Enter coordinates manually instead</summary>
+        <div class="row">
+          <label data-i18n="label_latitude">Latitude <input type="number" id="rp_latitude" step="any"></label>
+          <label data-i18n="label_longitude">Longitude <input type="number" id="rp_longitude" step="any"></label>
+        </div>
+      </details>
+
+      <button type="submit" data-i18n="btn_report">Build report</button>
+    </form>
+
+    <p id="report-error" class="error" hidden></p>
+
+    <section id="report-results" hidden>
+      <div class="report-actions">
+        <button type="button" id="report_print" class="secondary" data-i18n="btn_print">Print / Save as PDF</button>
+      </div>
+      <div id="report-body"></div>
+    </section>
+  </section>
 
   <!-- ============================ ISHTA DEVATA ============================ -->
   <section id="mode-ishta" class="mode-panel" hidden>
@@ -250,13 +305,21 @@
           </label>
           <label class="chart-style-picker" data-i18n="label_divisional">Divisional chart
             <select id="varga_pick">
-              <option value="D9" selected>D9</option>
               <option value="D2">D2</option>
               <option value="D3">D3</option>
               <option value="D4">D4</option>
               <option value="D7">D7</option>
+              <option value="D9" selected>D9</option>
               <option value="D10">D10</option>
               <option value="D12">D12</option>
+              <option value="D16">D16</option>
+              <option value="D20">D20</option>
+              <option value="D24">D24</option>
+              <option value="D27">D27</option>
+              <option value="D30">D30</option>
+              <option value="D40">D40</option>
+              <option value="D45">D45</option>
+              <option value="D60">D60</option>
               <option value="MOON">MOON</option>
             </select>
           </label>
@@ -288,6 +351,15 @@
         <div class="table-block">
           <h2 data-i18n="h_running">Running Period</h2>
           <div class="pa-grid" id="current-periods"></div>
+        </div>
+
+        <div class="table-block">
+          <h2 data-i18n="h_shodashavarga">Shodashavarga Summary</h2>
+          <p class="dosha-note" data-i18n="hint_shodashavarga">The sign each graha occupies across all sixteen divisional charts.</p>
+          <table id="shodashavarga-table">
+            <thead><tr></tr></thead>
+            <tbody></tbody>
+          </table>
         </div>
 
         <div class="table-block">

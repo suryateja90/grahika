@@ -517,6 +517,7 @@ wirePlaceSearch("", "error");
 wirePlaceSearch("dh_", "horoscope-error");
 wirePlaceSearch("pa_", "panchanga-error");
 wirePlaceSearch("id_", "ishta-error");
+wirePlaceSearch("rp_", "report-error");
 wirePlaceSearch("bride_", "match-error");
 wirePlaceSearch("groom_", "match-error");
 
@@ -569,6 +570,7 @@ document.getElementById("chart-form").addEventListener("submit", async (e) => {
     renderAvakhada(data.avakhada);
     renderCurrentPeriods(data.current_periods);
     renderNatalAspects(data.natal_aspects);
+    renderShodashavarga(data.vargas);
     renderDetailsTable({
       name: document.getElementById("person_name").value.trim(),
       date,
@@ -1177,6 +1179,214 @@ document.getElementById("ishta-form").addEventListener("submit", async (e) => {
   }
 });
 
+
+// ------------------------- shodashavarga table -------------------------
+
+const VARGA_CODES = ["D1","D2","D3","D4","D7","D9","D10","D12",
+                     "D16","D20","D24","D27","D30","D40","D45","D60"];
+const CHART_BODIES = ["Ascendant","Sun","Moon","Mars","Mercury","Jupiter","Venus","Saturn","Rahu","Ketu"];
+
+function renderShodashavarga(vargas) {
+  // Sixteen columns is wide on purpose; the table scrolls inside its own
+  // block rather than widening the page.
+  document.querySelector("#shodashavarga-table thead tr").innerHTML =
+    `<th>${t("col_graha")}</th>` + VARGA_CODES.map((c) => `<th>${c}</th>`).join("");
+
+  document.querySelector("#shodashavarga-table tbody").innerHTML =
+    CHART_BODIES.filter((b) => vargas[b]).map((body) => `
+      <tr>
+        <td>${tPlanet(body)}</td>
+        ${VARGA_CODES.map((c) => `<td>${tSignShort(vargas[body][c].sign_index)}</td>`).join("")}
+      </tr>`).join("");
+}
+
+// ------------------------------- reports -------------------------------
+
+// A report is an ordered assembly of sections the app already renders, so
+// it stays in step with the tabs automatically rather than duplicating them.
+const REPORT_SECTIONS = {
+  pocket: ["details", "charts", "avakhada", "positions", "running", "dasha", "aspects"],
+  calculative: ["details", "charts", "avakhada", "positions", "shodashavarga",
+                "running", "dasha", "dashaChain", "aspects"],
+};
+
+let lastReport = null;
+
+function reportSection(title, bodyHtml) {
+  return `<section class="report-section">
+    <h2>${title}</h2>
+    ${bodyHtml}
+  </section>`;
+}
+
+function tableFrom(headers, rows) {
+  return `<div class="table-block"><table>
+    <thead><tr>${headers.map((x) => `<th>${x}</th>`).join("")}</tr></thead>
+    <tbody>${rows.map((r) => `<tr>${r.map((c) => `<td>${c}</td>`).join("")}</tr>`).join("")}</tbody>
+  </table></div>`;
+}
+
+function buildReport(kind, data, meta) {
+  const out = [];
+  const has = (name) => REPORT_SECTIONS[kind].includes(name);
+
+  if (has("details")) {
+    const av = data.avakhada;
+    out.push(reportSection(t("h_birth_details"), tableFrom([], [
+      [t("row_name"), meta.name || "\u2014"],
+      [t("row_birth_date"), formatChartDate(meta.date)],
+      [t("row_birth_time"), formatChartTime(meta.time)],
+      [t("row_place"), meta.place],
+      [t("row_rasi"), tSign(av.rasi.index)],
+      [t("row_nakshatra"), `${tNak(av.nakshatra.index)} (${av.pada})`],
+      [t("av_lagna"), tSign(av.lagna.index)],
+    ])));
+  }
+
+  if (has("charts")) {
+    const d1 = (n) => data.vargas[n].D1.sign_index;
+    const d9 = (n) => data.vargas[n].D9.sign_index;
+    const centre = (label, varga) => ({
+      dateLabel: formatChartDate(meta.date), timeLabel: formatChartTime(meta.time),
+      chartLabel: label, vargaLabel: varga,
+      ascSignName: tSignShort(data.positions.Ascendant.sign_index),
+    });
+    out.push(reportSection(t("h_positions") + " \u00b7 D1 / D9", `<div class="charts">
+      <div class="chart-block">${buildSouthIndianSvg(data.positions, d1, true, centre(t("chart_lagna"), t("varga_names").D1))}</div>
+      <div class="chart-block">${buildSouthIndianSvg(data.positions, d9, true, centre(t("varga_names").D9, t("varga_names").D9))}</div>
+    </div>`));
+  }
+
+  if (has("avakhada")) {
+    const av = data.avakhada;
+    out.push(reportSection(t("h_avakhada"), tableFrom([], [
+      [t("av_rasi_lord"), tPlanet(av.rasi_lord)],
+      [t("av_nak_lord"), tPlanet(av.nakshatra_lord)],
+      [t("av_namakshar"), tNamakshar(av.nakshatra.index, av.pada, av.namakshar)],
+      [t("av_tatva"), tValue(av.tatva)], [t("av_varna"), tValue(av.varna)],
+      [t("av_vashya"), tValue(av.vashya)], [t("av_yoni"), tValue(av.yoni)],
+      [t("av_gana"), tValue(av.gana)], [t("av_nadi"), tValue(av.nadi)],
+    ])));
+  }
+
+  if (has("positions")) {
+    out.push(reportSection(t("h_positions"), tableFrom(
+      [t("col_body"), t("col_sign"), t("col_degree"), t("col_nakshatra"), t("col_pada"), t("col_retro")],
+      Object.entries(data.positions).map(([name, d]) => [
+        tPlanet(name), tSign(d.sign_index), d.degree_in_sign.toFixed(2) + "\u00b0",
+        tNak(d.nakshatra_index), d.nakshatra_pada, d.retrograde ? t("retro_mark") : "",
+      ])
+    )));
+  }
+
+  if (has("shodashavarga")) {
+    out.push(reportSection(t("h_shodashavarga"), tableFrom(
+      [t("col_graha"), ...VARGA_CODES],
+      CHART_BODIES.filter((b) => data.vargas[b]).map((body) => [
+        tPlanet(body), ...VARGA_CODES.map((c) => tSignShort(data.vargas[body][c].sign_index)),
+      ])
+    )));
+  }
+
+  if (has("running")) {
+    const cp = data.current_periods;
+    const rows = [];
+    if (cp.mahadasha) rows.push([t("dp_maha"), tPlanet(cp.mahadasha.lord), periodDates(cp.mahadasha)]);
+    if (cp.antardasha) rows.push([t("dp_antar"), tPlanet(cp.antardasha.lord), periodDates(cp.antardasha)]);
+    if (cp.next_antardasha) rows.push([t("dp_next"), tPlanet(cp.next_antardasha.lord), periodDates(cp.next_antardasha)]);
+    out.push(reportSection(t("h_running"), tableFrom([], rows)));
+  }
+
+  if (has("dasha")) {
+    out.push(reportSection(t("h_dasha"), tableFrom(
+      [t("col_lord"), t("col_start"), t("col_end"), t("col_years")],
+      data.vimshottari_dasha.map((p) => [
+        tPlanet(p.lord), formatChartDate(p.start.slice(0, 10)),
+        formatChartDate(p.end.slice(0, 10)), p.years,
+      ])
+    )));
+  }
+
+  // The calculative report goes a level deeper: every antardasha of the
+  // running mahadasha, with its pratyantardashas listed under it.
+  if (has("dashaChain") && data.current_periods.antardashas) {
+    const inner = data.current_periods.antardashas.map((ad) => {
+      const pds = antardashaRows({ lord: ad.lord, start: ad.start, years: ad.years });
+      return `<h3 class="report-subhead">${tPlanet(ad.lord)} \u00b7 ${periodDates(ad)}</h3>` +
+        tableFrom([t("col_lord"), t("col_start"), t("col_end")],
+          pds.map((p) => [tPlanet(p.lord), formatChartDate(p.start), formatChartDate(p.end)]));
+    }).join("");
+    out.push(reportSection(t("dp_antar") + " \u00b7 " + t("dp_next"), inner));
+  }
+
+  if (has("aspects")) {
+    const byPlanet = {};
+    for (const row of data.natal_aspects.on_planets) {
+      byPlanet[row.planet] = row.aspects.map((x) => tPlanet(x.planet)).join(", ");
+    }
+    out.push(reportSection(t("h_natal_aspects"), tableFrom(
+      [t("col_graha"), t("col_aspects_planets"), t("col_aspects_houses")],
+      data.natal_aspects.on_bhavas.map((row) => [
+        tPlanet(row.planet), byPlanet[row.planet] || "\u2014", row.houses.join(", "),
+      ])
+    )));
+  }
+
+  return `<h1 class="report-title">${t("rp_for")} ${meta.name || ""}</h1>` + out.join("");
+}
+
+function renderReport() {
+  if (!lastReport) return;
+  document.getElementById("report-body").innerHTML =
+    buildReport(lastReport.kind, lastReport.data, lastReport.meta);
+}
+
+document.getElementById("report-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const errorEl = document.getElementById("report-error");
+  const resultsEl = document.getElementById("report-results");
+  errorEl.hidden = true;
+
+  const q = (id) => document.getElementById(id);
+  const latitude = parseFloat(q("rp_latitude").value);
+  const longitude = parseFloat(q("rp_longitude").value);
+  if (Number.isNaN(latitude) || Number.isNaN(longitude)) {
+    resultsEl.hidden = true;
+    errorEl.textContent = t("err_need_place");
+    errorEl.hidden = false;
+    return;
+  }
+
+  const date = q("rp_birth_date").value;
+  const time = q("rp_birth_time").value;
+  try {
+    const resp = await fetch(`${API_BASE}/charts/compute`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ birth_datetime: `${date}T${time}`, latitude, longitude }),
+    });
+    if (!resp.ok) throw new Error(t("err_request_failed").replace("{status}", resp.status));
+    lastReport = {
+      kind: q("report_kind").value,
+      data: await resp.json(),
+      meta: {
+        name: q("rp_name").value.trim(), date, time,
+        place: selectedPlaceNames["rp_"] || `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
+      },
+    };
+    renderReport();
+    resultsEl.hidden = false;
+  } catch (err) {
+    errorEl.textContent = err.message;
+    errorEl.hidden = false;
+  }
+});
+
+document.getElementById("report_kind").addEventListener("change", () => {
+  if (lastReport) { lastReport.kind = document.getElementById("report_kind").value; renderReport(); }
+});
+document.getElementById("report_print").addEventListener("click", () => window.print());
+
 // --------------------------- language switch ---------------------------
 
 let lastTransitData = null;
@@ -1217,12 +1427,14 @@ function rerenderAll() {
     renderAvakhada(lastChartData.avakhada);
     renderCurrentPeriods(lastChartData.current_periods);
     renderNatalAspects(lastChartData.natal_aspects);
+    renderShodashavarga(lastChartData.vargas);
     if (lastDetailsArgs) renderDetailsTable(lastDetailsArgs);
     if (lastDoshaData) renderDoshas(lastDoshaData);
   }
   if (lastTransitData) renderTransit(lastTransitData);
   if (lastPanchanga) renderPanchanga(lastPanchanga);
   if (lastIshta) renderIshta(lastIshta);
+  if (lastReport) renderReport();
   if (lastMatchData) {
     renderMatchResults(lastMatchData.data, lastMatchData.bride, lastMatchData.groom);
   }

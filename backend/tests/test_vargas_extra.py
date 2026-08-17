@@ -23,7 +23,8 @@ def test_every_body_gets_every_varga():
         datetime(1990, 8, 26, 15, 20, tzinfo=IST), 17.0050, 81.7805
     )["bodies"]
     result = vargas.compute_vargas(bodies)
-    expected = {"D1", "D2", "D3", "D4", "D7", "D9", "D10", "D12"}
+    expected = set(vargas.VARGA_BUILDERS)
+    assert len(expected) == 16, "the Shodashavarga should be all sixteen"
     for name, per_body in result.items():
         assert set(per_body) == expected, name
         for code, placement in per_body.items():

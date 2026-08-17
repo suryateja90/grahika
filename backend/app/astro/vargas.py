@@ -98,7 +98,97 @@ def _named(index: int) -> dict:
     return {"sign": SIGN_NAMES[index], "sign_index": index}
 
 
-# Order matters: this is the sequence the UI offers them in.
+# Sign qualities, used as starting points by several of the higher vargas.
+# sign % 3 -> 0 movable, 1 fixed, 2 dual.  sign % 4 -> fire, earth, air, water.
+MOVABLE, FIXED, DUAL = 0, 1, 2
+ARIES, TAURUS, GEMINI, CANCER, LEO, VIRGO = 0, 1, 2, 3, 4, 5
+LIBRA, SCORPIO, SAGITTARIUS, CAPRICORN, AQUARIUS, PISCES = 6, 7, 8, 9, 10, 11
+
+
+def _by_quality(sign: int, movable: int, fixed: int, dual: int) -> int:
+    return (movable, fixed, dual)[sign % 3]
+
+
+def shodashamsha_sign(longitude: float) -> dict:
+    """D16. Sixteenths. Movable signs count from Aries, fixed from Leo,
+    dual from Sagittarius."""
+    sign, offset = _sign_and_offset(longitude)
+    part = int(offset // (SIGN_SPAN / 16))
+    start = _by_quality(sign, ARIES, LEO, SAGITTARIUS)
+    return _named((start + part) % 12)
+
+
+def vimshamsha_sign(longitude: float) -> dict:
+    """D20. Twentieths. Movable from Aries, fixed from Sagittarius, dual
+    from Leo -- note the fixed/dual pair is the reverse of D16."""
+    sign, offset = _sign_and_offset(longitude)
+    part = int(offset // (SIGN_SPAN / 20))
+    start = _by_quality(sign, ARIES, SAGITTARIUS, LEO)
+    return _named((start + part) % 12)
+
+
+def chaturvimshamsha_sign(longitude: float) -> dict:
+    """D24. Twenty-fourths. Odd signs from Leo, even from Cancer."""
+    sign, offset = _sign_and_offset(longitude)
+    part = int(offset // (SIGN_SPAN / 24))
+    start = LEO if sign % 2 == 0 else CANCER
+    return _named((start + part) % 12)
+
+
+def bhamsha_sign(longitude: float) -> dict:
+    """D27. Twenty-sevenths, one per nakshatra's worth of a sign. Counted
+    from the first sign of the same element."""
+    sign, offset = _sign_and_offset(longitude)
+    part = int(offset // (SIGN_SPAN / 27))
+    start = (ARIES, CANCER, LIBRA, CAPRICORN)[sign % 4]
+    return _named((start + part) % 12)
+
+
+# D30 is the odd one out: the divisions are unequal and belong to five
+# planets rather than being counted round the zodiac. Boundaries in degrees,
+# paired with the sign each portion maps to.
+TRIMSHAMSHA_ODD = [(5, ARIES), (10, AQUARIUS), (18, SAGITTARIUS), (25, GEMINI), (30, LIBRA)]
+TRIMSHAMSHA_EVEN = [(5, TAURUS), (12, VIRGO), (20, PISCES), (25, CAPRICORN), (30, SCORPIO)]
+
+
+def trimshamsha_sign(longitude: float) -> dict:
+    """D30. Unequal fifths -- 5/5/8/7/5 degrees for odd signs, mirrored for
+    even. Not a division of the zodiac like the others."""
+    sign, offset = _sign_and_offset(longitude)
+    table = TRIMSHAMSHA_ODD if sign % 2 == 0 else TRIMSHAMSHA_EVEN
+    for boundary, target in table:
+        if offset < boundary:
+            return _named(target)
+    return _named(table[-1][1])
+
+
+def khavedamsha_sign(longitude: float) -> dict:
+    """D40. Fortieths. Odd signs from Aries, even from Libra."""
+    sign, offset = _sign_and_offset(longitude)
+    part = int(offset // (SIGN_SPAN / 40))
+    start = ARIES if sign % 2 == 0 else LIBRA
+    return _named((start + part) % 12)
+
+
+def akshavedamsha_sign(longitude: float) -> dict:
+    """D45. Forty-fifths. Movable from Aries, fixed from Leo, dual from
+    Sagittarius."""
+    sign, offset = _sign_and_offset(longitude)
+    part = int(offset // (SIGN_SPAN / 45))
+    start = _by_quality(sign, ARIES, LEO, SAGITTARIUS)
+    return _named((start + part) % 12)
+
+
+def shashtiamsha_sign(longitude: float) -> dict:
+    """D60. Sixtieths of half a degree, counted from the sign itself. The
+    finest of the sixteen, and the most sensitive to birth-time error."""
+    sign, offset = _sign_and_offset(longitude)
+    part = int(offset * 2) % 60
+    return _named((sign + part) % 12)
+
+
+# The Shodashavarga -- sixteen divisions. Order matters: this is the
+# sequence the summary table and the picker present them in.
 VARGA_BUILDERS = {
     "D1": rasi_sign,
     "D2": hora_sign,
@@ -108,6 +198,14 @@ VARGA_BUILDERS = {
     "D9": navamsa_sign,
     "D10": dasamsa_sign,
     "D12": dwadashamsha_sign,
+    "D16": shodashamsha_sign,
+    "D20": vimshamsha_sign,
+    "D24": chaturvimshamsha_sign,
+    "D27": bhamsha_sign,
+    "D30": trimshamsha_sign,
+    "D40": khavedamsha_sign,
+    "D45": akshavedamsha_sign,
+    "D60": shashtiamsha_sign,
 }
 
 
