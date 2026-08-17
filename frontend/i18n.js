@@ -32,6 +32,24 @@ const I18N = {
     err_request_failed: "Request failed ({status})",
     err_could_not_load: "Couldn't load: {message}",
     err_need_both_places: "Search for a birth place for both people, or enter coordinates manually.",
+    label_divisional: "Divisional chart",
+    h_avakhada: "Avakhada Chakra",
+    h_running: "Running Period",
+    h_natal_aspects: "Aspects",
+    hint_expand_dasha: "Tap any period to see its sub-periods.",
+    col_aspects_planets: "Aspects", col_aspects_houses: "Houses",
+    av_rasi: "Rasi", av_rasi_lord: "Rasi lord", av_nakshatra: "Nakshatra",
+    av_pada: "Pada", av_nak_lord: "Nakshatra lord", av_varna: "Varna",
+    av_vashya: "Vashya", av_yoni: "Yoni", av_gana: "Gana", av_nadi: "Nadi",
+    av_tatva: "Tatva", av_namakshar: "Name syllable", av_lagna: "Lagna",
+    av_lagna_lord: "Lagna lord",
+    dp_maha: "Mahadasha", dp_antar: "Antardasha", dp_next: "Next Antardasha",
+    varga_moon: "Moon chart",
+    varga_names: {
+      D1: "D1 Rasi", D2: "D2 Hora", D3: "D3 Dreshkana", D4: "D4 Chaturthamsha",
+      D7: "D7 Saptamsha", D9: "D9 Navamsha", D10: "D10 Dashamsha",
+      D12: "D12 Dwadashamsha", MOON: "Moon chart",
+    },
     retro_mark: "R",
     h_gochar: "Gochar Chart",
     gochar_caption: "Natal + transits",
@@ -208,6 +226,24 @@ const I18N = {
     err_request_failed: "అభ్యర్థన విఫలమైంది ({status})",
     err_could_not_load: "లోడ్ చేయలేకపోయింది: {message}",
     err_need_both_places: "ఇద్దరికీ పుట్టిన ప్రాంతం వెతకండి, లేదా అక్షాంశ రేఖాంశాలు నమోదు చేయండి.",
+    label_divisional: "వర్గ చక్రం",
+    h_avakhada: "అవకహడ చక్రం",
+    h_running: "నడుస్తున్న దశ",
+    h_natal_aspects: "దృష్టులు",
+    hint_expand_dasha: "ఉప దశలు చూడటానికి ఏ దశనైనా నొక్కండి.",
+    col_aspects_planets: "గ్రహాలపై", col_aspects_houses: "భావాలపై",
+    av_rasi: "రాశి", av_rasi_lord: "రాశ్యాధిపతి", av_nakshatra: "నక్షత్రం",
+    av_pada: "పాదం", av_nak_lord: "నక్షత్రాధిపతి", av_varna: "వర్ణం",
+    av_vashya: "వశ్యం", av_yoni: "యోని", av_gana: "గణం", av_nadi: "నాడి",
+    av_tatva: "తత్త్వం", av_namakshar: "నామాక్షరం", av_lagna: "లగ్నం",
+    av_lagna_lord: "లగ్నాధిపతి",
+    dp_maha: "మహాదశ", dp_antar: "అంతర్దశ", dp_next: "తదుపరి అంతర్దశ",
+    varga_moon: "చంద్ర చక్రం",
+    varga_names: {
+      D1: "D1 రాశి", D2: "D2 హోర", D3: "D3 ద్రేక్కాణ", D4: "D4 చతుర్థాంశ",
+      D7: "D7 సప్తాంశ", D9: "D9 నవాంశ", D10: "D10 దశాంశ",
+      D12: "D12 ద్వాదశాంశ", MOON: "చంద్ర చక్రం",
+    },
     retro_mark: "వ",
     h_gochar: "గోచార చక్రం",
     gochar_caption: "జనన + గోచారం",
@@ -527,6 +563,15 @@ const KARAKA_MEANING_TE = {
   Putrakaraka: "\u0c38\u0c02\u0c24\u0c3e\u0c28\u0c02, \u0c38\u0c43\u0c1c\u0c28\u0c3e\u0c24\u0c4d\u0c2e\u0c15\u0c24",
   Gnatikaraka: "\u0c05\u0c21\u0c4d\u0c21\u0c02\u0c15\u0c41\u0c32\u0c41, \u0c05\u0c28\u0c3e\u0c30\u0c4b\u0c17\u0c4d\u0c2f\u0c02",
   Darakaraka: "\u0c1c\u0c40\u0c35\u0c3f\u0c24 \u0c2d\u0c3e\u0c17\u0c38\u0c4d\u0c35\u0c3e\u0c2e\u0c3f",
+};
+
+const VALUE_I18N = {
+  en: {"Brahmin":"Brahmin","Kshatriya":"Kshatriya","Vaishya":"Vaishya","Shudra":"Shudra","Chatushpada":"Chatushpada","Manava":"Manava","Jalachara":"Jalachara","Vanachara":"Vanachara","Keeta":"Keeta","Horse":"Horse","Elephant":"Elephant","Sheep":"Sheep","Serpent":"Serpent","Dog":"Dog","Cat":"Cat","Rat":"Rat","Cow":"Cow","Buffalo":"Buffalo","Tiger":"Tiger","Deer":"Deer","Monkey":"Monkey","Mongoose":"Mongoose","Lion":"Lion","Deva":"Deva","Manushya":"Manushya","Rakshasa":"Rakshasa","Adi":"Adi","Madhya":"Madhya","Antya":"Antya","Agni":"Agni","Prithvi":"Prithvi","Vayu":"Vayu","Jala":"Jala","auspicious":"auspicious","inauspicious":"inauspicious"},
+  te: {"Brahmin":"బ్రాహ్మణ","Kshatriya":"క్షత్రియ","Vaishya":"వైశ్య","Shudra":"శూద్ర","Chatushpada":"చతుష్పాద","Manava":"మానవ","Jalachara":"జలచర","Vanachara":"వనచర","Keeta":"కీట","Horse":"అశ్వ","Elephant":"గజ","Sheep":"మేష","Serpent":"సర్ప","Dog":"శ్వాన","Cat":"మార్జాల","Rat":"మూషిక","Cow":"గో","Buffalo":"మహిష","Tiger":"వ్యాఘ్ర","Deer":"మృగ","Monkey":"వానర","Mongoose":"నకుల","Lion":"సింహ","Deva":"దేవ","Manushya":"మనుష్య","Rakshasa":"రాక్షస","Adi":"ఆది","Madhya":"మధ్య","Antya":"అంత్య","Agni":"అగ్ని","Prithvi":"పృథ్వి","Vayu":"వాయు","Jala":"జల","auspicious":"శుభం","inauspicious":"అశుభం"},
+};
+const NAMAKSHAR_I18N = {
+  en: null,  // the API already returns the Latin syllable
+  te: [["చు", "చే", "చో", "లా"], ["లీ", "లూ", "లే", "లో"], ["అ", "ఈ", "ఊ", "ఏ"], ["ఓ", "వా", "వీ", "వూ"], ["వే", "వో", "కా", "కీ"], ["కూ", "ఘ", "ఙ", "ఛ"], ["కే", "కో", "హా", "హీ"], ["హూ", "హే", "హో", "డా"], ["డీ", "డూ", "డే", "డో"], ["మా", "మీ", "మూ", "మే"], ["మో", "టా", "టీ", "టూ"], ["టే", "టో", "పా", "పీ"], ["పూ", "ష", "ణ", "ఠ"], ["పే", "పో", "రా", "రీ"], ["రూ", "రే", "రో", "తా"], ["తీ", "తూ", "తే", "తో"], ["నా", "నీ", "నూ", "నే"], ["నో", "యా", "యీ", "యూ"], ["యే", "యో", "భా", "భీ"], ["భూ", "ధా", "ఫా", "ఢా"], ["భే", "భో", "జా", "జీ"], ["జూ", "జే", "జో", "ఘా"], ["గా", "గీ", "గూ", "గే"], ["గో", "సా", "సీ", "సూ"], ["సే", "సో", "దా", "దీ"], ["దూ", "థా", "ఝా", "ఞా"], ["దే", "దో", "చా", "చీ"]],
 };
 
 let currentLang = localStorage.getItem("grahika_lang") || "en";

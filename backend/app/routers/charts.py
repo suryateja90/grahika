@@ -1,7 +1,9 @@
+from datetime import datetime
+
 from fastapi import APIRouter, HTTPException
 
 from app import geocode
-from app.astro import dasha, doshas, ephemeris, vargas
+from app.astro import avakhada, dasha, doshas, ephemeris, vargas
 from app.schemas import ChartRequest, ChartResponse, DoshaResponse
 
 router = APIRouter(prefix="/charts", tags=["charts"])
@@ -36,6 +38,9 @@ def compute_chart(request: ChartRequest):
         moon_longitude, birth_dt, cycles=request.dasha_cycles
     )
 
+    # "Now" for the running period is the user's clock, not the server's.
+    now = datetime.now(birth_dt.tzinfo)
+
     return ChartResponse(
         julian_day=positions["julian_day"],
         ayanamsa=positions["ayanamsa"],
@@ -43,6 +48,9 @@ def compute_chart(request: ChartRequest):
         positions=positions["bodies"],
         vargas=varga_charts,
         vimshottari_dasha=dasha_timeline,
+        avakhada=avakhada.avakhada_chakra(positions["bodies"]),
+        natal_aspects=avakhada.natal_aspects(positions["bodies"]),
+        current_periods=dasha.current_periods(dasha_timeline, now),
     )
 
 

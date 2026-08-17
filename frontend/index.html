@@ -247,13 +247,29 @@
         </label>
         <div class="charts">
           <div class="chart-block">
-            <h2>D1 - Rasi</h2>
+            <h3 class="chart-title" id="d1-title">D1</h3>
             <div id="d1-chart"></div>
           </div>
           <div class="chart-block">
-            <h2>D9 - Navamsa</h2>
+            <label class="chart-style-picker" data-i18n="label_divisional">Divisional chart
+              <select id="varga_pick">
+                <option value="D9" selected>D9</option>
+                <option value="D2">D2</option>
+                <option value="D3">D3</option>
+                <option value="D4">D4</option>
+                <option value="D7">D7</option>
+                <option value="D10">D10</option>
+                <option value="D12">D12</option>
+                <option value="MOON">MOON</option>
+              </select>
+            </label>
             <div id="d9-chart"></div>
           </div>
+        </div>
+
+        <div class="table-block">
+          <h2 data-i18n="h_avakhada">Avakhada Chakra</h2>
+          <div class="pa-grid" id="avakhada-grid"></div>
         </div>
 
         <div class="table-block">
@@ -265,9 +281,27 @@
         </div>
 
         <div class="table-block">
+          <h2 data-i18n="h_running">Running Period</h2>
+          <div class="pa-grid" id="current-periods"></div>
+        </div>
+
+        <div class="table-block">
           <h2 data-i18n="h_dasha">Vimshottari Mahadasha</h2>
+          <p class="dosha-note" data-i18n="hint_expand_dasha">Tap any period to see its sub-periods.</p>
           <table id="dasha-table">
             <thead><tr><th data-i18n="col_lord">Lord</th><th data-i18n="col_start">Start</th><th data-i18n="col_end">End</th><th data-i18n="col_years">Years</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <div class="table-block">
+          <h2 data-i18n="h_natal_aspects">Aspects</h2>
+          <table id="natal-aspect-table">
+            <thead><tr>
+              <th data-i18n="col_graha">Graha</th>
+              <th data-i18n="col_aspects_planets">Aspects</th>
+              <th data-i18n="col_aspects_houses">Houses</th>
+            </tr></thead>
             <tbody></tbody>
           </table>
         </div>

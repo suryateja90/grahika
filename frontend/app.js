@@ -9,6 +9,11 @@ const tPlanet = (n) => t("planets")[n] || n;
 const tAbbr = (n) => t("planetAbbr")[n] || n.slice(0, 2);
 const tKoota = (n) => t("kootas")[n] || n;
 const tQuality = (q) => t("qualities")[q] || q;
+// Classification values (varna, yoni, gana, nadi, tatva ...) appear in
+// both Avakhada and the koota table; one map keeps them consistent.
+const tValue = (v) => (VALUE_I18N[lang()] || {})[v] || v;
+const tNamakshar = (nakIndex, pada, fallback) =>
+  (NAMAKSHAR_I18N[lang()] ? NAMAKSHAR_I18N[lang()][nakIndex][pada - 1] : fallback);
 const SIGN_GLYPHS = ["♈", "♉", "♊", "♋", "♌", "♍",
                      "♎", "♏", "♐", "♑", "♒", "♓"];
 
@@ -246,10 +251,20 @@ function renderCharts(positions, vargas) {
     ? `<p class="chart-caption">${dateLabel}, ${timeLabel} &middot; Moon: ${moonNakshatra}</p>`
     : "";
 
+  const pick = document.getElementById("varga_pick").value;
+  const vargaName = t("varga_names")[pick] || pick;
+
+  // The Moon chart is the same D1 placement read from the Moon instead of
+  // the Ascendant, so it reuses the rasi indices with a swapped reference.
+  const secondSignIndex = pick === "MOON"
+    ? (name) => (name === "Ascendant" ? positions.Moon.sign_index : vargas[name].D1.sign_index)
+    : (name) => vargas[name][pick].sign_index;
+
+  document.getElementById("d1-title").textContent = t("varga_names").D1;
   document.getElementById("d1-chart").innerHTML =
-    build(d1SignIndex, t("chart_lagna"), t("chart_d1")) + caption;
+    build(d1SignIndex, t("chart_lagna"), t("varga_names").D1) + caption;
   document.getElementById("d9-chart").innerHTML =
-    build(d9SignIndex, t("chart_navamsha"), t("chart_d9")) + caption;
+    build(secondSignIndex, vargaName, vargaName) + caption;
 }
 
 // Takes the raw date/time strings rather than pre-formatted labels, so a
@@ -272,6 +287,58 @@ function renderDetailsTable(args) {
   tbody.innerHTML = rows.map(([k, v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join("");
 }
 
+// Reuses the panchangam card grid so the two read as one system.
+function factCard(label, value, sub) {
+  return `<div class="pa-card">
+    <div class="pa-label">${label}</div>
+    <div class="pa-value">${value}</div>
+    <div class="pa-sub">${sub || ""}</div>
+  </div>`;
+}
+
+function renderAvakhada(av) {
+  const rows = [
+    [t("av_rasi"), tSign(av.rasi.index), tPlanet(av.rasi_lord)],
+    [t("av_nakshatra"), tNak(av.nakshatra.index), `${t("av_pada")} ${av.pada}`],
+    [t("av_nak_lord"), tPlanet(av.nakshatra_lord), ""],
+    [t("av_lagna"), tSign(av.lagna.index), tPlanet(av.lagna_lord)],
+    [t("av_namakshar"), tNamakshar(av.nakshatra.index, av.pada, av.namakshar), ""],
+    [t("av_tatva"), tValue(av.tatva), ""],
+    [t("av_varna"), tValue(av.varna), ""],
+    [t("av_vashya"), tValue(av.vashya), ""],
+    [t("av_yoni"), tValue(av.yoni), ""],
+    [t("av_gana"), tValue(av.gana), ""],
+    [t("av_nadi"), tValue(av.nadi), ""],
+  ];
+  document.getElementById("avakhada-grid").innerHTML =
+    rows.map(([l, v, s]) => factCard(l, v, s)).join("");
+}
+
+function periodDates(p) {
+  return `${formatChartDate(p.start.slice(0, 10))} \u2192 ${formatChartDate(p.end.slice(0, 10))}`;
+}
+
+function renderCurrentPeriods(cp) {
+  const cards = [];
+  if (cp.mahadasha) cards.push(factCard(t("dp_maha"), tPlanet(cp.mahadasha.lord), periodDates(cp.mahadasha)));
+  if (cp.antardasha) cards.push(factCard(t("dp_antar"), tPlanet(cp.antardasha.lord), periodDates(cp.antardasha)));
+  if (cp.next_antardasha) cards.push(factCard(t("dp_next"), tPlanet(cp.next_antardasha.lord), periodDates(cp.next_antardasha)));
+  document.getElementById("current-periods").innerHTML = cards.join("");
+}
+
+function renderNatalAspects(asp) {
+  const byPlanet = {};
+  for (const row of asp.on_planets) {
+    byPlanet[row.planet] = row.aspects.map((x) => tPlanet(x.planet)).join(", ");
+  }
+  document.querySelector("#natal-aspect-table tbody").innerHTML = asp.on_bhavas.map((row) => `
+    <tr>
+      <td>${tPlanet(row.planet)}</td>
+      <td>${byPlanet[row.planet] || "\u2014"}</td>
+      <td>${row.houses.join(", ")}</td>
+    </tr>`).join("");
+}
+
 function renderPositionsTable(positions) {
   const tbody = document.querySelector("#positions-table tbody");
   tbody.innerHTML = "";
@@ -289,16 +356,57 @@ function renderPositionsTable(positions) {
   }
 }
 
-function renderDashaTable(periods) {
+function renderDashaTable(periods, current) {
   const tbody = document.querySelector("#dasha-table tbody");
+  const runningLord = current && current.mahadasha ? current.mahadasha.lord : null;
+  const runningStart = current && current.mahadasha ? current.mahadasha.start : null;
   tbody.innerHTML = "";
-  for (const p of periods) {
+
+  periods.forEach((p) => {
     const tr = document.createElement("tr");
-    const start = new Date(p.start).toLocaleDateString();
-    const end = new Date(p.end).toLocaleDateString();
-    tr.innerHTML = `<td>${tPlanet(p.lord)}</td><td>${start}</td><td>${end}</td><td>${p.years}</td>`;
+    const isRunning = p.lord === runningLord && p.start === runningStart;
+    tr.className = "dasha-row" + (isRunning ? " dasha-running" : "");
+    tr.innerHTML = `<td>${tPlanet(p.lord)}</td>
+      <td>${formatChartDate(p.start.slice(0, 10))}</td>
+      <td>${formatChartDate(p.end.slice(0, 10))}</td>
+      <td>${p.years}</td>`;
     tbody.appendChild(tr);
+
+    // Sub-periods are computed on the client from the same rule the server
+    // uses, so expanding a row costs nothing.
+    const sub = document.createElement("tr");
+    sub.className = "dasha-subrow";
+    sub.hidden = true;
+    sub.innerHTML = `<td colspan="4"><div class="dasha-subs">${
+      antardashaRows(p).map((s) => `
+        <div class="dasha-sub">
+          <span>${tPlanet(s.lord)}</span>
+          <span>${formatChartDate(s.start)} \u2192 ${formatChartDate(s.end)}</span>
+        </div>`).join("")
+    }</div></td>`;
+    tbody.appendChild(sub);
+
+    tr.addEventListener("click", () => { sub.hidden = !sub.hidden; });
+  });
+}
+
+const DASHA_ORDER = ["Ketu", "Venus", "Sun", "Moon", "Mars", "Rahu", "Jupiter", "Saturn", "Mercury"];
+const DASHA_YEARS = { Ketu: 7, Venus: 20, Sun: 6, Moon: 10, Mars: 7, Rahu: 18, Jupiter: 16, Saturn: 19, Mercury: 17 };
+const DAYS_PER_YEAR = 365.2425;
+
+function antardashaRows(maha) {
+  const startIndex = DASHA_ORDER.indexOf(maha.lord);
+  let cursor = new Date(maha.start);
+  const iso = (d) => d.toISOString().slice(0, 10);
+  const out = [];
+  for (let i = 0; i < 9; i++) {
+    const lord = DASHA_ORDER[(startIndex + i) % 9];
+    const years = maha.years * DASHA_YEARS[lord] / 120;
+    const end = new Date(cursor.getTime() + years * DAYS_PER_YEAR * 86400000);
+    out.push({ lord, start: iso(cursor), end: iso(end) });
+    cursor = end;
   }
+  return out;
 }
 
 document.getElementById("now_btn").addEventListener("click", () => {
@@ -456,7 +564,10 @@ document.getElementById("chart-form").addEventListener("submit", async (e) => {
     lastChartData = data;
     renderCharts(data.positions, data.vargas);
     renderPositionsTable(data.positions);
-    renderDashaTable(data.vimshottari_dasha);
+    renderDashaTable(data.vimshottari_dasha, data.current_periods);
+    renderAvakhada(data.avakhada);
+    renderCurrentPeriods(data.current_periods);
+    renderNatalAspects(data.natal_aspects);
     renderDetailsTable({
       name: document.getElementById("person_name").value.trim(),
       date,
@@ -760,8 +871,8 @@ function renderMatchResults(data, brideLabel, groomLabel) {
   kootaBody.innerHTML = data.kootas.map((k) => `
     <tr class="${k.score === 0 ? "koota-zero" : ""}">
       <td>${tKoota(k.name)}</td>
-      <td>${k.bride}</td>
-      <td>${k.groom}</td>
+      <td>${tValue(k.bride)}</td>
+      <td>${tValue(k.groom)}</td>
       <td>${k.score} / ${k.max}</td>
     </tr>
   `).join("") + `
@@ -821,6 +932,9 @@ document.getElementById("match-form").addEventListener("submit", async (e) => {
 
 let lastChartData = null;
 document.getElementById("chart_style").addEventListener("change", () => {
+  if (lastChartData) renderCharts(lastChartData.positions, lastChartData.vargas);
+});
+document.getElementById("varga_pick").addEventListener("change", () => {
   if (lastChartData) renderCharts(lastChartData.positions, lastChartData.vargas);
 });
 
@@ -1098,7 +1212,10 @@ function rerenderAll() {
   if (lastChartData) {
     renderCharts(lastChartData.positions, lastChartData.vargas);
     renderPositionsTable(lastChartData.positions);
-    renderDashaTable(lastChartData.vimshottari_dasha);
+    renderDashaTable(lastChartData.vimshottari_dasha, lastChartData.current_periods);
+    renderAvakhada(lastChartData.avakhada);
+    renderCurrentPeriods(lastChartData.current_periods);
+    renderNatalAspects(lastChartData.natal_aspects);
     if (lastDetailsArgs) renderDetailsTable(lastDetailsArgs);
     if (lastDoshaData) renderDoshas(lastDoshaData);
   }

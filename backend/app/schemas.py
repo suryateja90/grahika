@@ -21,6 +21,9 @@ class ChartResponse(BaseModel):
     positions: dict
     vargas: dict
     vimshottari_dasha: list
+    avakhada: dict
+    natal_aspects: dict
+    current_periods: dict
 
 
 class DoshaResponse(BaseModel):
