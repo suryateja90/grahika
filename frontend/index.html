@@ -238,31 +238,36 @@
           </table>
         </div>
 
-        <label class="chart-style-picker" data-i18n="label_chart_style">Chart style
-          <select id="chart_style">
-            <option value="north" data-i18n="style_north">North Indian (diamond)</option>
-            <option value="south_savya" data-i18n="style_south_savya">South Indian - Savya (standard)</option>
-            <option value="south_apasavya" selected data-i18n="style_south_apasavya">South Indian - Apasavya (mirrored)</option>
-          </select>
-        </label>
+        <!-- Both pickers sit above the charts; keeping one inside a chart
+             block pushed that chart down and the pair stopped aligning. -->
+        <div class="chart-pickers">
+          <label class="chart-style-picker" data-i18n="label_chart_style">Chart style
+            <select id="chart_style">
+              <option value="north" data-i18n="style_north">North Indian (diamond)</option>
+              <option value="south_savya" data-i18n="style_south_savya">South Indian - Savya (standard)</option>
+              <option value="south_apasavya" selected data-i18n="style_south_apasavya">South Indian - Apasavya (mirrored)</option>
+            </select>
+          </label>
+          <label class="chart-style-picker" data-i18n="label_divisional">Divisional chart
+            <select id="varga_pick">
+              <option value="D9" selected>D9</option>
+              <option value="D2">D2</option>
+              <option value="D3">D3</option>
+              <option value="D4">D4</option>
+              <option value="D7">D7</option>
+              <option value="D10">D10</option>
+              <option value="D12">D12</option>
+              <option value="MOON">MOON</option>
+            </select>
+          </label>
+        </div>
         <div class="charts">
           <div class="chart-block">
             <h3 class="chart-title" id="d1-title">D1</h3>
             <div id="d1-chart"></div>
           </div>
           <div class="chart-block">
-            <label class="chart-style-picker" data-i18n="label_divisional">Divisional chart
-              <select id="varga_pick">
-                <option value="D9" selected>D9</option>
-                <option value="D2">D2</option>
-                <option value="D3">D3</option>
-                <option value="D4">D4</option>
-                <option value="D7">D7</option>
-                <option value="D10">D10</option>
-                <option value="D12">D12</option>
-                <option value="MOON">MOON</option>
-              </select>
-            </label>
+            <h3 class="chart-title" id="d9-title">D9</h3>
             <div id="d9-chart"></div>
           </div>
         </div>

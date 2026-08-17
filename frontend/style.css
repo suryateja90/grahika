@@ -350,7 +350,11 @@ legend { font-weight: 700; padding: 0 0.4rem; }
 .aspect-list .aspect-empty { opacity: 0.7; font-style: italic; }
 
 .chart-style-picker { display: inline-flex; flex-direction: column; gap: 0.25rem; font-size: 0.85rem; margin-bottom: 0.5rem; }
-.charts { display: flex; flex-wrap: wrap; gap: 1.5rem; justify-content: center; margin: 1.5rem 0; }
+.chart-pickers { display: flex; flex-wrap: wrap; gap: 1.25rem; margin-bottom: 0.5rem; }
+/* flex-start keeps the two charts top-aligned; with the default stretch a
+   taller caption on one side drags the other out of line. */
+.charts { display: flex; flex-wrap: wrap; gap: 1.5rem; justify-content: center;
+          align-items: flex-start; margin: 1.5rem 0; }
 .chart-block { text-align: center; flex: 1 1 340px; max-width: 420px; min-width: 0; }
 .chart-caption { font-size: 0.8rem; opacity: 0.75; margin-top: 0.4rem; }
 

@@ -261,6 +261,7 @@ function renderCharts(positions, vargas) {
     : (name) => vargas[name][pick].sign_index;
 
   document.getElementById("d1-title").textContent = t("varga_names").D1;
+  document.getElementById("d9-title").textContent = vargaName;
   document.getElementById("d1-chart").innerHTML =
     build(d1SignIndex, t("chart_lagna"), t("varga_names").D1) + caption;
   document.getElementById("d9-chart").innerHTML =
