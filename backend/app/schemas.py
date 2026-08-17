@@ -100,12 +100,29 @@ class PanchangaRequest(BaseModel):
 class PanchangaResponse(BaseModel):
     date: str
     vara: dict
+    masa: dict
     tithi: dict
     nakshatra: dict
     yoga: dict
     karana: dict
+    # The same limbs across the calendar day, so the page can show what
+    # follows as well as what is in force at sunrise.
+    tithis: list
+    nakshatras: list
+    yogas: list
+    karanas: list
     sunrise: Optional[str]
     sunset: Optional[str]
+    moonrise: Optional[str]
+    moonset: Optional[str]
+    day_length_minutes: Optional[int]
+    sun_sign: dict
+    moon_sign: dict
+    lagna: dict
+    moon_phase: dict
+    dishashool: str
+    festivals: list
+    sankranti: Optional[dict]
     periods: dict
     varjyam_is_conventional: bool
 

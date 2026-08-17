@@ -83,6 +83,15 @@ const I18N = {
     tab_panchanga: "Panchangam",
     tab_panchanga_short: "Panchang",
     intro_panchanga: "Today's panchangam for your place -- the five limbs, sunrise and sunset, and the periods to keep clear.",
+    p_events: "Solar & Lunar Events", p_panchang: "Panchang", p_muhurat: "Muhurat",
+    p_location_info: "Location Info", p_festivals: "Festivals & Vrat",
+    p_moonrise: "Moonrise", p_moonset: "Moonset", p_masa: "Masa", p_paksha: "Paksha",
+    p_sun_sign: "Sun Sign", p_moon_sign: "Moon Sign", p_lagna: "Lagna (sunrise)",
+    p_day_length: "Day Length", p_moon_phase: "Moon Phase", p_timezone: "Timezone",
+    p_dishashool: "Dishaashool", p_dishashool_note: "Avoid travel in this direction today",
+    p_brahma: "Brahma Muhurat", p_godhuli: "Godhuli Muhurat", p_durmuhurta: "Durmuhurta",
+    p_sankranti: "Sankranti", p_all_day: "all day",
+    p_summary: "Today, {date}, {tithi} tithi in {place} holds until {ends}. Sunrise at {sunrise}. {nakshatra} nakshatra prevails through the day.",
     p_tithi: "Tithi", p_vara: "Vara", p_nakshatra: "Nakshatra",
     p_yoga: "Yoga", p_karana: "Karana",
     p_sunrise: "Sunrise", p_sunset: "Sunset",
@@ -289,6 +298,15 @@ const I18N = {
     tab_panchanga: "పంచాంగం",
     tab_panchanga_short: "పంచాంగం",
     intro_panchanga: "మీ ప్రాంతానికి ఈరోజు పంచాంగం — పంచాంగాలు, సూర్యోదయాస్తమయాలు, మరియు వర్జించవలసిన సమయాలు.",
+    p_events: "సూర్య-చంద్ర ఘటనలు", p_panchang: "పంచాంగం", p_muhurat: "ముహూర్తం",
+    p_location_info: "ప్రాంత వివరాలు", p_festivals: "పండగలు మరియు వ్రతాలు",
+    p_moonrise: "చంద్రోదయం", p_moonset: "చంద్రాస్తమయం", p_masa: "మాసం", p_paksha: "పక్షం",
+    p_sun_sign: "సూర్య రాశి", p_moon_sign: "చంద్ర రాశి", p_lagna: "లగ్నం (సూర్యోదయం)",
+    p_day_length: "పగటి నిడివి", p_moon_phase: "చంద్ర దశ", p_timezone: "కాలమానం",
+    p_dishashool: "దిక్కుశూల", p_dishashool_note: "ఈరోజు ఈ దిక్కుగా ప్రయాణం వద్దు",
+    p_brahma: "బ్రహ్మ ముహూర్తం", p_godhuli: "గోధూళి ముహూర్తం", p_durmuhurta: "దుర్ముహూర్తం",
+    p_sankranti: "సంక్రాంతి",
+    p_summary: "ఈరోజు, {date}, {place}లో {tithi} తిథి {ends} వరకు. సూర్యోదయం {sunrise}. రోజంతా {nakshatra} నక్షత్రం.",
     p_tithi: "తిథి", p_vara: "వారం", p_nakshatra: "నక్షత్రం",
     p_yoga: "యోగం", p_karana: "కరణం",
     p_sunrise: "సూర్యోదయం", p_sunset: "సూర్యాస్తమయం",
@@ -596,6 +614,39 @@ const VALUE_I18N = {
 const NAMAKSHAR_I18N = {
   en: null,  // the API already returns the Latin syllable
   te: [["చు", "చే", "చో", "లా"], ["లీ", "లూ", "లే", "లో"], ["అ", "ఈ", "ఊ", "ఏ"], ["ఓ", "వా", "వీ", "వూ"], ["వే", "వో", "కా", "కీ"], ["కూ", "ఘ", "ఙ", "ఛ"], ["కే", "కో", "హా", "హీ"], ["హూ", "హే", "హో", "డా"], ["డీ", "డూ", "డే", "డో"], ["మా", "మీ", "మూ", "మే"], ["మో", "టా", "టీ", "టూ"], ["టే", "టో", "పా", "పీ"], ["పూ", "ష", "ణ", "ఠ"], ["పే", "పో", "రా", "రీ"], ["రూ", "రే", "రో", "తా"], ["తీ", "తూ", "తే", "తో"], ["నా", "నీ", "నూ", "నే"], ["నో", "యా", "యీ", "యూ"], ["యే", "యో", "భా", "భీ"], ["భూ", "ధా", "ఫా", "ఢా"], ["భే", "భో", "జా", "జీ"], ["జూ", "జే", "జో", "ఘా"], ["గా", "గీ", "గూ", "గే"], ["గో", "సా", "సీ", "సూ"], ["సే", "సో", "దా", "దీ"], ["దూ", "థా", "ఝా", "ఞా"], ["దే", "దో", "చా", "చీ"]],
+};
+
+const MASA_I18N = {
+  en: ["Chaitra","Vaishakha","Jyeshtha","Ashadha","Shravana","Bhadrapada",
+       "Ashwina","Kartika","Margashirsha","Pausha","Magha","Phalguna"],
+  te: ["\u0c1a\u0c48\u0c24\u0c4d\u0c30","\u0c35\u0c48\u0c36\u0c3e\u0c16","\u0c1c\u0c4d\u0c2f\u0c47\u0c37\u0c4d\u0c20","\u0c06\u0c37\u0c3e\u0c22","\u0c36\u0c4d\u0c30\u0c3e\u0c35\u0c23","\u0c2d\u0c3e\u0c26\u0c4d\u0c30\u0c2a\u0c26",
+       "\u0c06\u0c36\u0c4d\u0c35\u0c40\u0c1c","\u0c15\u0c3e\u0c30\u0c4d\u0c24\u0c40\u0c15","\u0c2e\u0c3e\u0c30\u0c4d\u0c17\u0c36\u0c3f\u0c30","\u0c2a\u0c41\u0c37\u0c4d\u0c2f","\u0c2e\u0c3e\u0c18","\u0c2b\u0c3e\u0c32\u0c4d\u0c17\u0c41\u0c23"],
+};
+const MASA_ORDER = ["Chaitra","Vaishakha","Jyeshtha","Ashadha","Shravana","Bhadrapada",
+                    "Ashwina","Kartika","Margashirsha","Pausha","Magha","Phalguna"];
+const DIRECTION_I18N = {
+  en: { North: "North", South: "South", East: "East", West: "West" },
+  te: { North: "\u0c09\u0c24\u0c4d\u0c24\u0c30\u0c02", South: "\u0c26\u0c15\u0c4d\u0c37\u0c3f\u0c23\u0c02", East: "\u0c24\u0c42\u0c30\u0c4d\u0c2a\u0c41", West: "\u0c2a\u0c36\u0c4d\u0c1a\u0c3f\u0c2e\u0c02" },
+};
+
+const MOON_PHASE_I18N = {
+  en: { "Shukla Ardhachandra":"Shukla Ardhachandra", "Shukla Ashtami":"Shukla Ashtami",
+        "Shukla Purna":"Shukla Purna", "Purnima":"Purnima", "Krishna Purna":"Krishna Purna",
+        "Krishna Ashtami":"Krishna Ashtami", "Krishna Ardhachandra":"Krishna Ardhachandra",
+        "Amavasya":"Amavasya" },
+  te: { "Shukla Ardhachandra":"శుక్ల అర్ధచంద్ర", "Shukla Ashtami":"శుక్ల అష్టమి",
+        "Shukla Purna":"శుక్ల పూర్ణ", "Purnima":"పౌర్ణమి", "Krishna Purna":"బహుళ పూర్ణ",
+        "Krishna Ashtami":"బహుళ అష్టమి", "Krishna Ardhachandra":"బహుళ అర్ధచంద్ర",
+        "Amavasya":"అమావాస్య" },
+};
+const FESTIVAL_I18N = {
+  en: null,
+  te: { "Ugadi":"ఉగాది", "Akshaya Tritiya":"అక్షయ తృతీయ", "Nag Panchami":"నాగ పంచమి",
+        "Varalakshmi Vratam":"వరలక్ష్మీ వ్రతం", "Ganesh Chaturthi":"వినాయక చవితి",
+        "Vijaya Dashami":"విజయ దశమి", "Deepavali":"దీపావళి", "Maha Shivaratri":"మహా శివరాత్రి",
+        "Ekadashi":"ఏకాదశి", "Pradosham":"ప్రదోషం", "Vinayaka Chaturthi":"వినాయక చతుర్థి",
+        "Sankashti Chaturthi":"సంకష్టి చతుర్థి", "Purnima":"పౌర్ణమి", "Amavasya":"అమావాస్య",
+        "Festival":"పండగ", "Vrat":"వ్రతం", "Observance":"పర్వదినం" },
 };
 
 let currentLang = localStorage.getItem("grahika_lang") || "en";

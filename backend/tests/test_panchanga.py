@@ -70,10 +70,65 @@ def test_kalam_segment_tables_match_their_classical_anchors():
 def test_periods_fall_inside_daylight_and_do_not_invert():
     result = panchanga.compute_panchanga(date(2026, 8, 6), *TANUKU, IST)
     assert result["sunrise"] < result["sunset"]
-    for name, window in result["periods"].items():
-        assert window["start"] is not None and window["end"] is not None
-        if name != "varjyam":  # varjyam follows the nakshatra, not the solar day
-            assert result["sunrise"] <= window["start"] < window["end"] <= result["sunset"], name
+
+    # varjyam follows the nakshatra rather than the solar day; brahma ends at
+    # sunrise and godhuli straddles sunset, so all three sit outside daylight
+    # by design.
+    outside_daylight = {"varjyam", "brahma", "godhuli"}
+
+    for name, value in result["periods"].items():
+        windows = value if isinstance(value, list) else [value]
+        for window in windows:
+            assert window["start"] is not None and window["end"] is not None
+            assert window["start"] < window["end"], name
+            if name not in outside_daylight:
+                assert result["sunrise"] <= window["start"], name
+                assert window["end"] <= result["sunset"], name
+
+
+def test_brahma_ends_at_sunrise_and_godhuli_straddles_sunset():
+    result = panchanga.compute_panchanga(date(2026, 8, 6), *TANUKU, IST)
+    brahma, godhuli = result["periods"]["brahma"], result["periods"]["godhuli"]
+    assert brahma["end"] <= result["sunrise"]
+    assert godhuli["start"] < result["sunset"] < godhuli["end"]
+
+
+def test_durmuhurta_matches_its_weekday_table():
+    result = panchanga.compute_panchanga(date(2026, 8, 17), *TANUKU, IST)  # a Monday
+    assert result["vara"]["name"] == "Monday"
+    expected = len(panchanga.DURMUHURTA_BY_WEEKDAY[1])
+    assert len(result["periods"]["durmuhurta"]) == expected == 2
+    # Every weekday names distinct muhurtas within the fifteen.
+    for weekday, muhurtas in panchanga.DURMUHURTA_BY_WEEKDAY.items():
+        assert all(1 <= m <= 15 for m in muhurtas), weekday
+        assert len(set(muhurtas)) == len(muhurtas), weekday
+
+
+def test_day_listing_starts_before_sunrise():
+    # An almanac lists the anga still running before dawn, so the first
+    # entry may end earlier in the day than sunrise.
+    result = panchanga.compute_panchanga(date(2026, 8, 17), *TANUKU, IST)
+    for key in ("tithis", "nakshatras", "karanas", "yogas"):
+        assert len(result[key]) >= 1, key
+        for entry in result[key]:
+            assert entry["ends_at"] is not None, key
+    # The sunrise anga must be one of the entries listed for the day.
+    assert result["nakshatra"]["name"] in [n["name"] for n in result["nakshatras"]]
+
+
+def test_masa_and_festival_agree_with_the_tithi():
+    result = panchanga.compute_panchanga(date(2026, 8, 17), *TANUKU, IST)
+    assert result["masa"]["name"] == "Shravana"
+    assert result["tithi"]["paksha"] == "Shukla"
+    assert result["tithi"]["number"] == 5
+    # Shravana Shukla Panchami is Nag Panchami.
+    assert "Nag Panchami" in [f["name"] for f in result["festivals"]]
+
+
+def test_moon_phase_covers_every_tithi():
+    seen = {panchanga.moon_phase(i)["english"] for i in range(30)}
+    assert "" not in seen
+    assert "Full Moon" in seen and "New Moon" in seen
 
 
 def test_abhijit_straddles_solar_noon():

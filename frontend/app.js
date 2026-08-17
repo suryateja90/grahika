@@ -1002,47 +1002,125 @@ const tTithi = (d) =>
 const tPaksha = (name) => PAKSHA_I18N[lang()][name] || name;
 const tVara = (i) => VARA_I18N[lang()][i];
 
+const tMasa = (name) => {
+  const idx = MASA_ORDER.indexOf(name);
+  return idx >= 0 ? MASA_I18N[lang()][idx] : name;
+};
+const tDirection = (d) => (DIRECTION_I18N[lang()] || {})[d] || d;
+const tPhase = (n) => (MOON_PHASE_I18N[lang()] || {})[n] || n;
+// FESTIVAL_I18N is null for English, where the API name is already right.
+const tFestival = (n) => (FESTIVAL_I18N[lang()] || {})[n] || n;
+
+function paCard(icon, label, value, sub) {
+  return `<div class="pa-card">
+    <div class="pa-label"><span class="pa-ico">${icon}</span>${label}</div>
+    <div class="pa-value">${value}</div>
+    <div class="pa-sub">${sub || ""}</div>
+  </div>`;
+}
+
+// A limb often changes during the day, so each card lists every value in
+// force with the moment it gives way -- which is how a printed almanac
+// reads, and why one card can carry two or three lines.
+function limbCard(icon, label, entries, nameFor) {
+  const lines = entries.map((e) => `
+    <div class="pa-line">
+      <span class="pa-line-name">${nameFor(e)}</span>
+      <span class="pa-line-time">${e.ends_at ? t("p_until") + " " + e.ends_at : t("p_all_day")}</span>
+    </div>`).join("");
+  return `<div class="pa-card">
+    <div class="pa-label"><span class="pa-ico">${icon}</span>${label}</div>
+    ${lines}
+  </div>`;
+}
+
 function renderPanchanga(data) {
   lastPanchanga = data;
   document.getElementById("pa_date").value = data.date;
   document.getElementById("pa-date-label").textContent =
     `${formatChartDate(data.date)} \u00b7 ${tVara(data.vara.index)}`;
-  document.getElementById("pa-sunrise").textContent = data.sunrise || "--";
-  document.getElementById("pa-sunset").textContent = data.sunset || "--";
 
-  const card = (label, value, sub) => `
-    <div class="pa-card">
-      <div class="pa-label">${label}</div>
-      <div class="pa-value">${value}</div>
-      <div class="pa-sub">${sub || ""}</div>
-    </div>`;
+  const place = selectedPlaceNames["pa_"] || "";
+  document.getElementById("pa-summary").textContent = t("p_summary")
+    .replace("{date}", formatChartDate(data.date))
+    .replace("{place}", place.split(",")[0] || "")
+    .replace("{tithi}", tTithi(data.tithi))
+    .replace("{ends}", data.tithi.ends_at || "")
+    .replace("{sunrise}", data.sunrise || "--")
+    .replace("{nakshatra}", tNak(data.nakshatra.index));
 
-  const until = (ends) => (ends ? `${t("p_until")} ${ends}` : t("p_all_day"));
-
-  document.getElementById("pa-limbs").innerHTML = [
-    card(t("p_tithi"), tTithi(data.tithi),
-         `${tPaksha(data.tithi.paksha)} \u00b7 ${until(data.tithi.ends_at)}`),
-    card(t("p_nakshatra"), tNak(data.nakshatra.index), until(data.nakshatra.ends_at)),
-    card(t("p_yoga"), YOGA_I18N[lang()][data.yoga.index], until(data.yoga.ends_at)),
-    card(t("p_karana"), KARANA_I18N[lang()][data.karana.name] || data.karana.name, until(data.karana.ends_at)),
-    card(t("p_vara"), tVara(data.vara.index), ""),
+  // --- solar and lunar events ---
+  document.getElementById("pa-events").innerHTML = [
+    paCard("\u2600\ufe0f", t("p_sunrise"), data.sunrise || "--", ""),
+    paCard("\ud83c\udf07", t("p_sunset"), data.sunset || "--", ""),
+    paCard("\ud83c\udf19", t("p_moonrise"), data.moonrise || "--", ""),
+    paCard("\ud83c\udf11", t("p_moonset"), data.moonset || "--", ""),
+    paCard("\u2b50", t("p_sun_sign"), tSign(data.sun_sign.index), ""),
+    paCard("\ud83c\udf13", t("p_moon_sign"), tSign(data.moon_sign.index), ""),
+    paCard("\u2648", t("p_lagna"), tSign(data.lagna.index), ""),
   ].join("");
 
-  const period = (label, w, tone) => {
+  // --- the five limbs ---
+  const cards = [
+    paCard("\ud83d\uddd3\ufe0f", t("p_masa"), tMasa(data.masa.name), ""),
+    paCard("\ud83c\udf12", t("p_paksha"), tPaksha(data.tithi.paksha), ""),
+    limbCard("\ud83c\udf19", t("p_tithi"), data.tithis, tTithi),
+    limbCard("\u2728", t("p_nakshatra"), data.nakshatras, (e) => tNak(e.index)),
+    limbCard("\u23f3", t("p_karana"), data.karanas,
+             (e) => KARANA_I18N[lang()][e.name] || e.name),
+    limbCard("\ud83d\udd2f", t("p_yoga"), data.yogas, (e) => YOGA_I18N[lang()][e.index]),
+    paCard("\ud83e\udded", t("p_dishashool"), tDirection(data.dishashool), t("p_dishashool_note")),
+  ];
+  if (data.sankranti) {
+    cards.push(paCard("\ud83d\udd05", t("p_sankranti"), tSign(data.sankranti.sign_index), ""));
+  }
+  document.getElementById("pa-limbs").innerHTML = cards.join("");
+
+  // --- muhurats, auspicious first ---
+  const period = (icon, label, w, tone) => {
     if (!w) return "";
     return `<div class="pa-period ${tone}">
-      <span class="pa-period-name">${label}</span>
+      <span class="pa-period-name"><span class="pa-ico">${icon}</span>${label}</span>
       <span class="pa-period-time">${w.start} &ndash; ${w.end}</span>
     </div>`;
   };
   const per = data.periods || {};
-  document.getElementById("pa-bad").innerHTML =
-    period(t("p_rahu"), per.rahu_kalam, "bad") +
-    period(t("p_yama"), per.yamagandam, "bad") +
-    period(t("p_gulika"), per.gulika_kalam, "bad") +
-    period(t("p_varjyam"), per.varjyam, "bad");
   document.getElementById("pa-good").innerHTML =
-    period(t("p_abhijit"), per.abhijit, "good");
+    period("\ud83d\udd4a\ufe0f", t("p_brahma"), per.brahma, "good") +
+    period("\u2b50", t("p_abhijit"), per.abhijit, "good") +
+    period("\ud83c\udf05", t("p_godhuli"), per.godhuli, "good");
+
+  const durmuhurtas = (per.durmuhurta || [])
+    .map((w) => period("\u26a0\ufe0f", t("p_durmuhurta"), w, "bad")).join("");
+  document.getElementById("pa-bad").innerHTML =
+    period("\u26a0\ufe0f", t("p_rahu"), per.rahu_kalam, "bad") +
+    period("\u26a0\ufe0f", t("p_yama"), per.yamagandam, "bad") +
+    period("\u26a0\ufe0f", t("p_gulika"), per.gulika_kalam, "bad") +
+    durmuhurtas +
+    period("\u26a0\ufe0f", t("p_varjyam"), per.varjyam, "bad");
+
+  // --- sidebar ---
+  const hours = data.day_length_minutes
+    ? `${Math.floor(data.day_length_minutes / 60)}h ${data.day_length_minutes % 60}m` : "--";
+  const sideRow = (label, value) =>
+    `<div class="pa-side-row"><span>${label}</span><b>${value}</b></div>`;
+  document.getElementById("pa-location").innerHTML =
+    (place ? `<div class="pa-side-place">${place}</div>` : "") +
+    sideRow(t("p_day_length"), hours) +
+    sideRow(t("p_moon_phase"), tPhase(data.moon_phase.name)) +
+    sideRow(t("p_sunrise"), data.sunrise || "--") +
+    sideRow(t("p_sunset"), data.sunset || "--");
+
+  const festivalCard = document.getElementById("pa-festival-card");
+  if (data.festivals && data.festivals.length) {
+    document.getElementById("pa-festivals").innerHTML = data.festivals.map((f) => `
+      <div class="pa-festival${f.major ? " major" : ""}">
+        <span>${tFestival(f.name)}</span><span class="pa-festival-kind">${tFestival(f.kind)}</span>
+      </div>`).join("");
+    festivalCard.hidden = false;
+  } else {
+    festivalCard.hidden = true;
+  }
 }
 
 async function fetchPanchanga() {

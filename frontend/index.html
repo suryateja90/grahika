@@ -202,21 +202,36 @@
         <button type="button" id="pa_today" class="secondary" data-i18n="btn_today">Today</button>
       </div>
 
-      <div class="pa-header">
-        <div class="pa-date" id="pa-date-label"></div>
-        <div class="pa-sun">
-          <span><span data-i18n="p_sunrise">Sunrise</span> <b id="pa-sunrise"></b></span>
-          <span><span data-i18n="p_sunset">Sunset</span> <b id="pa-sunset"></b></span>
+      <p class="pa-summary" id="pa-summary"></p>
+
+      <div class="pa-columns">
+        <div class="pa-main">
+          <div class="pa-header">
+            <div class="pa-date" id="pa-date-label"></div>
+          </div>
+
+          <h2 class="pa-section"><span class="pa-ico">\u2600\ufe0f</span><span data-i18n="p_events">Solar &amp; Lunar Events</span></h2>
+          <div class="pa-grid" id="pa-events"></div>
+
+          <h2 class="pa-section"><span class="pa-ico">\ud83c\udf19</span><span data-i18n="p_panchang">Panchang</span></h2>
+          <div class="pa-grid" id="pa-limbs"></div>
+
+          <h2 class="pa-section"><span class="pa-ico">\u23f0</span><span data-i18n="p_muhurat">Muhurat</span></h2>
+          <div class="pa-periods" id="pa-good"></div>
+          <div class="pa-periods" id="pa-bad"></div>
         </div>
+
+        <aside class="pa-side">
+          <div class="pa-side-card">
+            <h3><span class="pa-ico">\ud83d\udccd</span><span data-i18n="p_location_info">Location Info</span></h3>
+            <div id="pa-location"></div>
+          </div>
+          <div class="pa-side-card" id="pa-festival-card" hidden>
+            <h3><span class="pa-ico">\ud83c\udf89</span><span data-i18n="p_festivals">Festivals &amp; Vrat</span></h3>
+            <div id="pa-festivals"></div>
+          </div>
+        </aside>
       </div>
-
-      <div class="pa-grid" id="pa-limbs"></div>
-
-      <h2 class="pa-section" data-i18n="p_inauspicious">Periods to avoid</h2>
-      <div class="pa-periods" id="pa-bad"></div>
-
-      <h2 class="pa-section" data-i18n="p_auspicious">Auspicious</h2>
-      <div class="pa-periods" id="pa-good"></div>
 
       <p class="dosha-note" data-i18n="note_panchanga">
         The five limbs, sunrise and sunset are exact. Rahu Kalam, Yamagandam, Gulika and
