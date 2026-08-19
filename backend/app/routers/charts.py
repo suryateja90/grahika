@@ -32,6 +32,7 @@ def compute_chart(request: ChartRequest):
     )
 
     varga_charts = vargas.compute_vargas(positions["bodies"])
+    houses_by_varga = vargas.varga_houses(positions["bodies"])
 
     moon_longitude = positions["bodies"]["Moon"]["longitude"]
     dasha_timeline = dasha.vimshottari_timeline(
@@ -47,6 +48,7 @@ def compute_chart(request: ChartRequest):
         ayanamsa_value=positions["ayanamsa_value"],
         positions=positions["bodies"],
         vargas=varga_charts,
+        varga_houses=houses_by_varga,
         vimshottari_dasha=dasha_timeline,
         avakhada=avakhada.avakhada_chakra(positions["bodies"]),
         natal_aspects=avakhada.natal_aspects(positions["bodies"]),

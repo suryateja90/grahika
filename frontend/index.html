@@ -377,7 +377,27 @@
           </table>
         </div>
 
-        <div class="table-block">
+        <div class="dasha-panel">
+          <div class="dasha-toolbar">
+            <h2 data-i18n="h_dasha">Vimshottari Mahadasha</h2>
+            <div class="dasha-tools">
+              <button type="button" id="dasha_expand" class="linky" data-i18n="btn_expand">Expand</button>
+              <button type="button" id="dasha_collapse" class="linky" data-i18n="btn_collapse">Collapse</button>
+              <button type="button" id="dasha_current" class="chip" data-i18n="btn_current">Current</button>
+            </div>
+          </div>
+          <div class="dasha-split">
+            <div class="dasha-tree" id="dasha-tree"></div>
+            <aside class="graha-panel" id="graha-panel" hidden>
+              <h3 id="graha-title"></h3>
+              <div class="graha-facts" id="graha-facts"></div>
+              <h4 data-i18n="h_varga_houses">Divisional Chart Positions from Ascendant</h4>
+              <div class="graha-vargas" id="graha-vargas"></div>
+            </aside>
+          </div>
+        </div>
+
+        <div class="table-block" hidden>
           <h2 data-i18n="h_dasha">Vimshottari Mahadasha</h2>
           <p class="dosha-note" data-i18n="hint_expand_dasha">Tap any period to see its sub-periods.</p>
           <table id="dasha-table">

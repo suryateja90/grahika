@@ -142,6 +142,9 @@ const I18N = {
 
     h_birth_details: "Birth Details",
     h_positions: "Positions",
+    btn_expand: "Expand", btn_collapse: "Collapse", btn_current: "Current",
+    lbl_now: "Now", h_varga_houses: "Divisional Chart Positions from Ascendant",
+    h_degree: "Degree", unit_y: "y", unit_m: "m", unit_d: "d",
     h_dasha: "Vimshottari Mahadasha",
     h_kaal_sarp: "Kaal Sarp Yoga",
     h_sade_sati: "Sade Sati",
@@ -357,6 +360,9 @@ const I18N = {
 
     h_birth_details: "జనన వివరాలు",
     h_positions: "గ్రహ స్థితి",
+    btn_expand: "విస్తరించు", btn_collapse: "మూసివేయి", btn_current: "ప్రస్తుతం",
+    lbl_now: "ఇప్పుడు", h_varga_houses: "లగ్నం నుండి వర్గ చక్ర స్థానాలు",
+    h_degree: "అంశ", unit_y: "సం", unit_m: "నె", unit_d: "రో",
     h_dasha: "వింశోత్తరి మహాదశ",
     h_kaal_sarp: "కాలసర్ప యోగం",
     h_sade_sati: "ఏలినాటి శని",
@@ -647,6 +653,22 @@ const FESTIVAL_I18N = {
         "Ekadashi":"ఏకాదశి", "Pradosham":"ప్రదోషం", "Vinayaka Chaturthi":"వినాయక చతుర్థి",
         "Sankashti Chaturthi":"సంకష్టి చతుర్థి", "Purnima":"పౌర్ణమి", "Amavasya":"అమావాస్య",
         "Festival":"పండగ", "Vrat":"వ్రతం", "Observance":"పర్వదినం" },
+};
+
+const MONTHS_SHORT = {
+  en: ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
+  te: ["జన","ఫిబ్","మార్","ఏప్రి","మే","జూన్",
+       "జూలై","ఆగ","సెప్","అక్టో","నవం","డిసె"],
+};
+const VARGA_ALL = ["D1","D2","D3","D4","D5","D6","D7","D8","D9","D10","D11","D12",
+                   "D16","D20","D24","D27","D30","D40","D45","D60","D81","D108","D144"];
+const VARGA_LABELS = {
+  D1:"Rasi", D2:"Hora", D3:"Drekkana", D4:"Chaturthamsa", D5:"Panchamsa",
+  D6:"Shashtamsa", D7:"Saptamsa", D8:"Ashtamsa", D9:"Navamsa", D10:"Dasamsa",
+  D11:"Rudramsa", D12:"Dwadasamsa", D16:"Shodasamsa", D20:"Vimsamsa",
+  D24:"Chaturvimsamsa", D27:"Nakshatramsa", D30:"Trimsamsa", D40:"Khavedamsa",
+  D45:"Akshavedamsa", D60:"Shashtiamsa", D81:"Nava-Navamsa",
+  D108:"Ashtottaramsa", D144:"Dwadas-Dwadasamsa",
 };
 
 let currentLang = localStorage.getItem("grahika_lang") || "en";

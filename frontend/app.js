@@ -571,6 +571,7 @@ document.getElementById("chart-form").addEventListener("submit", async (e) => {
     renderCurrentPeriods(data.current_periods);
     renderNatalAspects(data.natal_aspects);
     renderShodashavarga(data.vargas);
+    openCurrentChain();
     renderDetailsTable({
       name: document.getElementById("person_name").value.trim(),
       date,
@@ -1465,6 +1466,190 @@ document.getElementById("report_kind").addEventListener("change", () => {
 });
 document.getElementById("report_print").addEventListener("click", () => window.print());
 
+
+// --------------------------- nested dasha tree ---------------------------
+
+const MAX_DASHA_DEPTH = 4;
+
+// Subdividing on the client keeps expansion instant. Four levels of nine is
+// over six thousand periods, so sending the whole tree would be wasteful
+// when the rule is this cheap to apply on demand.
+//
+// Spans come from the timestamps, never from a rounded duration -- the same
+// reason the backend does it that way, since the error compounds per level.
+function subdivideDasha(period) {
+  const start = new Date(period.start).getTime();
+  const span = new Date(period.end).getTime() - start;
+  const first = DASHA_ORDER.indexOf(period.lord);
+  const out = [];
+  let cursor = start;
+  for (let i = 0; i < 9; i++) {
+    const lord = DASHA_ORDER[(first + i) % 9];
+    const slice = span * DASHA_YEARS[lord] / 120;
+    out.push({ lord, start: new Date(cursor).toISOString(), end: new Date(cursor + slice).toISOString() });
+    cursor += slice;
+  }
+  return out;
+}
+
+// Calendar-aware, so "1y 7m 3d" counts real months rather than averaging
+// them, which is how printed horoscopes state a period.
+function durationYMD(startIso, endIso) {
+  const a = new Date(startIso), b = new Date(endIso);
+  let years = b.getFullYear() - a.getFullYear();
+  let months = b.getMonth() - a.getMonth();
+  let days = b.getDate() - a.getDate();
+  if (days < 0) {
+    months -= 1;
+    days += new Date(b.getFullYear(), b.getMonth(), 0).getDate();
+  }
+  if (months < 0) { years -= 1; months += 12; }
+  const parts = [];
+  if (years) parts.push(`${years}${t("unit_y")}`);
+  if (months) parts.push(`${months}${t("unit_m")}`);
+  if (days || !parts.length) parts.push(`${days}${t("unit_d")}`);
+  return parts.join(" ");
+}
+
+function shortDate(iso) {
+  const d = new Date(iso);
+  return `${MONTHS_SHORT[lang()][d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+}
+
+function isRunning(period, now) {
+  return new Date(period.start) <= now && now <= new Date(period.end);
+}
+
+// Expanded rows are tracked by path ("2", "2.5", "2.5.1") so a redraw --
+// a language switch, say -- restores exactly what was open.
+let dashaOpen = new Set();
+let selectedGraha = null;
+
+function dashaRow(period, path, depth, now) {
+  const open = dashaOpen.has(path);
+  const running = isRunning(period, now);
+  const start = new Date(period.start).getTime();
+  const end = new Date(period.end).getTime();
+  const progress = running
+    ? Math.max(0, Math.min(100, ((now.getTime() - start) / (end - start)) * 100))
+    : 0;
+
+  const expandable = depth < MAX_DASHA_DEPTH - 1;
+  const chevron = expandable ? (open ? "\u2304" : "\u203a") : "";
+
+  let html = `
+    <div class="dasha-node depth-${depth}${running ? " running" : ""}${selectedGraha === period.lord ? " picked" : ""}"
+         data-path="${path}" data-lord="${period.lord}">
+      <span class="dasha-chev">${chevron}</span>
+      <span class="dasha-lord">${tPlanet(period.lord)}</span>
+      ${running ? `<span class="dasha-now">${t("lbl_now")}</span>` : ""}
+      <span class="dasha-range">${shortDate(period.start)} &rarr; ${shortDate(period.end)}</span>
+      <span class="dasha-bar"><i style="width:${progress}%"></i></span>
+      <span class="dasha-dur">${durationYMD(period.start, period.end)}</span>
+    </div>`;
+
+  if (open && expandable) {
+    html += `<div class="dasha-children">` +
+      subdivideDasha(period)
+        .map((child, i) => dashaRow(child, `${path}.${i}`, depth + 1, now))
+        .join("") +
+      `</div>`;
+  }
+  return html;
+}
+
+function renderDashaTree() {
+  if (!lastChartData) return;
+  const now = new Date();
+  document.getElementById("dasha-tree").innerHTML =
+    lastChartData.vimshottari_dasha
+      .map((p, i) => dashaRow(p, String(i), 0, now))
+      .join("");
+}
+
+// Opens the chain of periods running right now, at every level.
+function openCurrentChain() {
+  if (!lastChartData) return;
+  const now = new Date();
+  dashaOpen = new Set();
+  let siblings = lastChartData.vimshottari_dasha;
+  let path = "";
+
+  for (let depth = 0; depth < MAX_DASHA_DEPTH; depth++) {
+    const index = siblings.findIndex((p) => isRunning(p, now));
+    if (index < 0) break;
+    path = path ? `${path}.${index}` : String(index);
+    if (depth < MAX_DASHA_DEPTH - 1) dashaOpen.add(path);
+    siblings = subdivideDasha(siblings[index]);
+  }
+  renderDashaTree();
+  const el = document.querySelector(".dasha-node.running");
+  if (el) el.scrollIntoView({ block: "center" });
+}
+
+document.getElementById("dasha-tree").addEventListener("click", (e) => {
+  const node = e.target.closest(".dasha-node");
+  if (!node) return;
+  const path = node.dataset.path;
+  // Depth is the number of dots in the path; the deepest level has no
+  // children to toggle, so a click there only selects the graha.
+  if (path.split(".").length < MAX_DASHA_DEPTH) {
+    if (dashaOpen.has(path)) dashaOpen.delete(path);
+    else dashaOpen.add(path);
+  }
+  selectedGraha = node.dataset.lord;
+  renderDashaTree();
+  renderGrahaPanel(selectedGraha);
+});
+
+document.getElementById("dasha_expand").addEventListener("click", () => {
+  if (!lastChartData) return;
+  // One level only: opening all four would be thousands of rows.
+  dashaOpen = new Set(lastChartData.vimshottari_dasha.map((_, i) => String(i)));
+  renderDashaTree();
+});
+document.getElementById("dasha_collapse").addEventListener("click", () => {
+  dashaOpen = new Set();
+  renderDashaTree();
+});
+document.getElementById("dasha_current").addEventListener("click", openCurrentChain);
+
+// ------------------------------ graha panel ------------------------------
+
+function renderGrahaPanel(name) {
+  if (!lastChartData || !name) return;
+  const body = lastChartData.positions[name];
+  const houses = lastChartData.varga_houses[name];
+  const panel = document.getElementById("graha-panel");
+  if (!body || !houses) { panel.hidden = true; return; }
+
+  document.getElementById("graha-title").textContent = tPlanet(name);
+
+  const dms = (deg) => {
+    const d = Math.floor(deg);
+    const m = Math.floor((deg - d) * 60);
+    return `${d}\u00b0 ${String(m).padStart(2, "0")}'`;
+  };
+  document.getElementById("graha-facts").innerHTML = `
+    <div class="graha-fact">
+      <div class="graha-fact-label">${t("col_nakshatra")}</div>
+      <div class="graha-fact-value">${tNak(body.nakshatra_index)} (P${body.nakshatra_pada})</div>
+    </div>
+    <div class="graha-fact">
+      <div class="graha-fact-label">${t("h_degree")}</div>
+      <div class="graha-fact-value">${tSign(body.sign_index)} ${dms(body.degree_in_sign)}</div>
+    </div>`;
+
+  document.getElementById("graha-vargas").innerHTML = VARGA_ALL.map((code) => `
+    <div class="graha-varga">
+      <span class="gv-code">${code.replace("D", "D-")}</span>
+      <span class="gv-name">${VARGA_LABELS[code]}</span>
+      <span class="gv-house">${houses[code].house}H</span>
+    </div>`).join("");
+
+  panel.hidden = false;
+}
+
 // --------------------------- language switch ---------------------------
 
 let lastTransitData = null;
@@ -1506,6 +1691,8 @@ function rerenderAll() {
     renderCurrentPeriods(lastChartData.current_periods);
     renderNatalAspects(lastChartData.natal_aspects);
     renderShodashavarga(lastChartData.vargas);
+    renderDashaTree();
+    if (selectedGraha) renderGrahaPanel(selectedGraha);
     if (lastDetailsArgs) renderDetailsTable(lastDetailsArgs);
     if (lastDoshaData) renderDoshas(lastDoshaData);
   }

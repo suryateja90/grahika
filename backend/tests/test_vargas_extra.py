@@ -24,7 +24,8 @@ def test_every_body_gets_every_varga():
     )["bodies"]
     result = vargas.compute_vargas(bodies)
     expected = set(vargas.VARGA_BUILDERS)
-    assert len(expected) == 16, "the Shodashavarga should be all sixteen"
+    assert len(vargas.SHODASHAVARGA) == 16, "the Shodashavarga should be all sixteen"
+    assert len(expected) == 23, "and the panel shows every supported varga"
     for name, per_body in result.items():
         assert set(per_body) == expected, name
         for code, placement in per_body.items():

@@ -187,6 +187,69 @@ def shashtiamsha_sign(longitude: float) -> dict:
     return _named((sign + part) % 12)
 
 
+def _cyclic(longitude: float, divisions: int) -> dict:
+    """The 'count from the sign itself' rule: (sign * N + part) mod 12.
+
+    Used for the vargas outside the classical sixteen, where sources give
+    varying starting points rather than one settled rule. Navamsa follows
+    exactly this shape, which is why it generalises cleanly.
+    """
+    sign, offset = _sign_and_offset(longitude)
+    part = int(offset // (SIGN_SPAN / divisions))
+    return _named((sign * divisions + part) % 12)
+
+
+def panchamsha_sign(longitude: float) -> dict:
+    """D5. Convention-dependent -- see _cyclic."""
+    return _cyclic(longitude, 5)
+
+
+def shashtamsha_sign(longitude: float) -> dict:
+    """D6. Convention-dependent -- see _cyclic."""
+    return _cyclic(longitude, 6)
+
+
+def ashtamsha_sign(longitude: float) -> dict:
+    """D8. Convention-dependent -- see _cyclic."""
+    return _cyclic(longitude, 8)
+
+
+def rudramsha_sign(longitude: float) -> dict:
+    """D11. Convention-dependent -- see _cyclic."""
+    return _cyclic(longitude, 11)
+
+
+def _varga_longitude(longitude: float, divisions: int, sign_index: int) -> float:
+    """Position within a varga expressed as a longitude, so vargas can be
+    composed. The remainder inside a division is stretched back across a
+    full sign."""
+    _, offset = _sign_and_offset(longitude)
+    span = SIGN_SPAN / divisions
+    within = (offset % span) * divisions
+    return sign_index * SIGN_SPAN + within
+
+
+def nav_navamsa_sign(longitude: float) -> dict:
+    """D81. The navamsa of the navamsa -- a composition, not a division."""
+    first = navamsa_sign(longitude)
+    inner = _varga_longitude(longitude, 9, first["sign_index"])
+    return navamsa_sign(inner)
+
+
+def ashtottaramsha_sign(longitude: float) -> dict:
+    """D108. The navamsa of the dwadashamsha (9 x 12)."""
+    first = dwadashamsha_sign(longitude)
+    inner = _varga_longitude(longitude, 12, first["sign_index"])
+    return navamsa_sign(inner)
+
+
+def dwadas_dwadasamsha_sign(longitude: float) -> dict:
+    """D144. The dwadashamsha of the dwadashamsha (12 x 12)."""
+    first = dwadashamsha_sign(longitude)
+    inner = _varga_longitude(longitude, 12, first["sign_index"])
+    return dwadashamsha_sign(inner)
+
+
 # The Shodashavarga -- sixteen divisions. Order matters: this is the
 # sequence the summary table and the picker present them in.
 VARGA_BUILDERS = {
@@ -194,9 +257,13 @@ VARGA_BUILDERS = {
     "D2": hora_sign,
     "D3": dreshkana_sign,
     "D4": chaturthamsha_sign,
+    "D5": panchamsha_sign,
+    "D6": shashtamsha_sign,
     "D7": saptamsha_sign,
+    "D8": ashtamsha_sign,
     "D9": navamsa_sign,
     "D10": dasamsa_sign,
+    "D11": rudramsha_sign,
     "D12": dwadashamsha_sign,
     "D16": shodashamsha_sign,
     "D20": vimshamsha_sign,
@@ -206,7 +273,54 @@ VARGA_BUILDERS = {
     "D40": khavedamsha_sign,
     "D45": akshavedamsha_sign,
     "D60": shashtiamsha_sign,
+    "D81": nav_navamsa_sign,
+    "D108": ashtottaramsha_sign,
+    "D144": dwadas_dwadasamsha_sign,
 }
+
+# The classical sixteen, for the Shodashavarga summary. The rest are shown
+# in the per-graha panel but are not part of that reckoning.
+SHODASHAVARGA = ["D1", "D2", "D3", "D4", "D7", "D9", "D10", "D12",
+                 "D16", "D20", "D24", "D27", "D30", "D40", "D45", "D60"]
+
+# Display names, matching how printed horoscopes abbreviate them.
+VARGA_LABELS = {
+    "D1": "Rasi", "D2": "Hora", "D3": "Drekkana", "D4": "Chaturthamsa",
+    "D5": "Panchamsa", "D6": "Shashtamsa", "D7": "Saptamsa", "D8": "Ashtamsa",
+    "D9": "Navamsa", "D10": "Dasamsa", "D11": "Rudramsa", "D12": "Dwadasamsa",
+    "D16": "Shodasamsa", "D20": "Vimsamsa", "D24": "Chaturvimsamsa",
+    "D27": "Nakshatramsa", "D30": "Trimsamsa", "D40": "Khavedamsa",
+    "D45": "Akshavedamsa", "D60": "Shashtiamsa", "D81": "Nava-Navamsa",
+    "D108": "Ashtottaramsa", "D144": "Dwadas-Dwadasamsa",
+}
+
+
+def varga_houses(bodies: dict) -> dict:
+    """For each body, its house in every varga counted from that varga's
+    OWN Lagna -- i.e. the Ascendant run through the same division.
+
+    Counting from the D1 Ascendant instead would be a different (and much
+    less common) reading; the distinction changes every number here.
+    """
+    asc_longitude = bodies["Ascendant"]["longitude"]
+    lagna_by_varga = {
+        code: build(asc_longitude)["sign_index"]
+        for code, build in VARGA_BUILDERS.items()
+    }
+
+    out = {}
+    for name, data in bodies.items():
+        if name == "Ascendant":
+            continue
+        per_varga = {}
+        for code, build in VARGA_BUILDERS.items():
+            sign = build(data["longitude"])["sign_index"]
+            per_varga[code] = {
+                "sign_index": sign,
+                "house": ((sign - lagna_by_varga[code]) % 12) + 1,
+            }
+        out[name] = per_varga
+    return out
 
 
 def compute_vargas(bodies: dict) -> dict:

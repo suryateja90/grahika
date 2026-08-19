@@ -223,6 +223,81 @@ legend { font-weight: 700; padding: 0 0.4rem; }
   .kundli-svg { max-width: 320px; }
 }
 
+/* ---------------------------- dasha tree ---------------------------- */
+.dasha-panel { margin-bottom: 2rem; }
+.dasha-toolbar { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
+.dasha-toolbar h2 { margin: 0; flex: 1; }
+.dasha-tools { display: flex; gap: 0.6rem; align-items: center; }
+.linky {
+  background: none; border: none; color: inherit; opacity: 0.7;
+  font-size: 0.82rem; padding: 0.2rem 0.1rem; width: auto; align-self: auto;
+}
+.linky:hover { opacity: 1; text-decoration: underline; }
+.chip {
+  background: rgba(128,128,128,0.14); color: inherit; border: none;
+  border-radius: 999px; padding: 0.3rem 0.8rem; font-size: 0.78rem;
+  width: auto; align-self: auto;
+}
+
+.dasha-split { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 1.25rem; align-items: start; }
+.dasha-tree { max-height: 30rem; overflow-y: auto; padding-right: 0.25rem; }
+
+.dasha-node {
+  display: grid;
+  grid-template-columns: 1.1rem auto auto 1fr minmax(60px, 90px) auto;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.55rem 0.7rem;
+  margin-bottom: 0.3rem;
+  border: 1px solid rgba(128,128,128,0.28);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+.dasha-node:hover { background: rgba(128,128,128,0.08); }
+.dasha-node.running { border-color: var(--accent); background: rgba(128,128,128,0.1); }
+.dasha-node.picked .dasha-lord { text-decoration: underline; }
+.dasha-chev { opacity: 0.5; font-size: 0.9rem; }
+.dasha-lord { font-weight: 700; }
+.dasha-now {
+  font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.05em;
+  background: var(--accent); color: var(--accent-fg);
+  padding: 0.1rem 0.4rem; border-radius: 999px;
+}
+.dasha-range { font-size: 0.76rem; opacity: 0.7; white-space: nowrap; }
+.dasha-bar { height: 5px; border-radius: 999px; background: rgba(128,128,128,0.28); overflow: hidden; }
+.dasha-bar i { display: block; height: 100%; background: var(--accent); }
+.dasha-dur { font-size: 0.76rem; opacity: 0.75; white-space: nowrap; text-align: right; }
+/* Indentation carries the nesting; a left rule keeps deep levels readable. */
+.dasha-children { margin-left: 1.1rem; padding-left: 0.6rem; border-left: 1px solid rgba(128,128,128,0.25); }
+
+.graha-panel { border: 1px solid rgba(128,128,128,0.35); border-radius: 10px; padding: 1rem; }
+.graha-panel h3 { margin: 0 0 0.75rem; font-size: 1.1rem; }
+.graha-panel h4 { margin: 1rem 0 0.5rem; font-size: 0.78rem; opacity: 0.7; font-weight: 600; }
+.graha-facts { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+.graha-fact { border: 1px solid rgba(128,128,128,0.3); border-radius: 8px; padding: 0.45rem 0.6rem; text-align: center; }
+.graha-fact-label { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.6; }
+.graha-fact-value { font-size: 0.85rem; font-weight: 700; }
+.graha-vargas { display: grid; grid-template-columns: 1fr 1fr; gap: 0.2rem 0.5rem; }
+.graha-varga {
+  display: grid; grid-template-columns: 2.6rem 1fr auto;
+  gap: 0.35rem; align-items: baseline;
+  font-size: 0.72rem; padding: 0.28rem 0.35rem;
+  border-bottom: 1px solid rgba(128,128,128,0.16);
+}
+.gv-code { opacity: 0.65; }
+.gv-name { opacity: 0.8; }
+.gv-house { font-weight: 700; }
+
+@media (max-width: 720px) {
+  .dasha-split { grid-template-columns: 1fr; }
+  .dasha-node { grid-template-columns: 1rem auto 1fr auto; font-size: 0.8rem; gap: 0.4rem; }
+  /* Range and bar are the first things to go when space runs out; the
+     lord, duration and running badge carry the meaning. */
+  .dasha-range, .dasha-bar { display: none; }
+  .graha-vargas { grid-template-columns: 1fr; }
+}
+
 /* --------------------------- dasha expansion --------------------------- */
 .chart-title { font-size: 0.85rem; font-weight: 600; opacity: 0.7; margin: 0 0 0.55rem; }
 .dasha-row { cursor: pointer; }

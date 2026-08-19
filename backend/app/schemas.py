@@ -20,6 +20,7 @@ class ChartResponse(BaseModel):
     ayanamsa_value: float
     positions: dict
     vargas: dict
+    varga_houses: dict
     vimshottari_dasha: list
     avakhada: dict
     natal_aspects: dict

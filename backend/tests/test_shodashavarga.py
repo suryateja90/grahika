@@ -22,7 +22,10 @@ def deg(sign_index: int, within: float) -> float:
 def test_shodashavarga_has_all_sixteen():
     expected = ["D1", "D2", "D3", "D4", "D7", "D9", "D10", "D12",
                 "D16", "D20", "D24", "D27", "D30", "D40", "D45", "D60"]
-    assert list(vargas.VARGA_BUILDERS) == expected
+    # VARGA_BUILDERS carries more than the classical sixteen now, so the
+    # Shodashavarga is named explicitly rather than being "all of them".
+    assert vargas.SHODASHAVARGA == expected
+    assert all(code in vargas.VARGA_BUILDERS for code in expected)
 
 
 def test_every_varga_stays_inside_the_zodiac():
