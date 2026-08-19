@@ -62,7 +62,11 @@ body {
   margin: 0;
   padding: 2rem 1rem;
 }
-main { max-width: 900px; margin: 0 auto; }
+/* Wide enough for the chart mode's form rail plus its results. The other
+   modes are single-column tools and would sprawl at this width, so they
+   keep the old measure and stay left-aligned with the tab bar above them. */
+main { max-width: 1180px; margin: 0 auto; }
+#mode-horoscope, #mode-matching, #mode-panchanga, #mode-ishta, #mode-reports { max-width: 900px; }
 h1 { margin-bottom: 0; }
 .subtitle { margin-top: 0.25rem; opacity: 0.7; }
 
@@ -163,6 +167,46 @@ details .row { margin-top: 0.5rem; }
    "Personal Daily Horoscope". */
 .tab-short { display: none; }
 
+/* --------------------------- chart work layout --------------------------- */
+/* Form on the left, analysis on the right. Both tracks get min-width:0 so a
+   wide table inside the results can never widen the grid and squeeze the
+   rail -- grid items size to min-content otherwise. */
+.work-split {
+  display: grid;
+  grid-template-columns: minmax(0, 300px) minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+.form-rail {
+  position: sticky;
+  top: 1rem;
+  min-width: 0;
+  border: 1px solid rgba(128, 128, 128, 0.35);
+  border-radius: 10px;
+  padding: 1rem;
+  /* A rail taller than the viewport cannot stick -- its bottom would be
+     unreachable -- so it scrolls within itself instead. */
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+}
+.form-rail form { margin: 0; }
+/* Two fields never fit side by side in 300px; stacking is what wrapping
+   would do anyway, but without the ragged half-empty row. */
+.form-rail .row { flex-direction: column; gap: 0.75rem; }
+.form-rail .row > button { align-self: flex-start; }
+.form-rail button[type="submit"] { align-self: stretch; }
+.work-main { min-width: 0; }
+
+/* Pinned so the section you are in stays visible down a long panel. The
+   background is opaque on purpose: content scrolls underneath it. */
+.analysis-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  background: var(--bg);
+  padding-top: 0.5rem;
+}
+
 .dosha-note { font-size: 0.8rem; opacity: 0.7; }
 .mode-tabs { margin-top: 1.5rem; }
 .mode-tabs .tab-btn { font-size: 1.05rem; padding: 0.7rem 0.4rem; }
@@ -243,6 +287,10 @@ legend { font-weight: 700; padding: 0 0.4rem; }
    so without it the varga grid pushes the column wider than declared and
    the right-hand values get clipped. */
 .dasha-split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 340px); gap: 1.25rem; align-items: start; }
+/* No graha picked yet means the panel is hidden, and an empty 340px track
+   would strand the tree in half its column. Browsers without :has() just
+   keep the reserved space, which is what happened before. */
+.dasha-split:has(> .graha-panel[hidden]) { grid-template-columns: minmax(0, 1fr); }
 .dasha-tree { max-height: 30rem; overflow-y: auto; padding-right: 0.25rem; }
 
 .dasha-node {
@@ -323,8 +371,18 @@ legend { font-weight: 700; padding: 0 0.4rem; }
 .gv-name { opacity: 0.8; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .gv-house { font-weight: 700; }
 
-@media (max-width: 720px) {
+/* Measured, not guessed: the deepest auto-expanded node needs ~449px once
+   its four levels of indent are counted, and the graha panel takes 340 of
+   its own. With the 300px form rail in front of both, the two only fit side
+   by side only once main stops growing at its 1180px cap, which happens at
+   1212px of viewport. Above that the tree is a constant 496px and always
+   fits; below it, the panel drops under the tree rather than squeezing it.
+   The threshold sits at 1240 to keep clear of the cap itself. */
+@media (max-width: 1240px) {
   .dasha-split { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 720px) {
   .dasha-node { grid-template-columns: 1rem auto 1fr auto; font-size: 0.8rem; gap: 0.4rem; }
   /* Range and bar are the first things to go when space runs out; the
      lord, duration and running badge carry the meaning. */
@@ -555,6 +613,28 @@ svg:not(.kundli-svg) text { fill: var(--fg); }
 svg:not(.kundli-svg) line, svg:not(.kundli-svg) polygon { stroke: var(--line); }
 
 /* ------------------------------ responsive ------------------------------ */
+/* The rail collapses well before the phone breakpoint: below roughly 980px a
+   300px sidebar leaves the charts and tables too little room to be worth the
+   split. Above it the form stays pinned; below it the form is just the first
+   thing on the page, as it was before. */
+@media (max-width: 980px) {
+  .work-split { grid-template-columns: 1fr; }
+  .form-rail {
+    position: static;
+    max-height: none;
+    overflow: visible;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+  }
+  .form-rail form { margin: 1.5rem 0; }
+  .form-rail .row { flex-direction: row; }
+  .form-rail button[type="submit"] { align-self: flex-start; }
+  /* Five tabs wrap to three rows on a phone; pinning that much header eats
+     the screen it was meant to save. */
+  .analysis-tabs { position: static; padding-top: 0; }
+}
+
 @media (max-width: 720px) {
   .site-bar { padding: 0.75rem 1rem; }
   .site-bar-brand { font-size: 1.15rem; }
@@ -586,8 +666,9 @@ svg:not(.kundli-svg) line, svg:not(.kundli-svg) polygon { stroke: var(--line); }
      (దినఫలం, పంచాంగం); a second row is better than a clipped word. */
   .mode-tabs { grid-template-columns: repeat(2, 1fr); }
   /* With an odd number of tabs the last one would sit alone in a half-width
-     cell; span it so the block stays rectangular. */
-  .mode-tabs .tab-btn:last-child:nth-child(odd) { grid-column: 1 / -1; }
+     cell; span it so the block stays rectangular. Applies to both tab levels
+     -- the analysis row has five. */
+  .tabs .tab-btn:last-child:nth-child(odd) { grid-column: 1 / -1; }
   #results > .tabs { grid-template-columns: repeat(2, 1fr); }
 
   /* width:auto is load-bearing -- the blanket `button { width: 100% }`

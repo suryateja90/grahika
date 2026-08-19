@@ -111,6 +111,10 @@ const I18N = {
     tab_doshas_short: "Doshas",
     tab_chart_dasha: "Chart & Dasha",
     tab_doshas: "Kaal Sarp & Sade Sati",
+    tab_basic: "Basics", tab_basic_short: "Basics",
+    tab_charts: "Charts", tab_charts_short: "Charts",
+    tab_positions: "Positions", tab_positions_short: "Grahas",
+    tab_dasha: "Dasha", tab_dasha_short: "Dasha",
 
     label_name: "Name (optional)",
     label_birth_date: "Birth date",
@@ -335,6 +339,10 @@ const I18N = {
     tab_doshas_short: "దోషాలు",
     tab_chart_dasha: "జాతకం & దశలు",
     tab_doshas: "కాలసర్ప & ఏలినాటి శని",
+    tab_basic: "వివరాలు", tab_basic_short: "వివరాలు",
+    tab_charts: "చక్రాలు", tab_charts_short: "చక్రాలు",
+    tab_positions: "గ్రహ స్థానాలు", tab_positions_short: "గ్రహాలు",
+    tab_dasha: "దశలు", tab_dasha_short: "దశలు",
 
     label_name: "పేరు (ఐచ్ఛికం)",
     label_birth_date: "పుట్టిన తేదీ",

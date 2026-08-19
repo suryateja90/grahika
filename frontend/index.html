@@ -244,6 +244,11 @@
 
   <!-- ============================ BIRTH CHART ============================ -->
   <section id="mode-chart" class="mode-panel">
+    <!-- Form pinned in its own rail, results beside it. The chart is computed
+         once and every analysis tab re-renders from that same response, so
+         the birth details can stay on screen instead of scrolling away. -->
+    <div class="work-split">
+    <aside class="form-rail">
     <form id="chart-form">
       <div class="row">
         <label data-i18n="label_name">Name (optional) <input type="text" id="person_name" placeholder="e.g. Teja" data-i18n-placeholder="placeholder_name"></label>
@@ -291,16 +296,22 @@
       </div>
       <button type="submit" data-i18n="btn_compute">Compute chart</button>
     </form>
-
     <p id="error" class="error" hidden></p>
+    </aside>
 
+    <div class="work-main">
     <section id="results" hidden>
-      <div class="tabs" role="tablist">
-        <button type="button" class="tab-btn active" data-tab="birth-chart"><span class="tab-full" data-i18n="tab_chart_dasha">Chart &amp; Dasha</span><span class="tab-short" data-i18n="tab_chart_dasha_short">Chart</span></button>
+      <!-- One computation, several views. Splitting the old single scroll
+           into tabs keeps each screen short enough to read on a phone. -->
+      <div class="tabs analysis-tabs" role="tablist">
+        <button type="button" class="tab-btn active" data-tab="basic"><span class="tab-full" data-i18n="tab_basic">Basics</span><span class="tab-short" data-i18n="tab_basic_short">Basics</span></button>
+        <button type="button" class="tab-btn" data-tab="charts"><span class="tab-full" data-i18n="tab_charts">Charts</span><span class="tab-short" data-i18n="tab_charts_short">Charts</span></button>
+        <button type="button" class="tab-btn" data-tab="positions"><span class="tab-full" data-i18n="tab_positions">Positions</span><span class="tab-short" data-i18n="tab_positions_short">Grahas</span></button>
+        <button type="button" class="tab-btn" data-tab="dasha"><span class="tab-full" data-i18n="tab_dasha">Dasha</span><span class="tab-short" data-i18n="tab_dasha_short">Dasha</span></button>
         <button type="button" class="tab-btn" data-tab="doshas"><span class="tab-full" data-i18n="tab_doshas">Kaal Sarp &amp; Sade Sati</span><span class="tab-short" data-i18n="tab_doshas_short">Doshas</span></button>
       </div>
 
-      <div id="tab-birth-chart" class="tab-panel">
+      <div id="tab-basic" class="tab-panel">
         <div class="table-block">
           <h2 data-i18n="h_birth_details">Birth Details</h2>
           <table id="details-table">
@@ -308,6 +319,18 @@
           </table>
         </div>
 
+        <div class="table-block">
+          <h2 data-i18n="h_avakhada">Avakhada Chakra</h2>
+          <div class="pa-grid" id="avakhada-grid"></div>
+        </div>
+
+        <div class="table-block">
+          <h2 data-i18n="h_running">Running Period</h2>
+          <div class="pa-grid" id="current-periods"></div>
+        </div>
+      </div>
+
+      <div id="tab-charts" class="tab-panel" hidden>
         <!-- Both pickers sit above the charts; keeping one inside a chart
              block pushed that chart down and the pair stopped aligning. -->
         <div class="chart-pickers">
@@ -351,10 +374,16 @@
         </div>
 
         <div class="table-block">
-          <h2 data-i18n="h_avakhada">Avakhada Chakra</h2>
-          <div class="pa-grid" id="avakhada-grid"></div>
+          <h2 data-i18n="h_shodashavarga">Shodashavarga Summary</h2>
+          <p class="dosha-note" data-i18n="hint_shodashavarga">The sign each graha occupies across all sixteen divisional charts.</p>
+          <table id="shodashavarga-table">
+            <thead><tr></tr></thead>
+            <tbody></tbody>
+          </table>
         </div>
+      </div>
 
+      <div id="tab-positions" class="tab-panel" hidden>
         <div class="table-block">
           <h2 data-i18n="h_positions">Positions</h2>
           <table id="positions-table">
@@ -364,19 +393,19 @@
         </div>
 
         <div class="table-block">
-          <h2 data-i18n="h_running">Running Period</h2>
-          <div class="pa-grid" id="current-periods"></div>
-        </div>
-
-        <div class="table-block">
-          <h2 data-i18n="h_shodashavarga">Shodashavarga Summary</h2>
-          <p class="dosha-note" data-i18n="hint_shodashavarga">The sign each graha occupies across all sixteen divisional charts.</p>
-          <table id="shodashavarga-table">
-            <thead><tr></tr></thead>
+          <h2 data-i18n="h_natal_aspects">Aspects</h2>
+          <table id="natal-aspect-table">
+            <thead><tr>
+              <th data-i18n="col_graha">Graha</th>
+              <th data-i18n="col_aspects_planets">Aspects</th>
+              <th data-i18n="col_aspects_houses">Houses</th>
+            </tr></thead>
             <tbody></tbody>
           </table>
         </div>
+      </div>
 
+      <div id="tab-dasha" class="tab-panel" hidden>
         <div class="dasha-panel">
           <div class="dasha-toolbar">
             <h2 data-i18n="h_dasha">Vimshottari Mahadasha</h2>
@@ -407,17 +436,6 @@
           </table>
         </div>
 
-        <div class="table-block">
-          <h2 data-i18n="h_natal_aspects">Aspects</h2>
-          <table id="natal-aspect-table">
-            <thead><tr>
-              <th data-i18n="col_graha">Graha</th>
-              <th data-i18n="col_aspects_planets">Aspects</th>
-              <th data-i18n="col_aspects_houses">Houses</th>
-            </tr></thead>
-            <tbody></tbody>
-          </table>
-        </div>
       </div>
 
       <div id="tab-doshas" class="tab-panel" hidden>
@@ -437,6 +455,8 @@
       </div>
 
     </section>
+    </div><!-- /.work-main -->
+    </div><!-- /.work-split -->
   </section>
 
   <!-- ==================== PERSONAL DAILY HOROSCOPE ==================== -->
