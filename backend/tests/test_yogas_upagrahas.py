@@ -6,6 +6,7 @@ of which exactly one can apply, an arithmetic chain that must close on
 itself. Those catch a wrong constant, which spot-checking one birth does
 not.
 """
+import io
 from datetime import datetime, timedelta, timezone
 
 import pytest
@@ -16,6 +17,9 @@ from app.astro.yogas import GRAHAS, NODES
 IST = timezone(timedelta(hours=5, minutes=30))
 BIRTH = datetime(1990, 8, 26, 15, 20, 0, tzinfo=IST)
 LAT, LON = 16.90572, 81.67222
+
+YOGAS_PY = r"D:\grahika-app\backend\app\astro\yogas.py"
+I18N_JS = r"D:\grahika-app\frontend\i18n.js"
 
 
 @pytest.fixture(scope="module")
@@ -169,7 +173,7 @@ def test_exactly_one_sankhya_yoga_always_applies(chart):
     has exactly one name -- so this family can never be silent or double."""
     found = yogas._sankhya_yoga(chart["bodies"])
     assert len(found) == 1
-    assert found[0]["name"].replace(" Yoga", "") in [n for n, _ in yogas.SANKHYA.values()]
+    assert found[0]["key"] in yogas.SANKHYA.values()
 
 
 def test_sankhya_table_covers_every_possible_count():
@@ -177,8 +181,8 @@ def test_sankhya_table_covers_every_possible_count():
 
 
 def test_kemadruma_and_durudhara_are_mutually_exclusive(chart):
-    names = {y["name"] for y in yogas._lunar_yogas(chart["bodies"])}
-    assert not ({"Kemadruma Yoga", "Durudhara Yoga"} <= names)
+    keys = {y["key"] for y in yogas._lunar_yogas(chart["bodies"])}
+    assert not ({"kemadruma", "durudhara"} <= keys)
 
 
 def test_debilitation_sits_opposite_exaltation():
@@ -192,8 +196,8 @@ def test_mahapurusha_requires_both_dignity_and_a_kendra(chart):
     # Put Saturn in Capricorn (its own sign) in the 3rd from the Ascendant.
     asc = bodies["Ascendant"]["sign_index"]
     bodies["Saturn"] = dict(bodies["Saturn"], sign_index=(asc + 2) % 12)
-    names = {y["name"] for y in yogas._mahapurusha(bodies)}
-    assert "Sasa Yoga" not in names
+    keys = {y["key"] for y in yogas._mahapurusha(bodies)}
+    assert "sasa" not in keys
 
 
 def test_benefic_moon_depends_on_elongation(chart):
@@ -250,11 +254,10 @@ def test_no_finding_is_reported_as_both_a_yoga_and_a_dosha(chart):
         bodies = dict(chart["bodies"])
         bodies["Ascendant"] = dict(bodies["Ascendant"], sign_index=sign)
         result = yogas.analyse(bodies)
-        yoga_stems = {y["name"].replace(" Yoga", "") for y in result["yogas"]}
-        dosha_stems = {d["key"] for d in result["doshas"]}
-        yoga_keys = {n.lower().replace(" ", "_").replace("-", "_") for n in yoga_stems}
-        assert not (yoga_keys & dosha_stems), \
-            f"reported in both lists: {yoga_keys & dosha_stems}"
+        yoga_keys = {y["key"] for y in result["yogas"]}
+        dosha_keys = {d["key"] for d in result["doshas"]}
+        assert not (yoga_keys & dosha_keys), \
+            f"reported in both lists: {yoga_keys & dosha_keys}"
 
 
 def test_kalathra_ignores_the_sun_as_an_afflictor(chart):
@@ -332,12 +335,37 @@ def test_analyse_summary_counts_match_the_lists(chart):
     assert by_category == summary["total"], "a yoga carries a category nothing counts"
 
 
-def test_every_yoga_states_the_condition_it_tested(chart):
-    """The condition text is the thing that makes a reading checkable."""
+def test_every_yoga_carries_a_key_the_client_can_render(chart):
+    """The condition text is what makes a reading checkable, and it now
+    lives in the client's message tables. What has to hold here is that
+    every yoga names a key and carries no prose of its own -- prose built
+    server-side is prose a language switch cannot re-render."""
     for yoga in yogas.find_yogas(chart["bodies"]):
-        assert yoga["condition"].strip(), f"{yoga['name']} states no condition"
-        assert yoga["effects"].strip()
+        assert yoga["key"] and yoga["key"].islower()
+        assert "condition" not in yoga and "effects" not in yoga
         assert yoga["chart"] == "D1"
+        assert isinstance(yoga["params"], dict)
+
+
+def test_every_emitted_yoga_key_has_text_in_both_languages():
+    """The generator that writes YOGA_TEXT_I18N checks this too, but it only
+    runs when someone remembers to run it. Adding a yoga without its text
+    should fail the suite, not ship a blank cell."""
+    import json
+    import re
+
+    source = io.open(YOGAS_PY, encoding="utf-8").read()
+    emitted = set(re.findall(r'_yoga\(\s*"(\w+)"', source))
+    emitted |= set(yogas.SANKHYA.values()) | set(yogas.MAHAPURUSHA.values())
+
+    i18n = io.open(I18N_JS, encoding="utf-8").read()
+    block = i18n[i18n.index("const YOGA_TEXT_I18N = {"):]
+    for language in ("en", "te"):
+        section = block[block.index(language + ": {"):]
+        names = section[section.index("name: {"):section.index("condition: {")]
+        have = set(re.findall(r"(\w+):", names)) - {"name"}
+        missing = emitted - have
+        assert not missing, f"{language} is missing yoga text for {sorted(missing)}"
 
 
 def test_yogas_survive_a_full_sweep_of_ascendants(chart):

@@ -397,12 +397,17 @@ function renderYogas(data) {
   if (!yogas.length) {
     tbody.innerHTML = `<tr><td colspan="3">${t("yoga_none")}</td></tr>`;
   } else {
-    tbody.innerHTML = yogas.map((y) => `
+    tbody.innerHTML = yogas.map((y) => {
+      const pack = YOGA_TEXT_I18N[lang()] || YOGA_TEXT_I18N.en;
+      const en = YOGA_TEXT_I18N.en;
+      const p = y.params || {};
+      return `
       <tr>
-        <td>${tName(YOGA_NAME_I18N, y.name)}<div class="yoga-chart">${y.chart}</div></td>
-        <td>${y.condition}</td>
-        <td>${y.effects}</td>
-      </tr>`).join("");
+        <td>${pack.name[y.key] || en.name[y.key] || y.key}<div class="yoga-chart">${y.chart}</div></td>
+        <td>${fillTemplate(pack.condition[y.key] || en.condition[y.key], p, pack)}</td>
+        <td>${fillTemplate(pack.effects[y.key] || en.effects[y.key], p, pack)}</td>
+      </tr>`;
+    }).join("");
   }
 
   // Present first, then the rest -- the absent ones still matter, but they
@@ -444,16 +449,20 @@ function tPlanetList(names) {
   return (names || []).map(tPlanet).join(", ");
 }
 
+// Shared by the yoga and dosha tables. The rules are by shape rather than
+// by an ever-growing switch: a list is a list of grahas, a field named for
+// a lord holds one graha, and a value the pack has a word for is looked up.
+// Anything else -- house numbers, mostly -- goes in as it stands.
 function fillTemplate(template, params, pack) {
   if (!template) return "";
   return template.replace(/\{(\w+)\}/g, (whole, field) => {
-    switch (field) {
-      case "planets": return tPlanetList(params.planets);
-      case "body": return tPlanet(params.body);
-      case "nakshatra": return tNak(params.nakshatra_index);
-      case "direction": return pack.direction[params.direction] || "";
-      default: return params[field] != null ? params[field] : whole;
-    }
+    const value = params[field];
+    if (field === "nakshatra") return tNak(params.nakshatra_index);
+    if (Array.isArray(value)) return tPlanetList(value);
+    if (field === "body" || field.endsWith("_lord")) return tPlanet(value);
+    if (pack.term && pack.term[value] != null) return pack.term[value];
+    if (pack.direction && pack.direction[value] != null) return pack.direction[value];
+    return value != null ? value : whole;
   });
 }
 

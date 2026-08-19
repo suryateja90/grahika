@@ -9,10 +9,12 @@ happens to ship, not a fact about the chart.
 
 What this module does about that:
 
-* Every yoga carries the exact `condition` that was tested, so a reading
-  can be checked rather than taken on trust.
-* `effects` reports what the classical sources claim, and is phrased as
-  such. It is not a prediction.
+* Every yoga names the exact condition that was tested, so a reading can
+  be checked rather than taken on trust. The wording lives in the client's
+  message tables, keyed by the `key` returned here, because the sentence
+  has to render in whichever language is on screen.
+* The effects reported are what the classical sources claim, and are
+  phrased as such. They are not predictions.
 * Only the Rasi chart is examined. Several of these yogas are also read
   in divisional charts, which would change the results.
 * Cancellation rules (bhanga) are deliberately not applied. A yoga listed
@@ -47,19 +49,16 @@ EXALTATION_SIGN = {
 DEBILITATION_SIGN = {name: (sign + 6) % 12 for name, sign in EXALTATION_SIGN.items()}
 
 MAHAPURUSHA = {
-    "Mars": "Ruchaka", "Mercury": "Bhadra", "Jupiter": "Hamsa",
-    "Venus": "Malavya", "Saturn": "Sasa",
+    "Mars": "ruchaka", "Mercury": "bhadra", "Jupiter": "hamsa",
+    "Venus": "malavya", "Saturn": "sasa",
 }
 
-# Number of distinct signs the seven grahas occupy, and the name for it.
+# Number of distinct signs the seven grahas occupy, and the yoga for it.
+# Every chart lands on exactly one of these, so the family can never be
+# silent and can never double up.
 SANKHYA = {
-    1: ("Gola", "all seven grahas stand in a single sign"),
-    2: ("Yuga", "the seven grahas occupy exactly two signs"),
-    3: ("Shoola", "the seven grahas occupy exactly three signs"),
-    4: ("Kedara", "the seven grahas occupy exactly four signs"),
-    5: ("Paasa", "the seven grahas occupy exactly five signs"),
-    6: ("Dama", "the seven grahas occupy exactly six signs"),
-    7: ("Veena", "the seven grahas occupy exactly seven signs"),
+    1: "gola", 2: "yuga", 3: "shoola", 4: "kedara",
+    5: "paasa", 6: "dama", 7: "veena",
 }
 
 # Nakshatras that straddle a rasi junction; a Moon here is Ganda Moola.
@@ -117,53 +116,39 @@ def _benefics(bodies: dict) -> set[str]:
     return benefic
 
 
-def _malefics(bodies: dict) -> set[str]:
-    return (set(GRAHAS) | set(NODES)) - _benefics(bodies)
 
+def _yoga(key, params=None, category="general", chart="D1") -> dict:
+    """A yoga as a message key plus the values that go into it.
 
-def _yoga(name, condition, effects, category="general", chart="D1") -> dict:
+    No prose is built here, for the same reason the doshas build none: the
+    sentence has to be rendered in whichever language is on screen, and one
+    assembled server-side cannot be re-rendered by a language switch.
+    `params` values stay raw -- graha names in English for the client to
+    look up, houses as integers.
+    """
     return {
-        "name": name,
-        "condition": condition,
-        "effects": effects,
+        "key": key,
+        "params": params or {},
         "category": category,
         "chart": chart,
     }
 
 
-# ---------------------------------------------------------------------------
-# yogas
-# ---------------------------------------------------------------------------
-
 def _solar_yogas(bodies: dict) -> list[dict]:
     """Vesi, Vasi and Ubhayachari -- company for the Sun, the Moon excepted."""
     sun_sign = bodies["Sun"]["sign_index"]
-    companions = [n for n in GRAHAS if n != "Sun" and n != "Moon"]
+    companions = [n for n in GRAHAS if n not in ("Sun", "Moon")]
 
     second = [n for n in companions if bodies[n]["sign_index"] == (sun_sign + 1) % 12]
     twelfth = [n for n in companions if bodies[n]["sign_index"] == (sun_sign - 1) % 12]
 
     found = []
     if second:
-        found.append(_yoga(
-            "Vesi Yoga",
-            "A graha other than the Moon stands in the 2nd house from the Sun "
-            f"({', '.join(second)}).",
-            "The texts assign truthfulness, an even temper and a settled livelihood.",
-        ))
+        found.append(_yoga("vesi", {"planets": second}))
     if twelfth:
-        found.append(_yoga(
-            "Vasi Yoga",
-            "A graha other than the Moon stands in the 12th house from the Sun "
-            f"({', '.join(twelfth)}).",
-            "The texts assign skill, generosity, learning and a good name.",
-        ))
+        found.append(_yoga("vasi", {"planets": twelfth}))
     if second and twelfth:
-        found.append(_yoga(
-            "Ubhayachari Yoga",
-            "Grahas other than the Moon flank the Sun on both sides, in the 2nd and the 12th.",
-            "Read as the strongest of the three solar yogas: standing, comfort and articulacy.",
-        ))
+        found.append(_yoga("ubhayachari"))
     return found
 
 
@@ -177,30 +162,13 @@ def _lunar_yogas(bodies: dict) -> list[dict]:
 
     found = []
     if second:
-        found.append(_yoga(
-            "Sunapha Yoga",
-            f"A graha other than the Sun stands in the 2nd from the Moon ({', '.join(second)}).",
-            "Self-earned wealth and a reputation built rather than inherited.",
-        ))
+        found.append(_yoga("sunapha", {"planets": second}))
     if twelfth:
-        found.append(_yoga(
-            "Anapha Yoga",
-            f"A graha other than the Sun stands in the 12th from the Moon ({', '.join(twelfth)}).",
-            "Health, an agreeable nature and freedom from want.",
-        ))
+        found.append(_yoga("anapha", {"planets": twelfth}))
     if second and twelfth:
-        found.append(_yoga(
-            "Durudhara Yoga",
-            "The Moon is flanked by grahas other than the Sun on both sides.",
-            "The texts read this as means, vehicles and dependable support.",
-        ))
+        found.append(_yoga("durudhara"))
     if not second and not twelfth:
-        found.append(_yoga(
-            "Kemadruma Yoga",
-            "No graha other than the Sun stands in the 2nd or the 12th from the Moon.",
-            "Classically an affliction: effort meeting little support. Most commentaries "
-            "cancel it if a graha occupies a kendra from the Moon or from the Ascendant.",
-        ))
+        found.append(_yoga("kemadruma"))
     return found
 
 
@@ -208,22 +176,20 @@ def _mahapurusha(bodies: dict) -> list[dict]:
     """The five great-person yogas: dignity plus a kendra."""
     asc_sign = bodies["Ascendant"]["sign_index"]
     found = []
-    for graha, name in MAHAPURUSHA.items():
+    for graha, key in MAHAPURUSHA.items():
         sign = bodies[graha]["sign_index"]
         house = _house_of(sign, asc_sign)
         if house not in KENDRAS:
             continue
         if sign in OWN_SIGNS[graha]:
-            dignity = "its own sign"
+            dignity = "own"
         elif sign == EXALTATION_SIGN[graha]:
-            dignity = "exaltation"
+            dignity = "exalted"
         else:
             continue
         found.append(_yoga(
-            f"{name} Yoga",
-            f"{graha} stands in {dignity} and in a kendra (house {house}) from the Ascendant.",
-            "One of the five Panch Mahapurusha yogas -- the texts treat these as marks of "
-            "distinction in the affairs the graha governs.",
+            key,
+            {"body": graha, "dignity": dignity, "house": house},
             category="mahapurusha",
         ))
     return found
@@ -232,28 +198,15 @@ def _mahapurusha(bodies: dict) -> list[dict]:
 def _conjunction_yogas(bodies: dict) -> list[dict]:
     found = []
     moon_sign = bodies["Moon"]["sign_index"]
-    jupiter_house_from_moon = _house_of(bodies["Jupiter"]["sign_index"], moon_sign)
-    if jupiter_house_from_moon in KENDRAS:
-        found.append(_yoga(
-            "Gaja-Kesari Yoga",
-            f"Jupiter stands in a kendra from the Moon (house {jupiter_house_from_moon} from it).",
-            "Among the most cited yogas: intelligence, standing and lasting repute.",
-        ))
+    house = _house_of(bodies["Jupiter"]["sign_index"], moon_sign)
+    if house in KENDRAS:
+        found.append(_yoga("gaja_kesari", {"house": house}))
 
     if bodies["Sun"]["sign_index"] == bodies["Mercury"]["sign_index"]:
-        found.append(_yoga(
-            "Budha-Aditya Yoga",
-            "The Sun and Mercury occupy the same sign.",
-            "Sharpness of mind and skill in work. The texts qualify it where Mercury is "
-            "combust, which this check does not test for.",
-        ))
+        found.append(_yoga("budha_aditya"))
 
     if bodies["Moon"]["sign_index"] == bodies["Mars"]["sign_index"]:
-        found.append(_yoga(
-            "Chandra-Mangala Yoga",
-            "The Moon and Mars occupy the same sign.",
-            "Enterprise and earning capacity, with a temper to match.",
-        ))
+        found.append(_yoga("chandra_mangala"))
     return found
 
 
@@ -266,36 +219,23 @@ def _kartari_yogas(bodies: dict) -> list[dict]:
         return []
 
     benefic = _benefics(bodies)
+    params = {"second": second, "twelfth": twelfth}
     found = []
     if all(n in benefic for n in second) and all(n in benefic for n in twelfth):
-        found.append(_yoga(
-            "Shubha Kartari Yoga",
-            f"Benefics flank the Ascendant on both sides -- {', '.join(twelfth)} in the 12th "
-            f"and {', '.join(second)} in the 2nd.",
-            "Protection: the texts read it as difficulty deflected before it arrives.",
-        ))
+        found.append(_yoga("shubha_kartari", params))
     if all(n not in benefic for n in second) and all(n not in benefic for n in twelfth):
-        found.append(_yoga(
-            "Papa Kartari Yoga",
-            f"Malefics flank the Ascendant on both sides -- {', '.join(twelfth)} in the 12th "
-            f"and {', '.join(second)} in the 2nd.",
-            "Constriction: progress described as hemmed in on either side.",
-        ))
+        found.append(_yoga("papa_kartari", params))
     return found
 
 
 def _amala_yoga(bodies: dict) -> list[dict]:
     """Only benefics in the 10th, from the Ascendant or from the Moon."""
     benefic = _benefics(bodies)
-    for label, reference in (("the Ascendant", bodies["Ascendant"]["sign_index"]),
-                             ("the Moon", bodies["Moon"]["sign_index"])):
-        tenth = _occupants(bodies, _sign_of_house(10, reference))
+    for reference, sign in (("lagna", bodies["Ascendant"]["sign_index"]),
+                            ("moon", bodies["Moon"]["sign_index"])):
+        tenth = _occupants(bodies, _sign_of_house(10, sign))
         if tenth and all(n in benefic for n in tenth):
-            return [_yoga(
-                "Amala Yoga",
-                f"Only benefics ({', '.join(tenth)}) occupy the 10th house from {label}.",
-                "Amala means spotless. The texts tie it to a reputation that stays clean.",
-            )]
+            return [_yoga("amala", {"planets": tenth, "reference": reference})]
     return []
 
 
@@ -303,50 +243,31 @@ def _adhi_yoga(bodies: dict) -> list[dict]:
     """Benefics in the 6th, 7th and 8th from the Moon."""
     benefic = _benefics(bodies)
     moon_sign = bodies["Moon"]["sign_index"]
-    houses = {6: [], 7: [], 8: []}
-    for house in houses:
-        houses[house] = [n for n in _occupants(bodies, _sign_of_house(house, moon_sign))
-                         if n in benefic]
-    if all(houses.values()):
-        return [_yoga(
-            "Adhi Yoga",
-            "Benefics occupy the 6th, 7th and 8th houses from the Moon.",
-            "Read as authority and freedom from enemies.",
-        )]
-    return []
+    filled = all(
+        any(n in benefic for n in _occupants(bodies, _sign_of_house(house, moon_sign)))
+        for house in (6, 7, 8)
+    )
+    return [_yoga("adhi")] if filled else []
 
 
 def _sankhya_yoga(bodies: dict) -> list[dict]:
     """Exactly one of these applies to any chart: how spread out the grahas are."""
     signs = {bodies[n]["sign_index"] for n in GRAHAS}
-    name, condition = SANKHYA[len(signs)]
-    effects = {
-        "Gola": "Everything concentrated in one place -- the texts read narrow means and a narrow life.",
-        "Yuga": "Classically an unfavourable spread: effort scattered over too little ground.",
-        "Shoola": "Sharpness, and a tendency to make enemies of the wrong people.",
-        "Kedara": "Read as steadiness, and gain through cultivation and patience.",
-        "Paasa": "Paasa is a noose. The texts warn of constraint, and of talking too much.",
-        "Dama": "Generosity and charity; the texts treat this spread as fortunate.",
-        "Veena": "The grahas evenly spread. Associated with the arts and a well-liked nature.",
-    }[name]
-    return [_yoga(f"{name} Yoga", condition.capitalize() + ".", effects)]
+    return [_yoga(SANKHYA[len(signs)])]
 
 
 def _vipareeta_yogas(bodies: dict) -> list[dict]:
     """A dusthana lord falling into another dusthana -- harm cancelling harm."""
     asc_sign = bodies["Ascendant"]["sign_index"]
-    names = {6: "Harsha", 8: "Sarala", 12: "Vimala"}
+    keys = {6: "harsha", 8: "sarala", 12: "vimala"}
     found = []
-    for house, name in names.items():
+    for house, key in keys.items():
         lord = SIGN_LORDS[_sign_of_house(house, asc_sign)]
         lord_house = _house_of(bodies[lord]["sign_index"], asc_sign)
         if lord_house in DUSTHANAS:
             found.append(_yoga(
-                f"{name} Yoga",
-                f"The lord of the {house}th house ({lord}) stands in the {lord_house}th, "
-                "itself a dusthana.",
-                "A Vipareeta Raja Yoga: the texts read gain arising out of the very difficulty "
-                "the houses signify.",
+                key,
+                {"house": house, "body": lord, "lord_house": lord_house},
                 category="raja",
             ))
     return found
@@ -358,24 +279,21 @@ def _raja_yogas(bodies: dict) -> list[dict]:
     kendra_lords = {SIGN_LORDS[_sign_of_house(h, asc_sign)]: h for h in KENDRAS}
     trikona_lords = {SIGN_LORDS[_sign_of_house(h, asc_sign)]: h for h in TRIKONAS}
 
-    found = []
-    seen = set()
+    found, seen = [], set()
     for k_lord, k_house in kendra_lords.items():
         for t_lord, t_house in trikona_lords.items():
             if k_lord == t_lord:
                 continue
             if bodies[k_lord]["sign_index"] != bodies[t_lord]["sign_index"]:
                 continue
-            key = tuple(sorted((k_lord, t_lord)))
-            if key in seen:
+            pair = tuple(sorted((k_lord, t_lord)))
+            if pair in seen:
                 continue
-            seen.add(key)
+            seen.add(pair)
             found.append(_yoga(
-                "Raja Yoga",
-                f"{k_lord}, lord of the {k_house}th (a kendra), shares a sign with "
-                f"{t_lord}, lord of the {t_house}th (a trikona).",
-                "The classical combination for rank and authority. Its delivery depends on the "
-                "strength of both lords and on the dasha running.",
+                "raja",
+                {"kendra_lord": k_lord, "kendra_house": k_house,
+                 "trikona_lord": t_lord, "trikona_house": t_house},
                 category="raja",
             ))
     return found
@@ -384,27 +302,23 @@ def _raja_yogas(bodies: dict) -> list[dict]:
 def _dhana_yogas(bodies: dict) -> list[dict]:
     """Wealth lords in company with the lords of self, fortune or gain."""
     asc_sign = bodies["Ascendant"]["sign_index"]
-    wealth_houses = (2, 11)
-    support_houses = (1, 5, 9)
-
-    found = []
-    seen = set()
-    for w in wealth_houses:
+    found, seen = [], set()
+    for w in (2, 11):
         w_lord = SIGN_LORDS[_sign_of_house(w, asc_sign)]
-        for s in support_houses:
-            s_lord = SIGN_LORDS[_sign_of_house(s, asc_sign)]
+        for sup in (1, 5, 9):
+            s_lord = SIGN_LORDS[_sign_of_house(sup, asc_sign)]
             if w_lord == s_lord:
                 continue
             if bodies[w_lord]["sign_index"] != bodies[s_lord]["sign_index"]:
                 continue
-            key = tuple(sorted((w_lord, s_lord)))
-            if key in seen:
+            pair = tuple(sorted((w_lord, s_lord)))
+            if pair in seen:
                 continue
-            seen.add(key)
+            seen.add(pair)
             found.append(_yoga(
-                "Dhana Yoga",
-                f"{w_lord}, lord of the {w}th, shares a sign with {s_lord}, lord of the {s}th.",
-                "A wealth combination: the texts read accumulation rather than windfall.",
+                "dhana",
+                {"wealth_lord": w_lord, "wealth_house": w,
+                 "support_lord": s_lord, "support_house": sup},
                 category="dhana",
             ))
     return found
@@ -416,12 +330,11 @@ def _saraswati_yoga(bodies: dict) -> list[dict]:
     houses = {n: _house_of(bodies[n]["sign_index"], asc_sign)
               for n in ("Jupiter", "Venus", "Mercury")}
     if all(h in allowed for h in houses.values()):
-        placed = ", ".join(f"{n} in the {h}th" for n, h in houses.items())
-        return [_yoga(
-            "Saraswati Yoga",
-            f"Jupiter, Venus and Mercury all stand in a kendra, a trikona or the 2nd ({placed}).",
-            "Learning, expression and skill in the arts.",
-        )]
+        return [_yoga("saraswati", {
+            "jupiter_house": houses["Jupiter"],
+            "venus_house": houses["Venus"],
+            "mercury_house": houses["Mercury"],
+        })]
     return []
 
 
@@ -433,38 +346,19 @@ def _parvata_yoga(bodies: dict) -> list[dict]:
     sixth_eighth = [n for n in GRAHAS + NODES
                     if _house_of(bodies[n]["sign_index"], asc_sign) in (6, 8)]
     if in_kendra and not sixth_eighth:
-        return [_yoga(
-            "Parvata Yoga",
-            f"Benefics occupy kendras ({', '.join(in_kendra)}) while the 6th and 8th houses "
-            "are both empty.",
-            "Read as eminence and a fortunate, well-supported life.",
-        )]
+        return [_yoga("parvata", {"planets": in_kendra})]
     return []
 
 
 def _shakata_yoga(bodies: dict) -> list[dict]:
     house = _house_of(bodies["Moon"]["sign_index"], bodies["Jupiter"]["sign_index"])
-    if house in DUSTHANAS:
-        return [_yoga(
-            "Shakata Yoga",
-            f"The Moon stands in the {house}th house from Jupiter.",
-            "Shakata is a cartwheel: fortune described as rising and falling in turn. "
-            "Commentaries cancel it when the Moon occupies a kendra from the Ascendant.",
-        )]
-    return []
+    return [_yoga("shakata", {"house": house})] if house in DUSTHANAS else []
 
 
 def _debilitation_yogas(bodies: dict) -> list[dict]:
     """Grahas in their sign of fall, reported plainly rather than as a yoga."""
     fallen = [n for n in GRAHAS if bodies[n]["sign_index"] == DEBILITATION_SIGN[n]]
-    if not fallen:
-        return []
-    return [_yoga(
-        "Neecha Graha",
-        f"{', '.join(fallen)} stands in its sign of debilitation.",
-        "Listed for completeness. Several cancellation rules (Neecha Bhanga) can reverse this "
-        "entirely; none of them are applied here.",
-    )]
+    return [_yoga("neecha_graha", {"planets": fallen})] if fallen else []
 
 
 YOGA_CHECKS = (
