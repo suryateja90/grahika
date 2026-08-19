@@ -65,6 +65,16 @@ SANKHYA = {
 # Nakshatras that straddle a rasi junction; a Moon here is Ganda Moola.
 GANDA_MOOLA_NAKSHATRAS = {0, 8, 9, 17, 18, 26}
 
+# Afflictors for the conjunction-based dosha tests. The Sun is a natural
+# malefic but deliberately excluded here, because Mercury never strays more
+# than 28 degrees from it and Venus never more than 48 -- so "Venus sits
+# with the Sun" or "Mercury sits with the Sun" fires in roughly half of all
+# charts and carries no information. Using it as a trigger made Kalathra
+# report an affliction on the same conjunction that Budha-Aditya reports as
+# a benefit. Occupation of a house is a different matter and still counts
+# the Sun, since that is a specific placement rather than a near-certainty.
+HARD_MALEFICS = {"Mars", "Saturn", "Rahu", "Ketu"}
+
 
 # ---------------------------------------------------------------------------
 # chart helpers
@@ -610,13 +620,13 @@ def find_doshas(bodies: dict) -> list[dict]:
     if in_seventh:
         kalathra_reasons.append(f"{', '.join(in_seventh)} occupies the 7th house.")
     with_lord = [n for n in _occupants(bodies, bodies[seventh_lord]["sign_index"])
-                 if n in malefic and n != seventh_lord]
+                 if n in HARD_MALEFICS and n != seventh_lord]
     if with_lord:
         kalathra_reasons.append(
             f"The 7th lord {seventh_lord} shares a sign with {', '.join(with_lord)}."
         )
     with_venus = [n for n in _occupants(bodies, bodies["Venus"]["sign_index"])
-                  if n in malefic and n != "Venus"]
+                  if n in HARD_MALEFICS and n != "Venus"]
     if with_venus:
         kalathra_reasons.append(f"Venus shares a sign with {', '.join(with_venus)}.")
     out.append(_dosha(
@@ -629,29 +639,10 @@ def find_doshas(bodies: dict) -> list[dict]:
         kalathra_reasons,
     ))
 
-    # --- Shakata ----------------------------------------------------------
-    shakata_house = _house_of(bodies["Moon"]["sign_index"], bodies["Jupiter"]["sign_index"])
-    out.append(_dosha(
-        "Shakata Dosha",
-        shakata_house in DUSTHANAS,
-        f"The Moon stands in the {shakata_house}th house from Jupiter, so fortune is described "
-        "as turning like a cartwheel. Commentaries cancel it when the Moon holds a kendra from "
-        "the Ascendant."
-        if shakata_house in DUSTHANAS else
-        f"The Moon stands in the {shakata_house}th from Jupiter, outside the 6th, 8th and 12th.",
-    ))
-
-    # --- Kemadruma --------------------------------------------------------
-    moon_sign = bodies["Moon"]["sign_index"]
-    neighbours = [n for n in GRAHAS if n not in ("Sun", "Moon")
-                  and bodies[n]["sign_index"] in ((moon_sign + 1) % 12, (moon_sign - 1) % 12)]
-    out.append(_dosha(
-        "Kemadruma Dosha",
-        not neighbours,
-        "No graha other than the Sun flanks the Moon on either side, leaving it unsupported."
-        if not neighbours else
-        f"The Moon is flanked by {', '.join(neighbours)}, so the dosha does not form.",
-    ))
+    # Shakata and Kemadruma are deliberately absent from this list. Both are
+    # classically Chandra *yogas* and are already reported as such above;
+    # listing them here too counted one finding twice and inflated the
+    # "doshas present" total. test_no_finding_is_reported_as_both guards it.
 
     return out
 

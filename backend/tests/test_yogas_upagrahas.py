@@ -224,6 +224,46 @@ def test_every_dosha_is_reported_present_or_not(chart):
         assert dosha["description"], f"{dosha['name']} has no description"
 
 
+def test_no_finding_is_reported_as_both_a_yoga_and_a_dosha(chart):
+    """Kemadruma and Shakata used to appear in both lists, so one finding
+    was counted twice and the doshas-present total ran high. Swept across
+    every Ascendant because a duplicate can hide in a chart that happens
+    not to have the combination."""
+    for sign in range(12):
+        bodies = dict(chart["bodies"])
+        bodies["Ascendant"] = dict(bodies["Ascendant"], sign_index=sign)
+        result = yogas.analyse(bodies)
+        yoga_stems = {y["name"].replace(" Yoga", "") for y in result["yogas"]}
+        dosha_stems = {d["name"].replace(" Dosha", "") for d in result["doshas"]}
+        assert not (yoga_stems & dosha_stems), \
+            f"reported in both lists: {yoga_stems & dosha_stems}"
+
+
+def test_kalathra_ignores_the_sun_as_an_afflictor(chart):
+    """Mercury is never more than 28 degrees from the Sun and Venus never
+    more than 48, so a shared sign with the Sun fires in about half of all
+    charts. Counting it made Kalathra call an affliction on the very
+    conjunction Budha-Aditya calls a benefit."""
+    assert "Sun" not in yogas.HARD_MALEFICS
+
+    bodies = dict(chart["bodies"])
+    asc = bodies["Ascendant"]["sign_index"]
+    seventh = (asc + 6) % 12
+    from app.astro.matching import SIGN_LORDS
+    seventh_lord = SIGN_LORDS[seventh]
+
+    # Park the Sun, the 7th lord and Venus together, away from the 7th and
+    # with no hard malefic anywhere near, and nothing should trigger.
+    parking = (asc + 2) % 12
+    for name in ("Sun", "Venus", seventh_lord):
+        bodies[name] = dict(bodies[name], sign_index=parking)
+    for name in ("Mars", "Saturn", "Rahu", "Ketu"):
+        bodies[name] = dict(bodies[name], sign_index=(asc + 4) % 12)
+
+    found = {d["name"]: d for d in yogas.find_doshas(bodies)}
+    assert found["Kalathra Dosha"]["present"] is False
+
+
 def test_kala_sarpa_and_mangal_match_their_own_modules(chart):
     """These two are shared with the doshas tab and the matching tab. If
     they ever diverge, one chart would be told two different stories."""
