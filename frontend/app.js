@@ -411,16 +411,68 @@ function renderYogas(data) {
   document.getElementById("dosha-list").innerHTML = doshas.map((d) => `
     <div class="dosha-row${d.present ? " is-present" : ""}">
       <div class="dosha-head">
-        <span class="dosha-name">${tName(DOSHA_NAME_I18N, d.name)}</span>
+        <span class="dosha-name">${doshaName(d.key)}</span>
         <span class="dosha-status">${d.present ? t("dosha_present") : t("dosha_absent")}</span>
       </div>
-      <p class="dosha-desc">${d.description}</p>
+      <p class="dosha-desc">${doshaText(d)}</p>
       ${d.reasons && d.reasons.length ? `
         <div class="dosha-reasons">
           <strong>${t("dosha_reasons")}</strong>
-          <ul>${d.reasons.map((r) => `<li>${r}</li>`).join("")}</ul>
+          <ul>${d.reasons.map((r) => `<li>${doshaReason(r)}</li>`).join("")}</ul>
         </div>` : ""}
     </div>`).join("");
+}
+
+// The API sends a message key and the values that go into it, never a
+// finished sentence -- so a language switch re-renders the whole tab from
+// the response already in hand, with no request and nothing left in
+// English. Falling back to `en` keeps a newly added dosha readable rather
+// than blank if its translation has not landed yet.
+function doshaPack() {
+  return DOSHA_I18N[lang()] || DOSHA_I18N.en;
+}
+
+function doshaName(key) {
+  const pack = doshaPack();
+  return pack.name[key] || DOSHA_I18N.en.name[key] || key;
+}
+
+// Graha names are joined with the language's own list separator; Telugu
+// takes the same comma here, but the join lives in one place so it is a
+// one-line change if that stops being true.
+function tPlanetList(names) {
+  return (names || []).map(tPlanet).join(", ");
+}
+
+function fillTemplate(template, params, pack) {
+  if (!template) return "";
+  return template.replace(/\{(\w+)\}/g, (whole, field) => {
+    switch (field) {
+      case "planets": return tPlanetList(params.planets);
+      case "body": return tPlanet(params.body);
+      case "nakshatra": return tNak(params.nakshatra_index);
+      case "direction": return pack.direction[params.direction] || "";
+      default: return params[field] != null ? params[field] : whole;
+    }
+  });
+}
+
+function doshaText(dosha) {
+  const pack = doshaPack();
+  const params = dosha.params || {};
+  const table = dosha.present ? pack.present : pack.absent;
+  const fallback = dosha.present ? DOSHA_I18N.en.present : DOSHA_I18N.en.absent;
+  // A dosha can fall short in more than one way, and saying "nothing was
+  // found" when something was found but did not suffice would be false.
+  // `variant` lets the backend pick the message that fits what it saw.
+  const key = params.variant || dosha.key;
+  return fillTemplate(table[key] || fallback[key] || fallback[dosha.key], params, pack);
+}
+
+function doshaReason(reason) {
+  const pack = doshaPack();
+  const template = pack.reason[reason.key] || DOSHA_I18N.en.reason[reason.key];
+  return fillTemplate(template, reason.params || {}, pack);
 }
 
 function renderPositionsTable(positions) {

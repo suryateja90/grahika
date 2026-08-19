@@ -484,14 +484,29 @@ def find_yogas(bodies: dict) -> list[dict]:
 # ---------------------------------------------------------------------------
 # doshas
 # ---------------------------------------------------------------------------
+# No prose is built here. Each dosha returns a message *key* and the values
+# that go into it, and the client renders the sentence in whichever language
+# is on screen -- the same arrangement the rest of the API uses for signs and
+# nakshatras. Building the sentence server-side would have meant a round trip
+# on every language switch, and would have left the Telugu page reading half
+# in English, which is what it did before this.
+#
+# `params` values stay in their raw form: graha names in English for the
+# client to look up, house numbers as integers, nakshatras as indices.
 
-def _dosha(name, present, description, reasons=None) -> dict:
+
+def _dosha(key, present, params=None, reasons=None) -> dict:
     return {
-        "name": name,
+        "key": key,
         "present": present,
-        "description": description,
+        "params": params or {},
+        # Each reason is itself a key plus params, for the same reason.
         "reasons": reasons or [],
     }
+
+
+def _reason(key, **params) -> dict:
+    return {"key": key, "params": params}
 
 
 def find_doshas(bodies: dict) -> list[dict]:
@@ -502,142 +517,107 @@ def find_doshas(bodies: dict) -> list[dict]:
     the check that says otherwise, not silence.
     """
     asc_sign = bodies["Ascendant"]["sign_index"]
-    node_signs = {bodies["Rahu"]["sign_index"], bodies["Ketu"]["sign_index"]}
-    malefic = _malefics(bodies)
     out = []
 
     # --- Kala Sarpa: taken from the existing implementation ---------------
     kaal = dosha_module.kaal_sarp_yoga(bodies)
     out.append(_dosha(
-        "Kala Sarpa Dosha",
+        "kala_sarpa",
         kaal["present"],
-        "Every one of the seven classical grahas falls on one side of the Rahu-Ketu axis."
-        + (f" Here they lie {kaal['direction']}." if kaal["present"] else
-           " Here at least one graha falls outside that arc, so the dosha does not form."),
+        {"direction": "rahu_ketu" if kaal.get("direction") == "Rahu to Ketu" else "ketu_rahu"},
     ))
 
     # --- Mangal: taken from the matching module --------------------------
     mangal = mangal_dosha(bodies)
     reasons = []
     if mangal["from_lagna"]:
-        reasons.append(f"Mars occupies the {mangal['mars_house_from_lagna']}th house from the Ascendant.")
+        reasons.append(_reason("mars_house_lagna", house=mangal["mars_house_from_lagna"]))
     if mangal["from_moon"]:
-        reasons.append(f"Mars occupies the {mangal['mars_house_from_moon']}th house from the Moon.")
-    out.append(_dosha(
-        "Manglik (Mangal) Dosha",
-        mangal["present"],
-        "Mars in the 1st, 2nd, 4th, 7th, 8th or 12th house is held to strain marriage. "
-        "Whether the 2nd counts, and whether to reckon from the Moon as well as the "
-        "Ascendant, varies by region -- both readings are shown."
-        if mangal["present"] else
-        "Mars falls outside the houses that raise this dosha, reckoned from the Ascendant.",
-        reasons,
-    ))
+        reasons.append(_reason("mars_house_moon", house=mangal["mars_house_from_moon"]))
+    out.append(_dosha("manglik", mangal["present"], reasons=reasons))
 
     # --- Guru Chandala ----------------------------------------------------
     jupiter_sign = bodies["Jupiter"]["sign_index"]
     with_node = [n for n in NODES if bodies[n]["sign_index"] == jupiter_sign]
-    out.append(_dosha(
-        "Guru Chandala Dosha",
-        bool(with_node),
-        f"Jupiter shares a sign with {' and '.join(with_node)}. The texts read the teacher's "
-        "counsel as clouded, though many commentaries treat Jupiter with Ketu as a spiritual "
-        "combination rather than an affliction, and read it as a yoga where Jupiter is the "
-        "stronger of the two."
-        if with_node else
-        "Jupiter shares a sign with neither Rahu nor Ketu, so this dosha does not form.",
-    ))
+    out.append(_dosha("guru_chandala", bool(with_node), {"planets": with_node}))
 
     # --- Angarak ----------------------------------------------------------
-    mars_sign = bodies["Mars"]["sign_index"]
-    mars_node = [n for n in NODES if bodies[n]["sign_index"] == mars_sign]
-    out.append(_dosha(
-        "Angarak Dosha",
-        bool(mars_node),
-        f"Mars shares a sign with {' and '.join(mars_node)} -- heat meeting a node. The texts "
-        "read impulsiveness and quarrels."
-        if mars_node else
-        "Mars shares a sign with neither Rahu nor Ketu.",
-    ))
+    mars_node = [n for n in NODES if bodies[n]["sign_index"] == bodies["Mars"]["sign_index"]]
+    out.append(_dosha("angarak", bool(mars_node), {"planets": mars_node}))
 
     # --- Grahan and Pitru -------------------------------------------------
-    luminary_afflicted = []
+    luminary_reasons = []
     for luminary in ("Sun", "Moon"):
         shared = [n for n in NODES if bodies[n]["sign_index"] == bodies[luminary]["sign_index"]]
         if shared:
-            luminary_afflicted.append(f"{luminary} shares a sign with {' and '.join(shared)}.")
-    out.append(_dosha(
-        "Grahan Dosha",
-        bool(luminary_afflicted),
-        "A luminary standing with a node is the eclipse pattern the name refers to."
-        if luminary_afflicted else
-        "Neither the Sun nor the Moon shares a sign with a node.",
-        luminary_afflicted,
-    ))
+            luminary_reasons.append(
+                _reason("body_with_planets", body=luminary, planets=shared)
+            )
+    out.append(_dosha("grahan", bool(luminary_reasons), reasons=luminary_reasons))
 
-    pitru_reasons = list(luminary_afflicted)
+    pitru_reasons = list(luminary_reasons)
     # The 9th is the house of the father and the forebears, so a luminary
     # or a node standing there counts on its own -- this is the broader of
     # the two readings in circulation, and the one reference almanacs use.
     ninth_sign = _sign_of_house(9, asc_sign)
     in_ninth = [n for n in ("Sun", "Moon", "Rahu") if bodies[n]["sign_index"] == ninth_sign]
     if in_ninth:
-        pitru_reasons.append(f"{', '.join(in_ninth)} occupies the 9th house.")
+        pitru_reasons.append(_reason("in_ninth_house", planets=in_ninth))
     for body in ("Sun", "Moon", "Rahu", "Ketu"):
         hard = [m for m in ("Mars", "Saturn")
                 if bodies[m]["sign_index"] == bodies[body]["sign_index"]]
         if hard:
-            pitru_reasons.append(f"{body} shares a sign with {' and '.join(hard)}.")
-    out.append(_dosha(
-        "Pitru Dosha",
-        bool(pitru_reasons),
-        "Read as an ancestral debt, indicated when the luminaries or the 9th house are "
-        "afflicted by the nodes or by Saturn and Mars. The conditions vary considerably by "
-        "source; the ones that matched are listed."
-        if pitru_reasons else
-        "The luminaries and the 9th house are free of the afflictions that raise this dosha.",
-        pitru_reasons,
-    ))
+            pitru_reasons.append(_reason("body_with_planets", body=body, planets=hard))
+    out.append(_dosha("pitru", bool(pitru_reasons), reasons=pitru_reasons))
 
     # --- Ganda Moola ------------------------------------------------------
     moon_nakshatra = bodies["Moon"]["nakshatra_index"]
-    is_moola = moon_nakshatra in GANDA_MOOLA_NAKSHATRAS
     out.append(_dosha(
-        "Ganda Moola Dosha",
-        is_moola,
-        f"The Moon occupies {bodies['Moon']['nakshatra']}, one of the six nakshatras that "
-        "straddle a rasi junction. Traditionally a shanti is performed; the texts tie the "
-        "affliction to the first years of life rather than the whole of it."
-        if is_moola else
-        f"The Moon occupies {bodies['Moon']['nakshatra']}, which is not a junction nakshatra.",
+        "ganda_moola",
+        moon_nakshatra in GANDA_MOOLA_NAKSHATRAS,
+        {"nakshatra_index": moon_nakshatra},
     ))
 
     # --- Kalathra ---------------------------------------------------------
+    # Kalathra means the spouse, and the dosha is named for the 7th house.
+    # The house and its lord are therefore what raise it; Venus is the
+    # karaka and corroborates, but an afflicted Venus alone is not enough.
+    # That split matters -- Venus never strays more than 48 degrees from the
+    # Sun and shares a sign with a node often, so treating it as a trigger
+    # in its own right made this the most-reported dosha in the list.
     seventh_sign = _sign_of_house(7, asc_sign)
     seventh_lord = SIGN_LORDS[seventh_sign]
-    kalathra_reasons = []
-    in_seventh = [n for n in _occupants(bodies, seventh_sign) if n in malefic]
+    primary, corroborating = [], []
+
+    # Occupation of the 7th counts the Sun; the conjunction tests below do
+    # not. See HARD_MALEFICS for why.
+    in_seventh = [n for n in _occupants(bodies, seventh_sign)
+                  if n in HARD_MALEFICS or n == "Sun"]
     if in_seventh:
-        kalathra_reasons.append(f"{', '.join(in_seventh)} occupies the 7th house.")
+        primary.append(_reason("malefic_in_seventh", planets=in_seventh))
+
     with_lord = [n for n in _occupants(bodies, bodies[seventh_lord]["sign_index"])
                  if n in HARD_MALEFICS and n != seventh_lord]
     if with_lord:
-        kalathra_reasons.append(
-            f"The 7th lord {seventh_lord} shares a sign with {', '.join(with_lord)}."
-        )
+        primary.append(_reason("seventh_lord_with", body=seventh_lord, planets=with_lord))
+
     with_venus = [n for n in _occupants(bodies, bodies["Venus"]["sign_index"])
                   if n in HARD_MALEFICS and n != "Venus"]
     if with_venus:
-        kalathra_reasons.append(f"Venus shares a sign with {', '.join(with_venus)}.")
-    out.append(_dosha(
-        "Kalathra Dosha",
-        bool(kalathra_reasons),
-        "Malefic pressure on the 7th house, its lord, or Venus -- the three significators of "
-        "the spouse. This is an indication to weigh, not a verdict on a marriage."
-        if kalathra_reasons else
-        "The 7th house, its lord and Venus are all free of malefic company.",
-        kalathra_reasons,
-    ))
+        corroborating.append(_reason("body_with_planets", body="Venus", planets=with_venus))
+
+    if primary:
+        out.append(_dosha("kalathra", True, reasons=primary + corroborating))
+    elif corroborating:
+        # Reporting "all three are clear" here would be false -- Venus is
+        # not. A distinct message says what was found and why it falls short
+        # of raising the dosha.
+        out.append(_dosha(
+            "kalathra", False,
+            {"variant": "kalathra_venus_only", "planets": with_venus},
+        ))
+    else:
+        out.append(_dosha("kalathra", False))
 
     # Shakata and Kemadruma are deliberately absent from this list. Both are
     # classically Chandra *yogas* and are already reported as such above;

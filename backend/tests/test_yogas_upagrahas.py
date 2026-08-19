@@ -11,6 +11,7 @@ from datetime import datetime, timedelta, timezone
 import pytest
 
 from app.astro import ephemeris, panchanga, special_lagnas, upagrahas, yogas
+from app.astro.yogas import GRAHAS, NODES
 
 IST = timezone(timedelta(hours=5, minutes=30))
 BIRTH = datetime(1990, 8, 26, 15, 20, 0, tzinfo=IST)
@@ -217,11 +218,27 @@ def test_every_dosha_is_reported_present_or_not(chart):
     """Silence about an absent dosha is worse than useless -- a reader who
     has been told they are Manglik needs to see the check that disagrees."""
     found = yogas.find_doshas(chart["bodies"])
-    names = [d["name"] for d in found]
-    assert len(names) == len(set(names)), "a dosha was reported twice"
+    keys = [d["key"] for d in found]
+    assert len(keys) == len(set(keys)), "a dosha was reported twice"
     for dosha in found:
         assert isinstance(dosha["present"], bool)
-        assert dosha["description"], f"{dosha['name']} has no description"
+        assert dosha["key"] and dosha["key"].islower()
+
+
+def test_doshas_carry_no_prose_for_the_client_to_be_stuck_with(chart):
+    """The point of the key/params shape is that the sentence is built in
+    whichever language is on screen. A stray English string here would put
+    us back to a half-translated page that no language switch can fix."""
+    for dosha in yogas.find_doshas(chart["bodies"]):
+        assert "description" not in dosha
+        for value in dosha["params"].values():
+            assert not isinstance(value, str) or "  " not in value
+        for reason in dosha["reasons"]:
+            assert set(reason) == {"key", "params"}
+            # Graha names are looked up by the client, so they are the one
+            # kind of English that belongs here.
+            for name in reason["params"].get("planets", []):
+                assert name in GRAHAS + NODES
 
 
 def test_no_finding_is_reported_as_both_a_yoga_and_a_dosha(chart):
@@ -234,9 +251,10 @@ def test_no_finding_is_reported_as_both_a_yoga_and_a_dosha(chart):
         bodies["Ascendant"] = dict(bodies["Ascendant"], sign_index=sign)
         result = yogas.analyse(bodies)
         yoga_stems = {y["name"].replace(" Yoga", "") for y in result["yogas"]}
-        dosha_stems = {d["name"].replace(" Dosha", "") for d in result["doshas"]}
-        assert not (yoga_stems & dosha_stems), \
-            f"reported in both lists: {yoga_stems & dosha_stems}"
+        dosha_stems = {d["key"] for d in result["doshas"]}
+        yoga_keys = {n.lower().replace(" ", "_").replace("-", "_") for n in yoga_stems}
+        assert not (yoga_keys & dosha_stems), \
+            f"reported in both lists: {yoga_keys & dosha_stems}"
 
 
 def test_kalathra_ignores_the_sun_as_an_afflictor(chart):
@@ -260,8 +278,36 @@ def test_kalathra_ignores_the_sun_as_an_afflictor(chart):
     for name in ("Mars", "Saturn", "Rahu", "Ketu"):
         bodies[name] = dict(bodies[name], sign_index=(asc + 4) % 12)
 
-    found = {d["name"]: d for d in yogas.find_doshas(bodies)}
-    assert found["Kalathra Dosha"]["present"] is False
+    found = {d["key"]: d for d in yogas.find_doshas(bodies)}
+    assert found["kalathra"]["present"] is False
+
+
+def test_afflicted_venus_alone_does_not_raise_kalathra(chart):
+    """The dosha is named for the 7th house, so the house or its lord has
+    to be hit. Venus is the karaka and corroborates; on its own it is not
+    enough, or the dosha fires far too readily.
+
+    The absent message must still say what was found -- claiming all three
+    significators are clear when Venus is not would be a lie of omission.
+    """
+    bodies = dict(chart["bodies"])
+    asc = bodies["Ascendant"]["sign_index"]
+    seventh = (asc + 6) % 12
+    from app.astro.matching import SIGN_LORDS
+    seventh_lord = SIGN_LORDS[seventh]
+
+    clear = (asc + 1) % 12
+    venus_sign = (asc + 3) % 12
+    for name in ("Mars", "Saturn", "Rahu", "Sun"):
+        bodies[name] = dict(bodies[name], sign_index=clear)
+    bodies[seventh_lord] = dict(bodies[seventh_lord], sign_index=(asc + 2) % 12)
+    bodies["Venus"] = dict(bodies["Venus"], sign_index=venus_sign)
+    bodies["Ketu"] = dict(bodies["Ketu"], sign_index=venus_sign)
+
+    found = {d["key"]: d for d in yogas.find_doshas(bodies)}["kalathra"]
+    assert found["present"] is False
+    assert found["params"].get("variant") == "kalathra_venus_only"
+    assert found["params"]["planets"] == ["Ketu"]
 
 
 def test_kala_sarpa_and_mangal_match_their_own_modules(chart):
@@ -270,10 +316,10 @@ def test_kala_sarpa_and_mangal_match_their_own_modules(chart):
     from app.astro import doshas as dosha_module
     from app.astro.matching import mangal_dosha
 
-    found = {d["name"]: d for d in yogas.find_doshas(chart["bodies"])}
-    assert found["Kala Sarpa Dosha"]["present"] == \
+    found = {d["key"]: d for d in yogas.find_doshas(chart["bodies"])}
+    assert found["kala_sarpa"]["present"] == \
         dosha_module.kaal_sarp_yoga(chart["bodies"])["present"]
-    assert found["Manglik (Mangal) Dosha"]["present"] == \
+    assert found["manglik"]["present"] == \
         mangal_dosha(chart["bodies"])["present"]
 
 
