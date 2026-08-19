@@ -1616,6 +1616,52 @@ document.getElementById("dasha_current").addEventListener("click", openCurrentCh
 
 // ------------------------------ graha panel ------------------------------
 
+
+// Component order follows the printed layout rather than the classical
+// order, so the eye lands on positional and temporal first -- the two
+// that usually dominate the total.
+const SHADBALA_ROWS = [
+  ["sthana", "sb_sthana", "\ud83d\udccd", null],
+  ["dig", "sb_dig", "\ud83e\udded", 60],
+  ["kala", "sb_kala", "\u23f0", null],
+  ["drik", "sb_drik", "\ud83d\udc41\ufe0f", null],
+  ["cheshta", "sb_cheshta", "\ud83d\udd04", null],
+  ["naisargika", "sb_naisargika", "\u2b50", "fixed"],
+];
+
+function renderShadbala(name) {
+  const slot = document.getElementById("graha-shadbala");
+  const sb = lastChartData && lastChartData.shadbala && lastChartData.shadbala[name];
+  if (!sb) { slot.innerHTML = ""; return; }
+
+  const percent = Math.round(sb.ratio * 1000) / 10;
+  const rows = SHADBALA_ROWS.map(([key, label, icon, suffix]) => {
+    const value = sb[key];
+    const extra = suffix === "fixed" ? ` <span class="sb-suffix">(${t("sb_fixed")})</span>`
+                : suffix ? ` <span class="sb-suffix">/${suffix}</span>` : "";
+    return `<div class="sb-row">
+      <span class="sb-name"><span class="pa-ico">${icon}</span>${t(label)}</span>
+      <span class="sb-val${value < 0 ? " negative" : ""}">${value.toFixed(1)}${extra}</span>
+    </div>`;
+  }).join("");
+
+  slot.innerHTML = `
+    <h4>${t("h_shadbala")}</h4>
+    <div class="sb-total">
+      <span>${t("sb_total")}</span>
+      <span class="sb-total-val">${sb.total.toFixed(2)} / ${sb.required.toFixed(0)}
+        <span class="sb-pct">${percent}%</span></span>
+    </div>
+    <div class="sb-bar"><i style="width:${Math.min(100, percent)}%"></i></div>
+    <div class="sb-meta">
+      <span>${t("sb_ratio")}: ${sb.ratio.toFixed(2)}</span>
+      <span class="${sb.strong ? "sb-strong" : "sb-weak"}">${sb.strong ? "\u2713 " + t("sb_strong") : t("sb_weak")}</span>
+    </div>
+    <div class="sb-components">${t("sb_components")}</div>
+    ${rows}
+    <p class="dosha-note">${t("sb_note")}</p>`;
+}
+
 function renderGrahaPanel(name) {
   if (!lastChartData || !name) return;
   const body = lastChartData.positions[name];
@@ -1647,6 +1693,7 @@ function renderGrahaPanel(name) {
       <span class="gv-house">${houses[code].house}H</span>
     </div>`).join("");
 
+  renderShadbala(name);
   panel.hidden = false;
 }
 

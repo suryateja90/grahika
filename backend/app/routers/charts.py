@@ -3,7 +3,7 @@ from datetime import datetime
 from fastapi import APIRouter, HTTPException
 
 from app import geocode
-from app.astro import avakhada, dasha, doshas, ephemeris, vargas
+from app.astro import avakhada, dasha, doshas, ephemeris, panchanga, shadbala, vargas
 from app.schemas import ChartRequest, ChartResponse, DoshaResponse
 
 router = APIRouter(prefix="/charts", tags=["charts"])
@@ -34,6 +34,16 @@ def compute_chart(request: ChartRequest):
     varga_charts = vargas.compute_vargas(positions["bodies"])
     houses_by_varga = vargas.varga_houses(positions["bodies"])
 
+    # Sunrise is needed for the hora component of Kala Bala.
+    midnight = birth_dt.replace(hour=0, minute=0, second=0, microsecond=0)
+    sunrise_jd, _ = panchanga.sun_events(
+        ephemeris.julian_day_utc(midnight), request.latitude, request.longitude
+    )
+    strengths = shadbala.compute_shadbala(
+        positions["bodies"], varga_charts, birth_dt,
+        positions["julian_day"], sunrise_jd, request.ayanamsa,
+    )
+
     moon_longitude = positions["bodies"]["Moon"]["longitude"]
     dasha_timeline = dasha.vimshottari_timeline(
         moon_longitude, birth_dt, cycles=request.dasha_cycles
@@ -49,6 +59,7 @@ def compute_chart(request: ChartRequest):
         positions=positions["bodies"],
         vargas=varga_charts,
         varga_houses=houses_by_varga,
+        shadbala=strengths,
         vimshottari_dasha=dasha_timeline,
         avakhada=avakhada.avakhada_chakra(positions["bodies"]),
         natal_aspects=avakhada.natal_aspects(positions["bodies"]),
