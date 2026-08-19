@@ -340,6 +340,89 @@ function renderNatalAspects(asp) {
     </tr>`).join("");
 }
 
+// The API returns Sanskrit names in Latin script; these look them up in
+// the current language, falling back to what came back rather than to a
+// blank cell.
+const tName = (map, name) => (map[lang()] && map[lang()][name]) || name;
+
+function renderUpagrahas(points) {
+  const tbody = document.querySelector("#upagraha-table tbody");
+  if (!points || !Object.keys(points).length) {
+    tbody.innerHTML = "";
+    return;
+  }
+  // Exact first: the reader should meet the trustworthy half of the list
+  // before the half that depends on a convention.
+  const order = Object.entries(points).sort((a, b) => b[1].exact - a[1].exact);
+  tbody.innerHTML = order.map(([name, d]) => `
+    <tr>
+      <td>${tName(UPAGRAHA_NAME_I18N, name)}</td>
+      <td>${tSign(d.sign_index)}</td>
+      <td>${d.degree_in_sign.toFixed(2)}&deg;</td>
+      <td>${tNak(d.nakshatra_index)}</td>
+      <td>${d.exact ? t("basis_exact") : t("basis_convention")}</td>
+    </tr>`).join("");
+}
+
+function renderSpecialLagnas(lagnas) {
+  const tbody = document.querySelector("#special-lagna-table tbody");
+  if (!lagnas || !Object.keys(lagnas).length) {
+    tbody.innerHTML = "";
+    return;
+  }
+  tbody.innerHTML = Object.entries(lagnas).map(([name, d]) => `
+    <tr${d.stable ? "" : ' class="koota-zero"'}>
+      <td>${tName(LAGNA_NAME_I18N, name)}${
+        d.stable ? "" : ` <span class="sb-suffix">(${t("lagna_unstable")})</span>`
+      }</td>
+      <td>${tSign(d.sign_index)}</td>
+      <td>${d.degree_in_sign.toFixed(2)}&deg;</td>
+      <td>${tNak(d.nakshatra_index)}</td>
+    </tr>`).join("");
+}
+
+const YOGA_SUMMARY_CARDS = [
+  ["total", "ys_total"], ["raja", "ys_raja"], ["dhana", "ys_dhana"],
+  ["mahapurusha", "ys_mahapurusha"], ["general", "ys_general"],
+  ["doshas_present", "ys_doshas"],
+];
+
+function renderYogas(data) {
+  const summary = data.yoga_summary || {};
+  document.getElementById("yoga-summary").innerHTML =
+    YOGA_SUMMARY_CARDS.map(([key, label]) => factCard(t(label), summary[key] ?? 0, "")).join("");
+
+  const tbody = document.querySelector("#yoga-table tbody");
+  const yogas = data.yogas || [];
+  if (!yogas.length) {
+    tbody.innerHTML = `<tr><td colspan="3">${t("yoga_none")}</td></tr>`;
+  } else {
+    tbody.innerHTML = yogas.map((y) => `
+      <tr>
+        <td>${tName(YOGA_NAME_I18N, y.name)}<div class="yoga-chart">${y.chart}</div></td>
+        <td>${y.condition}</td>
+        <td>${y.effects}</td>
+      </tr>`).join("");
+  }
+
+  // Present first, then the rest -- the absent ones still matter, but they
+  // are the reassurance rather than the finding.
+  const doshas = (data.doshas || []).slice().sort((a, b) => b.present - a.present);
+  document.getElementById("dosha-list").innerHTML = doshas.map((d) => `
+    <div class="dosha-row${d.present ? " is-present" : ""}">
+      <div class="dosha-head">
+        <span class="dosha-name">${tName(DOSHA_NAME_I18N, d.name)}</span>
+        <span class="dosha-status">${d.present ? t("dosha_present") : t("dosha_absent")}</span>
+      </div>
+      <p class="dosha-desc">${d.description}</p>
+      ${d.reasons && d.reasons.length ? `
+        <div class="dosha-reasons">
+          <strong>${t("dosha_reasons")}</strong>
+          <ul>${d.reasons.map((r) => `<li>${r}</li>`).join("")}</ul>
+        </div>` : ""}
+    </div>`).join("");
+}
+
 function renderPositionsTable(positions) {
   const tbody = document.querySelector("#positions-table tbody");
   tbody.innerHTML = "";
@@ -570,6 +653,9 @@ document.getElementById("chart-form").addEventListener("submit", async (e) => {
     renderAvakhada(data.avakhada);
     renderCurrentPeriods(data.current_periods);
     renderNatalAspects(data.natal_aspects);
+    renderUpagrahas(data.upagrahas);
+    renderSpecialLagnas(data.special_lagnas);
+    renderYogas(data);
     renderShodashavarga(data.vargas);
     openCurrentChain();
     renderDetailsTable({
@@ -1737,6 +1823,9 @@ function rerenderAll() {
     renderAvakhada(lastChartData.avakhada);
     renderCurrentPeriods(lastChartData.current_periods);
     renderNatalAspects(lastChartData.natal_aspects);
+    renderUpagrahas(lastChartData.upagrahas);
+    renderSpecialLagnas(lastChartData.special_lagnas);
+    renderYogas(lastChartData);
     renderShodashavarga(lastChartData.vargas);
     renderDashaTree();
     if (selectedGraha) renderGrahaPanel(selectedGraha);

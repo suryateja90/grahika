@@ -3,7 +3,10 @@ from datetime import datetime
 from fastapi import APIRouter, HTTPException
 
 from app import geocode
-from app.astro import avakhada, dasha, doshas, ephemeris, panchanga, shadbala, vargas
+from app.astro import (
+    avakhada, dasha, doshas, ephemeris, panchanga, shadbala,
+    special_lagnas, upagrahas, vargas, yogas,
+)
 from app.schemas import ChartRequest, ChartResponse, DoshaResponse
 
 router = APIRouter(prefix="/charts", tags=["charts"])
@@ -34,15 +37,33 @@ def compute_chart(request: ChartRequest):
     varga_charts = vargas.compute_vargas(positions["bodies"])
     houses_by_varga = vargas.varga_houses(positions["bodies"])
 
-    # Sunrise is needed for the hora component of Kala Bala.
+    # Sunrise is needed for the hora component of Kala Bala; sunset and the
+    # following sunrise are needed as well to divide a night birth's
+    # eighth-parts for the upagrahas.
     midnight = birth_dt.replace(hour=0, minute=0, second=0, microsecond=0)
-    sunrise_jd, _ = panchanga.sun_events(
-        ephemeris.julian_day_utc(midnight), request.latitude, request.longitude
+    midnight_jd = ephemeris.julian_day_utc(midnight)
+    sunrise_jd, sunset_jd = panchanga.sun_events(
+        midnight_jd, request.latitude, request.longitude
+    )
+    next_sunrise_jd, _ = panchanga.sun_events(
+        midnight_jd + 1.0, request.latitude, request.longitude
     )
     strengths = shadbala.compute_shadbala(
         positions["bodies"], varga_charts, birth_dt,
         positions["julian_day"], sunrise_jd, request.ayanamsa,
     )
+
+    # Python's weekday() is Monday=0; the segment tables are Sunday=0.
+    weekday = (birth_dt.weekday() + 1) % 7
+    shadow_points = upagrahas.compute_upagrahas(
+        positions["bodies"]["Sun"]["longitude"],
+        positions["julian_day"], request.latitude, request.longitude, weekday,
+        sunrise_jd, sunset_jd, next_sunrise_jd, request.ayanamsa,
+    )
+    lagnas = special_lagnas.compute_special_lagnas(
+        positions["bodies"], positions["julian_day"], sunrise_jd, request.ayanamsa,
+    )
+    yoga_analysis = yogas.analyse(positions["bodies"])
 
     moon_longitude = positions["bodies"]["Moon"]["longitude"]
     dasha_timeline = dasha.vimshottari_timeline(
@@ -64,6 +85,11 @@ def compute_chart(request: ChartRequest):
         avakhada=avakhada.avakhada_chakra(positions["bodies"]),
         natal_aspects=avakhada.natal_aspects(positions["bodies"]),
         current_periods=dasha.current_periods(dasha_timeline, now),
+        upagrahas=shadow_points,
+        special_lagnas=lagnas,
+        yogas=yoga_analysis["yogas"],
+        doshas=yoga_analysis["doshas"],
+        yoga_summary=yoga_analysis["summary"],
     )
 
 

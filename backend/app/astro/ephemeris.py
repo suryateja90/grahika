@@ -112,6 +112,26 @@ def compute_positions(
     }
 
 
+def ascendant_at(jd: float, lat: float, lon: float, ayanamsa: str = "lahiri") -> float:
+    """Sidereal Ascendant for a Julian day, without the rest of the chart.
+
+    The upagrahas and the time-based special lagnas need the rising point
+    at a dozen instants that are not the birth moment, and computing ten
+    bodies each time to throw nine away is wasteful.
+    """
+    swe.set_sid_mode(AYANAMSA_MODES[ayanamsa])
+    _, ascmc = swe.houses_ex(jd, lat, lon, b"W", flags=swe.FLG_SIDEREAL)
+    return ascmc[0] % 360.0
+
+
+def sun_longitude_at(jd: float, ayanamsa: str = "lahiri") -> float:
+    """Sidereal solar longitude alone -- needed at sunrise for the lagnas."""
+    swe.set_sid_mode(AYANAMSA_MODES[ayanamsa])
+    flags = swe.FLG_SIDEREAL | swe.FLG_MOSEPH
+    longitude, _ = _planet_position(jd, swe.SUN, flags)
+    return longitude % 360.0
+
+
 def saturn_sign_index(dt_utc: datetime, ayanamsa: str = "lahiri") -> int:
     """Fast path for repeated Saturn-only queries (e.g. a transit search),
     skipping the other 9 bodies and the Ascendant that compute_positions

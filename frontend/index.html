@@ -308,6 +308,7 @@
         <button type="button" class="tab-btn" data-tab="charts"><span class="tab-full" data-i18n="tab_charts">Charts</span><span class="tab-short" data-i18n="tab_charts_short">Charts</span></button>
         <button type="button" class="tab-btn" data-tab="positions"><span class="tab-full" data-i18n="tab_positions">Positions</span><span class="tab-short" data-i18n="tab_positions_short">Grahas</span></button>
         <button type="button" class="tab-btn" data-tab="dasha"><span class="tab-full" data-i18n="tab_dasha">Dasha</span><span class="tab-short" data-i18n="tab_dasha_short">Dasha</span></button>
+        <button type="button" class="tab-btn" data-tab="yogas"><span class="tab-full" data-i18n="tab_yogas">Yogas &amp; Doshas</span><span class="tab-short" data-i18n="tab_yogas_short">Yogas</span></button>
         <button type="button" class="tab-btn" data-tab="doshas"><span class="tab-full" data-i18n="tab_doshas">Kaal Sarp &amp; Sade Sati</span><span class="tab-short" data-i18n="tab_doshas_short">Doshas</span></button>
       </div>
 
@@ -403,6 +404,44 @@
             <tbody></tbody>
           </table>
         </div>
+
+        <div class="table-block">
+          <h2 data-i18n="h_upagrahas">Upagrahas</h2>
+          <p class="dosha-note" data-i18n="note_upagrahas">
+            The shadow points. Dhuma through Upaketu are fixed arithmetic off the Sun and are
+            exact. Gulika, Maandi, Kaala, Mrityu, Ardhaprahara and Yamaghantaka are the rising
+            point at an eighth-part of the day, and sources genuinely disagree on which eighth
+            and on which edge of it -- other software will show different signs for these.
+          </p>
+          <table id="upagraha-table">
+            <thead><tr>
+              <th data-i18n="col_point">Point</th>
+              <th data-i18n="col_sign">Sign</th>
+              <th data-i18n="col_degree">Degree</th>
+              <th data-i18n="col_nakshatra">Nakshatra</th>
+              <th data-i18n="col_basis">Basis</th>
+            </tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <div class="table-block">
+          <h2 data-i18n="h_special_lagnas">Special Lagnas</h2>
+          <p class="dosha-note" data-i18n="note_special_lagnas">
+            Alternative rising points. Vighati Lagna moves a whole sign every 24 seconds, so
+            unless the birth time is known to the second it is noise -- it is marked below
+            rather than quietly shown alongside the rest.
+          </p>
+          <table id="special-lagna-table">
+            <thead><tr>
+              <th data-i18n="col_lagna">Lagna</th>
+              <th data-i18n="col_sign">Sign</th>
+              <th data-i18n="col_degree">Degree</th>
+              <th data-i18n="col_nakshatra">Nakshatra</th>
+            </tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
       </div>
 
       <div id="tab-dasha" class="tab-panel" hidden>
@@ -436,6 +475,41 @@
           </table>
         </div>
 
+      </div>
+
+      <div id="tab-yogas" class="tab-panel" hidden>
+        <div class="table-block">
+          <h2 data-i18n="h_yogas">Yogas &amp; Doshas</h2>
+          <p class="dosha-note" data-i18n="note_yogas">
+            Yoga lists are the least standardised thing in Jyotish -- the classics define
+            several hundred and commentaries disagree about the conditions, so a total is a
+            property of the list a program ships, not a fact about the chart. Every entry below
+            names the exact condition that was tested so it can be checked. Cancellation rules
+            are deliberately not applied, and only the Rasi chart is examined.
+          </p>
+          <div class="pa-grid" id="yoga-summary"></div>
+        </div>
+
+        <div class="table-block">
+          <h2 id="yoga-list-heading" data-i18n="h_yoga_list">Yogas Present</h2>
+          <table id="yoga-table">
+            <thead><tr>
+              <th data-i18n="col_yoga">Yoga</th>
+              <th data-i18n="col_condition">Condition</th>
+              <th data-i18n="col_effects">Effects</th>
+            </tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <div class="table-block">
+          <h2 id="dosha-list-heading" data-i18n="h_dosha_list">Doshas</h2>
+          <p class="dosha-note" data-i18n="note_doshas">
+            Every dosha is listed whether or not it is present -- a reader who has been told
+            elsewhere that they are Manglik should be able to see the check that disagrees.
+          </p>
+          <div id="dosha-list"></div>
+        </div>
       </div>
 
       <div id="tab-doshas" class="tab-panel" hidden>

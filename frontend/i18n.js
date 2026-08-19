@@ -115,6 +115,26 @@ const I18N = {
     tab_charts: "Charts", tab_charts_short: "Charts",
     tab_positions: "Positions", tab_positions_short: "Grahas",
     tab_dasha: "Dasha", tab_dasha_short: "Dasha",
+    tab_yogas: "Yogas & Doshas", tab_yogas_short: "Yogas",
+
+    h_upagrahas: "Upagrahas",
+    note_upagrahas: "The shadow points. Dhuma through Upaketu are fixed arithmetic off the Sun and are exact. Gulika, Maandi, Kaala, Mrityu, Ardhaprahara and Yamaghantaka are the rising point at an eighth-part of the day, and sources genuinely disagree on which eighth and on which edge of it -- other software will show different signs for these.",
+    h_special_lagnas: "Special Lagnas",
+    note_special_lagnas: "Alternative rising points. Vighati Lagna moves a whole sign every 24 seconds, so unless the birth time is known to the second it is noise -- it is marked below rather than quietly shown alongside the rest.",
+    col_point: "Point", col_basis: "Basis", col_lagna: "Lagna",
+    basis_exact: "Exact", basis_convention: "By convention",
+    lagna_unstable: "needs birth time to the second",
+
+    h_yogas: "Yogas & Doshas",
+    note_yogas: "Yoga lists are the least standardised thing in Jyotish -- the classics define several hundred and commentaries disagree about the conditions, so a total is a property of the list a program ships, not a fact about the chart. Every entry below names the exact condition that was tested so it can be checked. Cancellation rules are deliberately not applied, and only the Rasi chart is examined.",
+    h_yoga_list: "Yogas Present", h_dosha_list: "Doshas",
+    note_doshas: "Every dosha is listed whether or not it is present -- a reader who has been told elsewhere that they are Manglik should be able to see the check that disagrees.",
+    col_yoga: "Yoga", col_condition: "Condition", col_effects: "Effects",
+    ys_total: "Total Yogas", ys_raja: "Raja Yogas", ys_dhana: "Dhana Yogas",
+    ys_mahapurusha: "Mahapurusha", ys_general: "General Yogas", ys_doshas: "Doshas Present",
+    dosha_present: "Present", dosha_absent: "Not present",
+    dosha_reasons: "Reasons",
+    yoga_none: "No yogas from this list are present in the chart.",
 
     label_name: "Name (optional)",
     label_birth_date: "Birth date",
@@ -343,6 +363,26 @@ const I18N = {
     tab_charts: "చక్రాలు", tab_charts_short: "చక్రాలు",
     tab_positions: "గ్రహ స్థానాలు", tab_positions_short: "గ్రహాలు",
     tab_dasha: "దశలు", tab_dasha_short: "దశలు",
+    tab_yogas: "యోగాలు & దోషాలు", tab_yogas_short: "యోగాలు",
+
+    h_upagrahas: "ఉపగ్రహాలు",
+    note_upagrahas: "ఛాయా బిందువులు. ధూమ నుండి ఉపకేతు వరకు సూర్యుని ఆధారంగా కచ్చితమైన లెక్క -- వీటిలో భేదం ఉండదు. గుళిక, మాంది, కాల, మృత్యు, అర్ధప్రహర, యమఘంటక అనేవి పగటిని ఎనిమిది భాగాలుగా చేసి ఒక భాగంలో ఉదయించే లగ్నం; ఏ భాగం, ఆ భాగంలో ఏ అంచు అనే విషయంలో గ్రంథాల మధ్య నిజమైన భేదాలు ఉన్నాయి -- ఇతర సాఫ్ట్‌వేర్‌లలో వీటికి వేరే రాశులు కనిపించవచ్చు.",
+    h_special_lagnas: "విశేష లగ్నాలు",
+    note_special_lagnas: "ప్రత్యామ్నాయ లగ్నాలు. విఘటి లగ్నం ప్రతి 24 సెకన్లకు ఒక రాశి మారుతుంది; జనన సమయం సెకన్ల వరకు తెలిస్తే తప్ప దీనికి అర్థం లేదు -- అందుకే దానిని ప్రత్యేకంగా గుర్తించాము.",
+    col_point: "బిందువు", col_basis: "ఆధారం", col_lagna: "లగ్నం",
+    basis_exact: "కచ్చితం", basis_convention: "సంప్రదాయాన్ని బట్టి",
+    lagna_unstable: "సెకన్ల వరకు జనన సమయం కావాలి",
+
+    h_yogas: "యోగాలు & దోషాలు",
+    note_yogas: "జ్యోతిషంలో యోగాల జాబితాలే అత్యంత అస్థిరమైనవి -- గ్రంథాలు వందల యోగాలు చెబుతాయి, వ్యాఖ్యానాల మధ్య షరతులపై భేదాలు ఉంటాయి. కాబట్టి మొత్తం సంఖ్య అనేది ఆ సాఫ్ట్‌వేర్ జాబితా లక్షణమే తప్ప జాతక సత్యం కాదు. కింద ప్రతి యోగానికి పరిశీలించిన షరతును స్పష్టంగా ఇచ్చాము, తనిఖీ చేసుకోవచ్చు. భంగ నియమాలు వర్తింపజేయలేదు; రాశి చక్రం మాత్రమే పరిశీలించాము. యోగాల పేర్లు తెలుగులో ఉన్నాయి; షరతులు, ఫలితాల వివరణ మాత్రం ప్రస్తుతం ఆంగ్లంలో మాత్రమే ఉన్నాయి.",
+    h_yoga_list: "ఉన్న యోగాలు", h_dosha_list: "దోషాలు",
+    note_doshas: "దోషం ఉన్నా లేకపోయినా అన్నీ చూపిస్తాము -- ఎక్కడో కుజ దోషం ఉందని విన్నవారికి, లేదని చెప్పే పరిశీలన కూడా కనిపించాలి. దోషాల పేర్లు తెలుగులో ఉన్నాయి; వివరణలు ప్రస్తుతం ఆంగ్లంలో మాత్రమే ఉన్నాయి.",
+    col_yoga: "యోగం", col_condition: "షరతు", col_effects: "ఫలితాలు",
+    ys_total: "మొత్తం యోగాలు", ys_raja: "రాజ యోగాలు", ys_dhana: "ధన యోగాలు",
+    ys_mahapurusha: "మహాపురుష", ys_general: "సామాన్య యోగాలు", ys_doshas: "ఉన్న దోషాలు",
+    dosha_present: "ఉంది", dosha_absent: "లేదు",
+    dosha_reasons: "కారణాలు",
+    yoga_none: "ఈ జాబితాలోని యోగాలు ఏవీ ఈ జాతకంలో లేవు.",
 
     label_name: "పేరు (ఐచ్ఛికం)",
     label_birth_date: "పుట్టిన తేదీ",
@@ -682,6 +722,86 @@ const MONTHS_SHORT = {
 };
 const VARGA_ALL = ["D1","D2","D3","D4","D5","D6","D7","D8","D9","D10","D11","D12",
                    "D16","D20","D24","D27","D30","D40","D45","D60","D81","D108","D144"];
+// Yoga, dosha and upagraha names are Sanskrit either way, so the Telugu
+// column is a transliteration rather than a translation. The condition and
+// effect prose that the API returns alongside them is English only -- the
+// UI says so in Telugu rather than presenting a half-translated page as
+// though it were finished.
+const YOGA_NAME_I18N = {
+  te: {
+    "Vesi Yoga": "\u0c35\u0c47\u0c36\u0c3f \u0c2f\u0c4b\u0c17\u0c02",
+    "Vasi Yoga": "\u0c35\u0c3e\u0c38\u0c3f \u0c2f\u0c4b\u0c17\u0c02",
+    "Ubhayachari Yoga": "\u0c09\u0c2d\u0c2f\u0c1a\u0c3e\u0c30\u0c3f \u0c2f\u0c4b\u0c17\u0c02",
+    "Sunapha Yoga": "\u0c38\u0c41\u0c28\u0c2b\u0c3e \u0c2f\u0c4b\u0c17\u0c02",
+    "Anapha Yoga": "\u0c05\u0c28\u0c2b\u0c3e \u0c2f\u0c4b\u0c17\u0c02",
+    "Durudhara Yoga": "\u0c26\u0c41\u0c30\u0c41\u0c27\u0c30 \u0c2f\u0c4b\u0c17\u0c02",
+    "Kemadruma Yoga": "\u0c15\u0c47\u0c2e\u0c26\u0c4d\u0c30\u0c41\u0c2e \u0c2f\u0c4b\u0c17\u0c02",
+    "Ruchaka Yoga": "\u0c30\u0c41\u0c1a\u0c15 \u0c2f\u0c4b\u0c17\u0c02",
+    "Bhadra Yoga": "\u0c2d\u0c26\u0c4d\u0c30 \u0c2f\u0c4b\u0c17\u0c02",
+    "Hamsa Yoga": "\u0c39\u0c02\u0c38 \u0c2f\u0c4b\u0c17\u0c02",
+    "Malavya Yoga": "\u0c2e\u0c3e\u0c33\u0c35\u0c4d\u0c2f \u0c2f\u0c4b\u0c17\u0c02",
+    "Sasa Yoga": "\u0c36\u0c36 \u0c2f\u0c4b\u0c17\u0c02",
+    "Gaja-Kesari Yoga": "\u0c17\u0c1c\u0c15\u0c47\u0c38\u0c30\u0c3f \u0c2f\u0c4b\u0c17\u0c02",
+    "Budha-Aditya Yoga": "\u0c2c\u0c41\u0c27-\u0c06\u0c26\u0c3f\u0c24\u0c4d\u0c2f \u0c2f\u0c4b\u0c17\u0c02",
+    "Chandra-Mangala Yoga": "\u0c1a\u0c02\u0c26\u0c4d\u0c30-\u0c2e\u0c02\u0c17\u0c33 \u0c2f\u0c4b\u0c17\u0c02",
+    "Shubha Kartari Yoga": "\u0c36\u0c41\u0c2d \u0c15\u0c30\u0c4d\u0c24\u0c30\u0c3f \u0c2f\u0c4b\u0c17\u0c02",
+    "Papa Kartari Yoga": "\u0c2a\u0c3e\u0c2a \u0c15\u0c30\u0c4d\u0c24\u0c30\u0c3f \u0c2f\u0c4b\u0c17\u0c02",
+    "Amala Yoga": "\u0c05\u0c2e\u0c32 \u0c2f\u0c4b\u0c17\u0c02",
+    "Adhi Yoga": "\u0c05\u0c27\u0c3f \u0c2f\u0c4b\u0c17\u0c02",
+    "Gola Yoga": "\u0c17\u0c4b\u0c33 \u0c2f\u0c4b\u0c17\u0c02",
+    "Yuga Yoga": "\u0c2f\u0c41\u0c17 \u0c2f\u0c4b\u0c17\u0c02",
+    "Shoola Yoga": "\u0c36\u0c42\u0c32 \u0c2f\u0c4b\u0c17\u0c02",
+    "Kedara Yoga": "\u0c15\u0c47\u0c26\u0c3e\u0c30 \u0c2f\u0c4b\u0c17\u0c02",
+    "Paasa Yoga": "\u0c2a\u0c3e\u0c36 \u0c2f\u0c4b\u0c17\u0c02",
+    "Dama Yoga": "\u0c26\u0c3e\u0c2e \u0c2f\u0c4b\u0c17\u0c02",
+    "Veena Yoga": "\u0c35\u0c40\u0c23\u0c3e \u0c2f\u0c4b\u0c17\u0c02",
+    "Harsha Yoga": "\u0c39\u0c30\u0c4d\u0c37 \u0c2f\u0c4b\u0c17\u0c02",
+    "Sarala Yoga": "\u0c38\u0c30\u0c33 \u0c2f\u0c4b\u0c17\u0c02",
+    "Vimala Yoga": "\u0c35\u0c3f\u0c2e\u0c32 \u0c2f\u0c4b\u0c17\u0c02",
+    "Raja Yoga": "\u0c30\u0c3e\u0c1c \u0c2f\u0c4b\u0c17\u0c02",
+    "Dhana Yoga": "\u0c27\u0c28 \u0c2f\u0c4b\u0c17\u0c02",
+    "Saraswati Yoga": "\u0c38\u0c30\u0c38\u0c4d\u0c35\u0c24\u0c3f \u0c2f\u0c4b\u0c17\u0c02",
+    "Parvata Yoga": "\u0c2a\u0c30\u0c4d\u0c35\u0c24 \u0c2f\u0c4b\u0c17\u0c02",
+    "Shakata Yoga": "\u0c36\u0c15\u0c1f \u0c2f\u0c4b\u0c17\u0c02",
+    "Neecha Graha": "\u0c28\u0c40\u0c1a \u0c17\u0c4d\u0c30\u0c39\u0c02",
+  },
+};
+
+const DOSHA_NAME_I18N = {
+  te: {
+    "Kala Sarpa Dosha": "\u0c15\u0c3e\u0c32\u0c38\u0c30\u0c4d\u0c2a \u0c26\u0c4b\u0c37\u0c02",
+    "Manglik (Mangal) Dosha": "\u0c15\u0c41\u0c1c \u0c26\u0c4b\u0c37\u0c02",
+    "Guru Chandala Dosha": "\u0c17\u0c41\u0c30\u0c41 \u0c1a\u0c02\u0c21\u0c3e\u0c32 \u0c26\u0c4b\u0c37\u0c02",
+    "Angarak Dosha": "\u0c05\u0c02\u0c17\u0c3e\u0c30\u0c15 \u0c26\u0c4b\u0c37\u0c02",
+    "Grahan Dosha": "\u0c17\u0c4d\u0c30\u0c39\u0c23 \u0c26\u0c4b\u0c37\u0c02",
+    "Pitru Dosha": "\u0c2a\u0c3f\u0c24\u0c43 \u0c26\u0c4b\u0c37\u0c02",
+    "Ganda Moola Dosha": "\u0c17\u0c02\u0c21 \u0c2e\u0c42\u0c32 \u0c26\u0c4b\u0c37\u0c02",
+    "Kalathra Dosha": "\u0c15\u0c33\u0c24\u0c4d\u0c30 \u0c26\u0c4b\u0c37\u0c02",
+    "Shakata Dosha": "\u0c36\u0c15\u0c1f \u0c26\u0c4b\u0c37\u0c02",
+    "Kemadruma Dosha": "\u0c15\u0c47\u0c2e\u0c26\u0c4d\u0c30\u0c41\u0c2e \u0c26\u0c4b\u0c37\u0c02",
+  },
+};
+
+const UPAGRAHA_NAME_I18N = {
+  te: {
+    "Dhuma": "\u0c27\u0c42\u0c2e", "Vyatipata": "\u0c35\u0c4d\u0c2f\u0c24\u0c40\u0c2a\u0c3e\u0c24",
+    "Parivesha": "\u0c2a\u0c30\u0c3f\u0c35\u0c47\u0c37", "Indrachaapa": "\u0c07\u0c02\u0c26\u0c4d\u0c30\u0c1a\u0c3e\u0c2a",
+    "Upaketu": "\u0c09\u0c2a\u0c15\u0c47\u0c24\u0c41", "Gulika": "\u0c17\u0c41\u0c33\u0c3f\u0c15",
+    "Maandi": "\u0c2e\u0c3e\u0c02\u0c26\u0c3f", "Kaala": "\u0c15\u0c3e\u0c32",
+    "Mrityu": "\u0c2e\u0c43\u0c24\u0c4d\u0c2f\u0c41", "Ardhaprahara": "\u0c05\u0c30\u0c4d\u0c27\u0c2a\u0c4d\u0c30\u0c39\u0c30",
+    "Yamaghantaka": "\u0c2f\u0c2e\u0c18\u0c02\u0c1f\u0c15",
+  },
+};
+
+const LAGNA_NAME_I18N = {
+  te: {
+    "Bhava": "\u0c2d\u0c3e\u0c35", "Hora": "\u0c39\u0c4b\u0c30", "Ghati": "\u0c18\u0c1f\u0c3f",
+    "Vighati": "\u0c35\u0c3f\u0c18\u0c1f\u0c3f", "Pranapada": "\u0c2a\u0c4d\u0c30\u0c3e\u0c23\u0c2a\u0c26",
+    "Indu": "\u0c07\u0c02\u0c26\u0c41", "Bhrigu Bindu": "\u0c2d\u0c43\u0c17\u0c41 \u0c2c\u0c3f\u0c02\u0c26\u0c41",
+    "Sree": "\u0c36\u0c4d\u0c30\u0c40", "Kunda": "\u0c15\u0c41\u0c02\u0c21",
+  },
+};
+
 const VARGA_LABELS = {
   D1:"Rasi", D2:"Hora", D3:"Drekkan", D4:"Chaturth", D5:"Pancham",
   D6:"Shashtam", D7:"Saptams", D8:"Ashtams", D9:"Navamsa", D10:"Dasamsa",

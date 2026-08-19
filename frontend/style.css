@@ -167,6 +167,68 @@ details .row { margin-top: 0.5rem; }
    "Personal Daily Horoscope". */
 .tab-short { display: none; }
 
+/* ---------------------------- yogas & doshas ---------------------------- */
+/* The condition and effect columns carry real prose, not data. The global
+   `th, td { white-space: nowrap }` is right for tables of numbers and
+   wrong here -- without overriding it, fixed layout still gives correct
+   column widths and the sentences simply run out past them. */
+#yoga-table { table-layout: fixed; }
+#yoga-table th:first-child, #yoga-table td:first-child { width: 22%; }
+#yoga-table th:nth-child(2), #yoga-table td:nth-child(2) { width: 39%; }
+#yoga-table th, #yoga-table td {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  vertical-align: top;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+.yoga-chart { font-size: 0.68rem; opacity: 0.55; margin-top: 0.15rem; }
+
+.dosha-row {
+  border: 1px solid rgba(128, 128, 128, 0.3);
+  border-radius: 8px;
+  padding: 0.75rem 0.9rem;
+  margin-bottom: 0.6rem;
+}
+/* A present dosha is marked with a left rule rather than a fill or a
+   colour -- the palette is two colours and this has to work in both. */
+.dosha-row.is-present { border-left: 3px solid var(--accent); }
+.dosha-head { display: flex; justify-content: space-between; align-items: baseline; gap: 0.75rem; }
+.dosha-name { font-weight: 700; font-size: 0.92rem; }
+.dosha-status {
+  font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.05em;
+  border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 999px;
+  padding: 0.1rem 0.5rem; white-space: nowrap; opacity: 0.7;
+}
+.dosha-row.is-present .dosha-status {
+  background: var(--accent); color: var(--accent-fg); border-color: var(--accent); opacity: 1;
+}
+.dosha-desc { font-size: 0.82rem; line-height: 1.5; margin: 0.5rem 0 0; opacity: 0.9; }
+.dosha-reasons { font-size: 0.78rem; margin-top: 0.5rem; }
+.dosha-reasons ul { margin: 0.25rem 0 0; padding-left: 1.1rem; }
+.dosha-reasons li { margin-bottom: 0.15rem; }
+
+@media (max-width: 720px) {
+  /* Three prose columns cannot fit a phone. The condition and effects stack
+     under the name as labelled blocks instead of being squeezed to a word
+     per line. */
+  #yoga-table, #yoga-table thead, #yoga-table tbody,
+  #yoga-table tr, #yoga-table td { display: block; width: auto; }
+  /* The percentage column widths above are set on td:first-child and
+     td:nth-child(2), which outrank a bare `td` selector -- so they have to
+     be unset by name or the stacked cells keep the table's proportions. */
+  #yoga-table td:first-child, #yoga-table td:nth-child(2) { width: auto; }
+  #yoga-table thead { display: none; }
+  #yoga-table tr {
+    border: 1px solid rgba(128, 128, 128, 0.3);
+    border-radius: 8px; padding: 0.6rem 0.75rem; margin-bottom: 0.6rem;
+  }
+  #yoga-table td { border: none; padding: 0.15rem 0; }
+  #yoga-table td:first-child { font-weight: 700; font-size: 0.9rem; }
+  #yoga-table td:nth-child(2) { opacity: 0.75; }
+  .dosha-head { flex-direction: column; align-items: flex-start; gap: 0.3rem; }
+}
+
 /* --------------------------- chart work layout --------------------------- */
 /* Form on the left, analysis on the right. Both tracks get min-width:0 so a
    wide table inside the results can never widen the grid and squeeze the

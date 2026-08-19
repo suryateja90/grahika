@@ -26,6 +26,11 @@ class ChartResponse(BaseModel):
     avakhada: dict
     natal_aspects: dict
     current_periods: dict
+    upagrahas: dict
+    special_lagnas: dict
+    yogas: list
+    doshas: list
+    yoga_summary: dict
 
 
 class DoshaResponse(BaseModel):
