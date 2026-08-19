@@ -28,7 +28,7 @@ restated, so a chart cannot be told two different stories by two tabs.
 from __future__ import annotations
 
 from app.astro import doshas as dosha_module
-from app.astro.matching import SIGN_LORDS, mangal_dosha
+from app.astro.matching import PLANET_FRIENDS, SIGN_LORDS, mangal_dosha
 
 GRAHAS = ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn"]
 NODES = ["Rahu", "Ketu"]
@@ -36,6 +36,8 @@ NODES = ["Rahu", "Ketu"]
 KENDRAS = (1, 4, 7, 10)
 TRIKONAS = (1, 5, 9)
 DUSTHANAS = (6, 8, 12)
+# Houses of growth -- what stands here strengthens over time.
+UPACHAYAS = (3, 6, 10, 11)
 
 # Own signs and exaltation sign, for the Panch Mahapurusha test.
 OWN_SIGNS = {
@@ -115,6 +117,23 @@ def _benefics(bodies: dict) -> set[str]:
 
     return benefic
 
+
+
+def _natural_benefics() -> set[str]:
+    """Jupiter, Venus, Mercury and the Moon, unconditionally.
+
+    Distinct from `_benefics`, which makes Mercury and the Moon conditional
+    on company and on the paksha. Raman's catalogue says "natural benefics"
+    where it means this fixed set, and several of its combinations only
+    reproduce correctly when read that way -- Amala and Vasumathi both turn
+    on it. The classical yogas keep the conditional reading, because there
+    the conditionality is the point.
+    """
+    return {"Jupiter", "Venus", "Mercury", "Moon"}
+
+
+def _natural_malefics() -> set[str]:
+    return {"Sun", "Mars", "Saturn", "Rahu", "Ketu"}
 
 
 def _yoga(key, params=None, category="general", chart="D1") -> dict:
@@ -228,12 +247,40 @@ def _kartari_yogas(bodies: dict) -> list[dict]:
     return found
 
 
+def _asubha_yoga(bodies: dict) -> list[dict]:
+    """The looser reading: malefics in the Ascendant, or the papa kartari.
+
+    Kept separate from `papa_kartari` above rather than folded into it. The
+    strict combination needs malefics on both sides of the Ascendant; this
+    one fires on either that or a malefic in the Ascendant itself, so
+    collapsing them would lose the distinction between a chart that is
+    hemmed in and one that merely has a malefic rising.
+    """
+    asc_sign = bodies["Ascendant"]["sign_index"]
+    malefic = _natural_malefics()
+    in_lagna = [n for n in _occupants(bodies, asc_sign) if n in malefic]
+
+    kartari = (
+        [n for n in _occupants(bodies, (asc_sign + 1) % 12) if n in malefic]
+        and [n for n in _occupants(bodies, (asc_sign - 1) % 12) if n in malefic]
+    )
+    if in_lagna or kartari:
+        return [_yoga("asubha", {"planets": sorted(in_lagna)})]
+    return []
+
+
 def _amala_yoga(bodies: dict) -> list[dict]:
-    """Only benefics in the 10th, from the Ascendant or from the Moon."""
-    benefic = _benefics(bodies)
+    """Only natural benefics in the 10th, from the Ascendant or from the Moon.
+
+    Two readings differ here and the choice is visible in the result. The
+    nodes are not counted as occupants: Raman's wording is about the natural
+    benefics and malefics, and a Ketu standing alongside Jupiter and Venus
+    does not make the house impure under that reading.
+    """
+    benefic = _natural_benefics()
     for reference, sign in (("lagna", bodies["Ascendant"]["sign_index"]),
                             ("moon", bodies["Moon"]["sign_index"])):
-        tenth = _occupants(bodies, _sign_of_house(10, sign))
+        tenth = _occupants(bodies, _sign_of_house(10, sign), include_nodes=False)
         if tenth and all(n in benefic for n in tenth):
             return [_yoga("amala", {"planets": tenth, "reference": reference})]
     return []
@@ -361,10 +408,275 @@ def _debilitation_yogas(bodies: dict) -> list[dict]:
     return [_yoga("neecha_graha", {"planets": fallen})] if fallen else []
 
 
+# Graha drishti, imported rather than restated so the Yogas tab and the
+# Aspects table can never disagree about who sees what.
+from app.astro.avakhada import DEFAULT_DRISHTI, SPECIAL_DRISHTI  # noqa: E402
+
+MOVABLE_SIGNS = {0, 3, 6, 9}
+
+# Raman numbers his combinations; where one of these follows a specific
+# numbered rule the number is given, so a reading can be traced back to the
+# source rather than to this file.
+
+
+def _aspects_sign(bodies: dict, graha: str, sign: int) -> bool:
+    from_sign = bodies[graha]["sign_index"]
+    houses = SPECIAL_DRISHTI.get(graha, DEFAULT_DRISHTI)
+    return any((from_sign + h - 1) % 12 == sign for h in houses)
+
+
+def _aspected_by(bodies: dict, sign: int, candidates) -> list[str]:
+    return [g for g in candidates if _aspects_sign(bodies, g, sign)]
+
+
+def _lord_of(bodies: dict, house: int) -> str:
+    return SIGN_LORDS[_sign_of_house(house, bodies["Ascendant"]["sign_index"])]
+
+
+def _house_of_body(bodies: dict, graha: str) -> int:
+    return _house_of(bodies[graha]["sign_index"], bodies["Ascendant"]["sign_index"])
+
+
+def _touched_by(bodies: dict, graha: str, others) -> list[str]:
+    """Sharing a sign with, or aspected by, any of `others`."""
+    sign = bodies[graha]["sign_index"]
+    together = [g for g in others if g != graha and bodies[g]["sign_index"] == sign]
+    seen = _aspected_by(bodies, sign, [g for g in others if g != graha])
+    return sorted(set(together) | set(seen))
+
+
+# ---------------------------------------------------------------------------
+# combinations from Raman's catalogue, which the reference almanac follows
+# ---------------------------------------------------------------------------
+
+def _vasumathi_yoga(bodies: dict) -> list[dict]:
+    """Benefics in the upachayas -- the houses of growth."""
+    benefic = _natural_benefics()
+    found = [n for n in benefic
+             if _house_of_body(bodies, n) in UPACHAYAS]
+    return [_yoga("vasumathi", {"planets": sorted(found)})] if found else []
+
+
+def _vanchana_chora_bheethi_yoga(bodies: dict) -> list[dict]:
+    """Lagna lord in a dusthana and under malefic influence."""
+    lord = _lord_of(bodies, 1)
+    house = _house_of_body(bodies, lord)
+    if house not in DUSTHANAS:
+        return []
+    malefic = sorted((set(GRAHAS) | set(NODES)) - _benefics(bodies) - {lord})
+    touched = _touched_by(bodies, lord, malefic)
+    if not touched:
+        return []
+    return [_yoga("vanchana_chora_bheethi",
+                  {"body": lord, "house": house, "planets": touched})]
+
+
+def _daridra_yogas(bodies: dict) -> list[dict]:
+    """Four separate poverty combinations; each is reported on its own."""
+    found = []
+    malefic = (set(GRAHAS) | set(NODES)) - _benefics(bodies)
+
+    eleventh_lord = _lord_of(bodies, 11)
+    house = _house_of_body(bodies, eleventh_lord)
+    if house in DUSTHANAS:
+        found.append(_yoga("daridra_gains",
+                           {"body": eleventh_lord, "house": house}))
+
+    lagna_lord = _lord_of(bodies, 1)
+    dusthana_lords = {_lord_of(bodies, h) for h in DUSTHANAS} - {lagna_lord}
+    with_dusthana = [g for g in sorted(dusthana_lords)
+                     if bodies[g]["sign_index"] == bodies[lagna_lord]["sign_index"]]
+    if with_dusthana:
+        seen = _aspected_by(bodies, bodies[lagna_lord]["sign_index"],
+                            sorted(malefic - {lagna_lord}))
+        if seen:
+            found.append(_yoga("daridra_lagna",
+                               {"body": lagna_lord, "planets": with_dusthana}))
+
+    fifth_lord = _lord_of(bodies, 5)
+    fifth_house = _house_of_body(bodies, fifth_lord)
+    if fifth_house in (6, 10):
+        watchers = {_lord_of(bodies, h) for h in (2, 6, 7, 8, 12)} - {fifth_lord}
+        seen = _aspected_by(bodies, bodies[fifth_lord]["sign_index"], sorted(watchers))
+        if seen:
+            found.append(_yoga("daridra_fifth",
+                               {"body": fifth_lord, "house": fifth_house, "planets": seen}))
+
+    # Malefics in the Ascendant that do not also own the 9th or the 10th --
+    # ownership of a trine or the tenth redeems them.
+    protected = {_lord_of(bodies, 9), _lord_of(bodies, 10)}
+    in_lagna = [g for g in sorted(malefic - protected)
+                if _house_of_body(bodies, g) == 1]
+    if in_lagna:
+        maraka = sorted({_lord_of(bodies, 2), _lord_of(bodies, 7)})
+        # A malefic rising that is itself the 2nd or 7th lord satisfies the
+        # association on its own -- it does not need a second graha to bring
+        # the maraka influence to it.
+        hit = sorted({g for m in maraka for g in _touched_by(bodies, m, in_lagna)}
+                     | (set(in_lagna) & set(maraka)))
+        if hit:
+            found.append(_yoga("daridra_maraka", {"planets": hit, "second": maraka}))
+
+    return found
+
+
+def _sada_sanchara_yoga(bodies: dict) -> list[dict]:
+    """The Lagna lord or the Moon in a movable sign -- a life on the move."""
+    lord = _lord_of(bodies, 1)
+    movers = [g for g in (lord, "Moon") if bodies[g]["sign_index"] in MOVABLE_SIGNS]
+    return [_yoga("sada_sanchara", {"planets": sorted(set(movers))})] if movers else []
+
+
+def _sraddhannabhuktha_yoga(bodies: dict) -> list[dict]:
+    """The 2nd lord -- food and sustenance -- with Saturn and the 8th lord."""
+    second_lord = _lord_of(bodies, 2)
+    eighth_lord = _lord_of(bodies, 8)
+    sign = bodies[second_lord]["sign_index"]
+    if bodies["Saturn"]["sign_index"] == sign and bodies[eighth_lord]["sign_index"] == sign:
+        return [_yoga("sraddhannabhuktha", {"body": second_lord, "planets": [eighth_lord]})]
+    return []
+
+
+def _bhratruvriddhi_yoga(bodies: dict) -> list[dict]:
+    """The 3rd lord or Mars in benefic company -- siblings and their number."""
+    benefic = _benefics(bodies)
+    third_lord = _lord_of(bodies, 3)
+    for graha in dict.fromkeys((third_lord, "Mars")):
+        company = [g for g in sorted(benefic)
+                   if g != graha and bodies[g]["sign_index"] == bodies[graha]["sign_index"]]
+        # "or placed in a benefic sign" -- a sign owned by a natural benefic
+        # counts as well as benefic company in it.
+        in_benefic_sign = SIGN_LORDS[bodies[graha]["sign_index"]] in _natural_benefics()
+        if company or in_benefic_sign:
+            return [_yoga("bhratruvriddhi", {"body": graha, "planets": company})]
+    return []
+
+
+def _bandhu_pujya_yoga(bodies: dict) -> list[dict]:
+    """Jupiter on the 4th house or its lord (Raman 194)."""
+    fourth_sign = _sign_of_house(4, bodies["Ascendant"]["sign_index"])
+    fourth_lord = _lord_of(bodies, 4)
+    on_house = bodies["Jupiter"]["sign_index"] == fourth_sign or \
+        _aspects_sign(bodies, "Jupiter", fourth_sign)
+    on_lord = fourth_lord != "Jupiter" and (
+        bodies["Jupiter"]["sign_index"] == bodies[fourth_lord]["sign_index"]
+        or _aspects_sign(bodies, "Jupiter", bodies[fourth_lord]["sign_index"])
+    )
+    if on_house or on_lord:
+        return [_yoga("bandhu_pujya", {"body": fourth_lord})]
+    return []
+
+
+def _bandhu_bhisthyaktha_yoga(bodies: dict) -> list[dict]:
+    """The 4th lord under malefic influence, or fallen (Raman 195)."""
+    fourth_lord = _lord_of(bodies, 4)
+    malefic = sorted((set(GRAHAS) | set(NODES)) - _benefics(bodies) - {fourth_lord})
+    touched = _touched_by(bodies, fourth_lord, malefic)
+    fallen = bodies[fourth_lord]["sign_index"] == DEBILITATION_SIGN.get(fourth_lord)
+    if touched or fallen:
+        return [_yoga("bandhu_bhisthyaktha",
+                      {"body": fourth_lord, "planets": touched,
+                       "variant": "fallen" if fallen and not touched else "afflicted"})]
+    return []
+
+
+def _maathru_naasa_yoga(bodies: dict) -> list[dict]:
+    """The Moon hemmed in by, joined to, or aspected by malefics (Raman 198)."""
+    malefic = sorted((set(GRAHAS) | set(NODES)) - _benefics(bodies) - {"Moon"})
+    moon_sign = bodies["Moon"]["sign_index"]
+    hemmed = (
+        any(bodies[g]["sign_index"] == (moon_sign + 1) % 12 for g in malefic)
+        and any(bodies[g]["sign_index"] == (moon_sign - 1) % 12 for g in malefic)
+    )
+    touched = _touched_by(bodies, "Moon", malefic)
+    if hemmed or touched:
+        return [_yoga("maathru_naasa",
+                      {"planets": touched, "variant": "hemmed" if hemmed else "afflicted"})]
+    return []
+
+
+def _nishkapata_yoga(bodies: dict) -> list[dict]:
+    """A clean 4th house -- a benefic in it, or a graha there in dignity (Raman 205)."""
+    fourth_sign = _sign_of_house(4, bodies["Ascendant"]["sign_index"])
+    benefic = _benefics(bodies)
+    occupants = _occupants(bodies, fourth_sign)
+    good = [g for g in occupants
+            if g in benefic
+            or fourth_sign in OWN_SIGNS.get(g, set())
+            or fourth_sign == EXALTATION_SIGN.get(g)]
+    # "or the 4th house must be a benefic sign" -- an empty 4th owned by a
+    # natural benefic satisfies the combination on its own.
+    if good or SIGN_LORDS[fourth_sign] in _natural_benefics():
+        return [_yoga("nishkapata", {"planets": good})]
+    return []
+
+
+def _maathru_sneha_yoga(bodies: dict) -> list[dict]:
+    """The 1st and 4th lords the same graha, or friends to each other."""
+    first, fourth = _lord_of(bodies, 1), _lord_of(bodies, 4)
+    if first == fourth:
+        return [_yoga("maathru_sneha", {"body": first, "variant": "same"})]
+    if fourth in PLANET_FRIENDS[first] and first in PLANET_FRIENDS[fourth]:
+        return [_yoga("maathru_sneha",
+                      {"body": first, "planets": [fourth], "variant": "friends"})]
+    return []
+
+
+def _aputhra_yoga(bodies: dict) -> list[dict]:
+    """The 5th lord -- children -- in a dusthana (Raman 224)."""
+    fifth_lord = _lord_of(bodies, 5)
+    house = _house_of_body(bodies, fifth_lord)
+    if house in DUSTHANAS:
+        return [_yoga("aputhra", {"body": fifth_lord, "house": house})]
+    return []
+
+
+def _puthranaasa_yoga(bodies: dict) -> list[dict]:
+    """Malefics in the 5th from Jupiter and from the Ascendant (Raman 230)."""
+    malefic = sorted((set(GRAHAS) | set(NODES)) - _benefics(bodies))
+    from_jupiter = _sign_of_house(5, bodies["Jupiter"]["sign_index"])
+    from_lagna = _sign_of_house(5, bodies["Ascendant"]["sign_index"])
+
+    def hit(sign):
+        return sorted(set(_occupants(bodies, sign)) & set(malefic)
+                      | set(_aspected_by(bodies, sign, malefic)))
+
+    a, b = hit(from_jupiter), hit(from_lagna)
+    if a and b:
+        return [_yoga("puthranaasa", {"planets": sorted(set(a) | set(b))})]
+    return []
+
+
+def _sathkalatra_yoga(bodies: dict) -> list[dict]:
+    """The 7th lord or Venus met by Jupiter or Mercury (Raman 239)."""
+    seventh_lord = _lord_of(bodies, 7)
+    for graha in dict.fromkeys((seventh_lord, "Venus")):
+        touched = _touched_by(bodies, graha, ["Jupiter", "Mercury"])
+        if touched:
+            return [_yoga("sathkalatra", {"body": graha, "planets": touched})]
+    return []
+
+
+def _khalwata_yoga(bodies: dict) -> list[dict]:
+    """A Sagittarius or Taurus Ascendant under malefic aspect (Raman 295)."""
+    asc_sign = bodies["Ascendant"]["sign_index"]
+    if asc_sign not in (8, 1):  # Sagittarius, Taurus
+        return []
+    malefic = sorted((set(GRAHAS) | set(NODES)) - _benefics(bodies))
+    seen = _aspected_by(bodies, asc_sign, malefic)
+    return [_yoga("khalwata", {"planets": seen})] if seen else []
+
+
 YOGA_CHECKS = (
     _solar_yogas, _lunar_yogas, _mahapurusha, _conjunction_yogas, _kartari_yogas,
     _amala_yoga, _adhi_yoga, _sankhya_yoga, _vipareeta_yogas, _raja_yogas,
     _dhana_yogas, _saraswati_yoga, _parvata_yoga, _shakata_yoga, _debilitation_yogas,
+    # Raman's catalogue, which the reference almanacs follow.
+    _vasumathi_yoga, _vanchana_chora_bheethi_yoga, _daridra_yogas, _sada_sanchara_yoga,
+    _sraddhannabhuktha_yoga, _bhratruvriddhi_yoga, _bandhu_pujya_yoga,
+    _bandhu_bhisthyaktha_yoga, _maathru_naasa_yoga, _nishkapata_yoga,
+    _maathru_sneha_yoga, _aputhra_yoga, _puthranaasa_yoga, _sathkalatra_yoga,
+    _khalwata_yoga, _asubha_yoga,
 )
 
 
