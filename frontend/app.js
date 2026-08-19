@@ -575,12 +575,47 @@ const AUTOCOMPLETE_DELAY_MS = 650;
 const MIN_QUERY_LENGTH = 3;
 const placeCache = new Map();
 
+// Nominatim rate-limits per IP. Routing every visitor's lookup through our
+// own server puts them all behind one address, and on a shared host that
+// address is already spent by other tenants: the deployed API returned
+// HTTP 429 for a search that worked fine from a laptop against the same
+// code. Asking from the browser spends the visitor's own quota instead,
+// which is what the usage policy expects of a UI doing one lookup per
+// deliberate search. The server route stays as a fallback for networks or
+// extensions that block the direct call.
+const NOMINATIM_URL = "https://nominatim.openstreetmap.org/search";
+
+async function lookupDirect(query) {
+  const params = new URLSearchParams({ q: query, format: "jsonv2", limit: "5" });
+  const resp = await fetch(`${NOMINATIM_URL}?${params}`, {
+    headers: { Accept: "application/json" },
+  });
+  if (!resp.ok) throw new Error(String(resp.status));
+  return (await resp.json()).map((r) => ({
+    display_name: r.display_name,
+    latitude: parseFloat(r.lat),
+    longitude: parseFloat(r.lon),
+  }));
+}
+
+async function lookupViaServer(query) {
+  const resp = await fetch(`${API_BASE}/geocode/search?q=${encodeURIComponent(query)}`);
+  if (!resp.ok) throw new Error(t("err_lookup_failed").replace("{status}", resp.status));
+  return resp.json();
+}
+
 async function lookupPlaces(query) {
   const key = query.toLowerCase();
   if (placeCache.has(key)) return placeCache.get(key);
-  const resp = await fetch(`${API_BASE}/geocode/search?q=${encodeURIComponent(query)}`);
-  if (!resp.ok) throw new Error(t("err_lookup_failed").replace("{status}", resp.status));
-  const places = await resp.json();
+
+  let places;
+  try {
+    places = await lookupDirect(query);
+  } catch (directError) {
+    // If both paths fail the error worth showing is the fallback's, since
+    // that one came through our own API and its status means something.
+    places = await lookupViaServer(query);
+  }
   placeCache.set(key, places);
   return places;
 }

@@ -27,12 +27,33 @@ NOMINATIM_SEARCH_URL = "https://nominatim.openstreetmap.org/search"
 USER_AGENT = "GrahikaApp/0.1 (contact: suryafacts@gmail.com)"
 
 
+# This route is the fallback now: the browser asks Nominatim directly, so
+# each visitor spends their own rate limit instead of pooling into this
+# server's single outbound address. That pooling is what broke place search
+# in production -- on a shared host the address is already spent by other
+# tenants, and Nominatim answered 429 to a query that succeeded from a
+# laptop against identical code.
+#
+# Caching matters more here than it used to. Requests reaching this path are
+# the ones a browser could not make, so they are rarer and more costly to
+# lose; serving a repeat from memory keeps the one shared address further
+# from the limit. The cache lives for the process, which on a host that
+# sleeps when idle is a few hours at most.
+_CACHE_LIMIT = 512
+_cache: dict[str, list[dict]] = {}
+
+
 def search_places(query: str, limit: int = 5) -> list[dict]:
+    key = f"{query.strip().lower()}|{limit}"
+    if key in _cache:
+        return _cache[key]
+
     params = urllib.parse.urlencode({"q": query, "format": "jsonv2", "limit": limit})
     req = urllib.request.Request(f"{NOMINATIM_SEARCH_URL}?{params}", headers={"User-Agent": USER_AGENT})
     with urllib.request.urlopen(req, timeout=8) as resp:
         results = json.loads(resp.read().decode())
-    return [
+
+    places = [
         {
             "display_name": r["display_name"],
             "latitude": float(r["lat"]),
@@ -40,6 +61,13 @@ def search_places(query: str, limit: int = 5) -> list[dict]:
         }
         for r in results
     ]
+
+    # Plain FIFO eviction rather than a true LRU: the working set is one
+    # session's searches, and the oldest inserted key is old enough.
+    if len(_cache) >= _CACHE_LIMIT:
+        del _cache[next(iter(_cache))]
+    _cache[key] = places
+    return places
 
 
 def timezone_name_for(lat: float, lon: float) -> str:
