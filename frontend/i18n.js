@@ -675,12 +675,12 @@ const MONTHS_SHORT = {
 const VARGA_ALL = ["D1","D2","D3","D4","D5","D6","D7","D8","D9","D10","D11","D12",
                    "D16","D20","D24","D27","D30","D40","D45","D60","D81","D108","D144"];
 const VARGA_LABELS = {
-  D1:"Rasi", D2:"Hora", D3:"Drekkana", D4:"Chaturthamsa", D5:"Panchamsa",
-  D6:"Shashtamsa", D7:"Saptamsa", D8:"Ashtamsa", D9:"Navamsa", D10:"Dasamsa",
-  D11:"Rudramsa", D12:"Dwadasamsa", D16:"Shodasamsa", D20:"Vimsamsa",
-  D24:"Chaturvimsamsa", D27:"Nakshatramsa", D30:"Trimsamsa", D40:"Khavedamsa",
-  D45:"Akshavedamsa", D60:"Shashtiamsa", D81:"Nava-Navamsa",
-  D108:"Ashtottaramsa", D144:"Dwadas-Dwadasamsa",
+  D1:"Rasi", D2:"Hora", D3:"Drekkan", D4:"Chaturth", D5:"Pancham",
+  D6:"Shashtam", D7:"Saptams", D8:"Ashtams", D9:"Navamsa", D10:"Dasamsa",
+  D11:"Rudrams", D12:"Dwadasm", D16:"Shodasm", D20:"Vimshms",
+  D24:"ChtrVim", D27:"Nkshtra", D30:"Trimshm", D40:"Khvedms",
+  D45:"Akshvdm", D60:"Shstams", D81:"NvNavms", D108:"Ashttrm",
+  D144:"DwdsDwd",
 };
 
 let currentLang = localStorage.getItem("grahika_lang") || "en";
